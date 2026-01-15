@@ -1,22 +1,22 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { MOCK_PROCESSOS } from './constants.ts';
-import { StatsCard } from './components/StatsCard.tsx';
-import { ProcessTable } from './components/ProcessTable.tsx';
-import { LegalCharts } from './components/LegalCharts.tsx';
-import { AIAssistant } from './components/AIAssistant.tsx';
-import { NotificationPanel } from './components/NotificationPanel.tsx';
-import { SpreadsheetTab } from './components/SpreadsheetTab.tsx';
-import { UserManagementTab } from './components/UserManagementTab.tsx';
-import { Login } from './components/Login.tsx';
-import { Processo, User, UserRole } from './types.ts';
+import { MOCK_PROCESSOS } from './constants';
+import { StatsCard } from './components/StatsCard';
+import { ProcessTable } from './components/ProcessTable';
+import { LegalCharts } from './components/LegalCharts';
+import { AIAssistant } from './components/AIAssistant';
+import { NotificationPanel } from './components/NotificationPanel';
+import { SpreadsheetTab } from './components/SpreadsheetTab';
+import { UserManagementTab } from './components/UserManagementTab';
+import { Login } from './components/Login';
+import { Processo, User, UserRole } from './types';
 
 type TabId = 'dashboard' | 'processos' | 'planilha' | 'equipe';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
-  // Inicialização segura dos dados
+  // Inicialização segura com proteção contra erros de JSON
   const [processos, setProcessos] = useState<Processo[]>(() => {
     try {
       const saved = localStorage.getItem('adv_processos');
@@ -25,7 +25,7 @@ const App: React.FC = () => {
         return Array.isArray(parsed) && parsed.length > 0 ? parsed : MOCK_PROCESSOS;
       }
     } catch (e) {
-      console.error("Erro ao carregar processos do storage:", e);
+      console.warn("Usando dados padrão devido a erro no storage.");
     }
     return MOCK_PROCESSOS;
   });
@@ -34,38 +34,24 @@ const App: React.FC = () => {
     try {
       const saved = localStorage.getItem('adv_users');
       if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error("Erro ao carregar usuários do storage:", e);
-    }
+    } catch (e) {}
     return [{ id: '1', nome: 'Jonas Inácio', email: 'jonas@advocacia.com', role: 'gestor', dataCriacao: '2024-01-01' }];
   });
 
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [role, setRole] = useState<UserRole>('gestor'); 
 
-  // Sincronização automática
   useEffect(() => {
     try {
       localStorage.setItem('adv_processos', JSON.stringify(processos));
-    } catch (e) {
-      console.error("Erro ao salvar processos:", e);
-    }
+    } catch (e) {}
   }, [processos]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('adv_users', JSON.stringify(users));
-    } catch (e) {
-      console.error("Erro ao salvar usuários:", e);
-    }
-  }, [users]);
 
   const stats = useMemo(() => {
     const total = processos.length;
     const periciasRealizadas = processos.filter(p => p.periciaRealizada).length;
     const favoraveis = processos.filter(p => p.resultadoJulgamento === 'Favorável').length;
     const valorTotalPrevisto = processos.reduce((acc, p) => acc + (p.valorPrevisto || 0), 0);
-
     return { total, periciasRealizadas, favoraveis, valorTotalPrevisto };
   }, [processos]);
 
@@ -73,7 +59,7 @@ const App: React.FC = () => {
     if (email && pass.length >= 4) {
       setIsAuthenticated(true);
     } else {
-      alert("Por favor, insira um e-mail válido e uma senha com pelo menos 4 dígitos.");
+      alert("Credenciais inválidas.");
     }
   };
 
@@ -89,28 +75,22 @@ const App: React.FC = () => {
     setUsers(prev => [...prev, newUser]);
   };
 
-  const formatBRL = (val: number) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
   if (!isAuthenticated) {
     return <Login onLogin={handleLogin} />;
   }
 
   return (
-    <div className="min-h-screen bg-[#fcfcfc] flex flex-col font-sans animate-in fade-in duration-500">
-      <header className="bg-[#001529] text-white sticky top-0 z-40 shadow-xl">
-        <div className="max-w-[1600px] mx-auto px-6 h-24 flex items-center justify-between">
+    <div className="min-h-screen bg-[#fcfcfc] flex flex-col animate-fade-in">
+      <header className="bg-[#001529] text-white sticky top-0 z-40 shadow-xl h-24 flex items-center">
+        <div className="max-w-[1600px] mx-auto px-6 w-full flex items-center justify-between">
           <div className="flex items-center gap-10">
-            <div className="flex flex-col items-center cursor-pointer group" onClick={() => setActiveTab('dashboard')}>
-              <div className="relative mb-1">
-                <svg width="40" height="40" viewBox="0 0 100 100" className="text-white fill-current transform group-hover:scale-110 transition-transform">
-                  <path d="M65,35 C65,35 70,30 72,25 C74,20 70,18 68,22 C66,26 60,35 60,35 M55,38 C40,55 35,65 35,75 C35,85 45,90 55,80 C65,70 75,50 75,45 C75,40 70,38 65,42 C60,46 50,65 48,75" fill="none" stroke="white" strokeWidth="5" strokeLinecap="round" />
-                </svg>
-              </div>
-              <div className="text-base font-serif tracking-[0.2em] text-white font-medium uppercase">JONAS INÁCIO</div>
+            <div className="flex flex-col items-center cursor-pointer" onClick={() => setActiveTab('dashboard')}>
+              <h1 className="text-xl font-serif tracking-widest text-white uppercase font-bold">JONAS INÁCIO</h1>
+              <p className="text-[8px] tracking-[0.4em] text-white/40 uppercase">Advocacia Especializada</p>
             </div>
             
-            <nav className="flex items-center gap-2">
-              <button onClick={() => setActiveTab('dashboard')} className={`px-4 py-2 text-[10px] font-black tracking-widest transition-all border-b-2 ${activeTab === 'dashboard' ? 'border-white text-white' : 'border-transparent text-white/40 hover:text-white/70'}`}>INÍCIO</button>
+            <nav className="flex items-center gap-4">
+              <button onClick={() => setActiveTab('dashboard')} className={`px-4 py-2 text-[10px] font-black tracking-widest transition-all border-b-2 ${activeTab === 'dashboard' ? 'border-white text-white' : 'border-transparent text-white/40 hover:text-white/70'}`}>DASHBOARD</button>
               <button onClick={() => setActiveTab('processos')} className={`px-4 py-2 text-[10px] font-black tracking-widest transition-all border-b-2 ${activeTab === 'processos' ? 'border-white text-white' : 'border-transparent text-white/40 hover:text-white/70'}`}>CARTEIRA</button>
               {role === 'gestor' && (
                 <>
@@ -122,16 +102,11 @@ const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-6">
-            <div className="hidden sm:flex flex-col items-end">
-               <div className="flex bg-white/5 rounded-full p-1 border border-white/10">
-                 <button onClick={() => {setRole('usuario'); setActiveTab('dashboard');}} className={`px-3 py-1 text-[8px] font-black rounded-full transition-all ${role === 'usuario' ? 'bg-white text-[#001529]' : 'text-white/40'}`}>OPERACIONAL</button>
-                 <button onClick={() => setRole('gestor')} className={`px-3 py-1 text-[8px] font-black rounded-full transition-all ${role === 'gestor' ? 'bg-white text-[#001529]' : 'text-white/40'}`}>GESTÃO</button>
-               </div>
+            <div className="flex bg-white/5 rounded-full p-1 border border-white/10">
+              <button onClick={() => setRole('usuario')} className={`px-3 py-1 text-[8px] font-black rounded-full transition-all ${role === 'usuario' ? 'bg-white text-[#001529]' : 'text-white/40'}`}>OPERACIONAL</button>
+              <button onClick={() => setRole('gestor')} className={`px-3 py-1 text-[8px] font-black rounded-full transition-all ${role === 'gestor' ? 'bg-white text-[#001529]' : 'text-white/40'}`}>GESTÃO</button>
             </div>
-            <button 
-              onClick={() => { if(confirm("Deseja sair?")) setIsAuthenticated(false); }} 
-              className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center font-serif text-sm border border-white/20 hover:bg-red-500 transition-all"
-            >JI</button>
+            <button onClick={() => setIsAuthenticated(false)} className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center font-serif text-sm border border-white/20 hover:bg-red-500 transition-all">JI</button>
           </div>
         </div>
       </header>
@@ -141,12 +116,12 @@ const App: React.FC = () => {
           <div className="lg:col-span-3 space-y-10">
             {activeTab === 'dashboard' && (
               <>
-                <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-                  <StatsCard title="Perícias Realizadas" value={`${stats.periciasRealizadas} / ${stats.total}`} icon={<svg className="w-5 h-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>} colorClass="bg-blue-50" />
-                  <StatsCard title="Taxa de Êxito" value={`${Math.round((stats.favoraveis / (stats.total || 1)) * 100)}%`} icon={<svg className="w-5 h-5 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} colorClass="bg-emerald-50" />
-                  <StatsCard title="Expectativa RPV" value={formatBRL(stats.valorTotalPrevisto)} icon={<svg className="w-5 h-5 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2" /></svg>} colorClass="bg-indigo-50" />
-                  <StatsCard title="Processos Ativos" value={processos.filter(p => p.status !== 'Finalizado').length} icon={<svg className="w-5 h-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16" /></svg>} colorClass="bg-slate-50" />
-                </section>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+                  <StatsCard title="Perícias Realizadas" value={`${stats.periciasRealizadas} / ${stats.total}`} icon="📅" colorClass="bg-blue-50" />
+                  <StatsCard title="Expectativa RPV" value={(stats.valorTotalPrevisto).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} icon="💰" colorClass="bg-indigo-50" />
+                  <StatsCard title="Processos Ativos" value={processos.length} icon="📂" colorClass="bg-slate-50" />
+                  <StatsCard title="Taxa de Êxito" value={`${Math.round((stats.favoraveis / (stats.total || 1)) * 100)}%`} icon="⭐" colorClass="bg-emerald-50" />
+                </div>
                 <NotificationPanel processos={processos} />
                 <LegalCharts processos={processos} />
               </>

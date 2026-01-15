@@ -1,24 +1,23 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.tsx';
+import App from './App';
 
-console.log("LegalDash: Iniciando montagem do sistema...");
+const mountApp = () => {
+  const rootElement = document.getElementById('root');
+  if (!rootElement) return;
 
-const rootElement = document.getElementById('root');
-if (!rootElement) {
-  console.error("LegalDash Error: Elemento #root não encontrado no HTML.");
-  throw new Error("Could not find root element to mount to");
-}
+  try {
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>
+    );
+  } catch (error) {
+    console.error("Erro crítico na renderização:", error);
+    rootElement.innerHTML = `<div style="padding: 20px; color: red;">Erro ao carregar o dashboard. Por favor, recarregue a página.</div>`;
+  }
+};
 
-try {
-  const root = ReactDOM.createRoot(rootElement);
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
-  console.log("LegalDash: Sistema montado com sucesso.");
-} catch (error) {
-  console.error("LegalDash Critical Error:", error);
-}
+mountApp();
