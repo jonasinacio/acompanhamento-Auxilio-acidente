@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Processo, ProcessStatus, ResultadoJulgamento } from '../types';
 
 interface SpreadsheetTabProps {
@@ -8,9 +8,18 @@ interface SpreadsheetTabProps {
   onAdd: (newProcesso: Processo) => void;
 }
 
+interface FormErrors {
+  cliente?: string;
+  numero?: string;
+  dataPericia?: string;
+  tipoSequela?: string;
+  valorPrevisto?: string;
+}
+
 export const SpreadsheetTab: React.FC<SpreadsheetTabProps> = ({ processos, onUpdate, onAdd }) => {
   const [showForm, setShowForm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [formData, setFormData] = useState({
     cliente: '',
     numero: '',
@@ -18,6 +27,66 @@ export const SpreadsheetTab: React.FC<SpreadsheetTabProps> = ({ processos, onUpd
     tipoSequela: '',
     valorPrevisto: 0
   });
+
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const validate = (name: string, value: any): string => {
+    switch (name) {
+      case 'cliente':
+        if (!value) return 'Nome do cliente é obrigatório';
+        if (value.length < 3) return 'Nome muito curto';
+        return '';
+      case 'numero':
+        if (!value) return 'Número do processo é obrigatório';
+        if (!/^\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}$/.test(value) && value !== 'N/A') 
+          return 'Formato inválido (0000000-00.0000.0.00.0000)';
+        return '';
+      case 'dataPericia':
+        if (!value) return 'Data da perícia é obrigatória';
+        const selectedDate = new Date(value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (selectedDate < today) return 'Data não pode ser no passado';
+        return '';
+      case 'tipoSequela':
+        if (!value) return 'Tipo de sequela é obrigatório';
+        return '';
+      case 'valorPrevisto':
+        if (value <= 0) return 'Valor deve ser maior que zero';
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const val = name === 'valorPrevisto' ? parseFloat(value) || 0 : value;
+    
+    setFormData(prev => ({ ...prev, [name]: val }));
+    
+    if (touched[name]) {
+      setErrors(prev => ({ ...prev, [name]: validate(name, val) }));
+    }
+  };
+
+  const handleBlur = (name: string) => {
+    setTouched(prev => ({ ...prev, [name]: true }));
+    setErrors(prev => ({ ...prev, [name]: validate(name, (formData as any)[name]) }));
+  };
+
+  const isFormValid = () => {
+    const newErrors: FormErrors = {
+      cliente: validate('cliente', formData.cliente),
+      numero: validate('numero', formData.numero),
+      dataPericia: validate('dataPericia', formData.dataPericia),
+      tipoSequela: validate('tipoSequela', formData.tipoSequela),
+      valorPrevisto: validate('valorPrevisto', formData.valorPrevisto),
+    };
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(err => err !== '');
+  };
 
   const handleCellChange = (id: string, field: keyof Processo, value: any) => {
     const process = processos.find(p => p.id === id);
@@ -35,10 +104,22 @@ export const SpreadsheetTab: React.FC<SpreadsheetTabProps> = ({ processos, onUpd
 
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isFormValid()) {
+      setTouched({
+        cliente: true,
+        numero: true,
+        dataPericia: true,
+        tipoSequela: true,
+        valorPrevisto: true
+      });
+      return;
+    }
+
     const newProcess: Processo = {
       id: Math.random().toString(36).substr(2, 9),
       cliente: formData.cliente,
-      numero: formData.numero || 'N/A',
+      numero: formData.numero,
       dataInicio: new Date().toISOString().split('T')[0],
       ultimaMovimentacao: new Date().toISOString().split('T')[0],
       status: 'Perícia',
@@ -55,10 +136,11 @@ export const SpreadsheetTab: React.FC<SpreadsheetTabProps> = ({ processos, onUpd
     onAdd(newProcess);
     setShowForm(false);
     setFormData({ cliente: '', numero: '', dataPericia: '', tipoSequela: '', valorPrevisto: 0 });
+    setErrors({});
+    setTouched({});
     alert(`Perícia agendada para ${formData.cliente}. Alerta enviado ao cliente com sucesso!`);
   };
 
-  // Funcionalidade de Exportação
   const exportToCSV = () => {
     const headers = ['ID', 'Cliente', 'Numero', 'Data Inicio', 'Status', 'Tipo Sequela', 'Valor Previsto', 'Valor RPV', 'Data Pericia', 'Pericia Realizada', 'Resultado'];
     const rows = processos.map(p => [
@@ -90,7 +172,6 @@ export const SpreadsheetTab: React.FC<SpreadsheetTabProps> = ({ processos, onUpd
     document.body.removeChild(link);
   };
 
-  // Funcionalidade de Importação
   const handleImportClick = () => {
     fileInputRef.current?.click();
   };
@@ -103,7 +184,6 @@ export const SpreadsheetTab: React.FC<SpreadsheetTabProps> = ({ processos, onUpd
     reader.onload = (event) => {
       const text = event.target?.result as string;
       const lines = text.split('\n');
-      // Pular cabeçalho
       const dataLines = lines.slice(1);
       
       let importCount = 0;
@@ -112,7 +192,6 @@ export const SpreadsheetTab: React.FC<SpreadsheetTabProps> = ({ processos, onUpd
         const columns = line.split(';');
         if (columns.length < 5) return;
 
-        // Tentar mapear colunas para o objeto Processo
         const newProcess: Processo = {
           id: columns[0] || Math.random().toString(36).substr(2, 9),
           cliente: columns[1],
@@ -139,6 +218,36 @@ export const SpreadsheetTab: React.FC<SpreadsheetTabProps> = ({ processos, onUpd
       if (fileInputRef.current) fileInputRef.current.value = '';
     };
     reader.readAsText(file);
+  };
+
+  const renderField = (label: string, name: string, type: string, placeholder?: string) => {
+    const hasError = touched[name] && !!errors[name as keyof FormErrors];
+    return (
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-bold text-gray-500 uppercase flex justify-between">
+          {label}
+          {touched[name] && !errors[name as keyof FormErrors] && formData[name as keyof typeof formData] !== '' && (
+            <span className="text-emerald-500">✓</span>
+          )}
+        </label>
+        <input 
+          name={name}
+          type={type} 
+          value={(formData as any)[name]} 
+          onChange={handleInputChange}
+          onBlur={() => handleBlur(name)}
+          className={`px-3 py-2 text-xs border rounded-lg outline-none transition-all ${
+            hasError ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:ring-2 focus:ring-indigo-500'
+          }`}
+          placeholder={placeholder} 
+        />
+        {hasError && (
+          <span className="text-[9px] font-bold text-red-500 uppercase mt-0.5 animate-in fade-in slide-in-from-top-1">
+            {errors[name as keyof FormErrors]}
+          </span>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -172,36 +281,44 @@ export const SpreadsheetTab: React.FC<SpreadsheetTabProps> = ({ processos, onUpd
               Exportar
             </button>
              <button 
-              onClick={() => setShowForm(!showForm)}
-              className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white bg-[#001529] rounded-xl hover:bg-[#002545] shadow-lg shadow-indigo-100 transition-all"
+              onClick={() => { setShowForm(!showForm); setErrors({}); setTouched({}); }}
+              className={`flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white rounded-xl transition-all shadow-lg ${
+                showForm ? 'bg-red-500 hover:bg-red-600' : 'bg-[#001529] hover:bg-[#002545]'
+              }`}
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-              Nova Perícia
+              {showForm ? (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  Cancelar
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                  Nova Perícia
+                </>
+              )}
             </button>
           </div>
         </div>
 
         {showForm && (
-          <div className="p-6 bg-indigo-50/50 border-b border-indigo-100">
-            <form onSubmit={handleAddSubmit} className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-gray-500 uppercase">Cliente</label>
-                <input required type="text" value={formData.cliente} onChange={e => setFormData({...formData, cliente: e.target.value})} className="px-3 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Nome completo" />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-gray-500 uppercase">Data da Perícia</label>
-                <input required type="date" value={formData.dataPericia} onChange={e => setFormData({...formData, dataPericia: e.target.value})} className="px-3 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-gray-500 uppercase">Tipo de Sequela</label>
-                <input required type="text" value={formData.tipoSequela} onChange={e => setFormData({...formData, tipoSequela: e.target.value})} className="px-3 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ex: Membro Superior" />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-gray-500 uppercase">Valor Previsto (R$)</label>
-                <input required type="number" value={formData.valorPrevisto} onChange={e => setFormData({...formData, valorPrevisto: parseFloat(e.target.value)})} className="px-3 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
-              </div>
+          <div className="p-6 bg-indigo-50/50 border-b border-indigo-100 animate-in slide-in-from-top-4 duration-300">
+            <form onSubmit={handleAddSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+              {renderField('Cliente', 'cliente', 'text', 'Nome completo')}
+              {renderField('Nº Processo', 'numero', 'text', '0000000-00.0000.0.00.0000')}
+              {renderField('Data Perícia', 'dataPericia', 'date')}
+              {renderField('Tipo de Sequela', 'tipoSequela', 'text', 'Ex: Membro Superior')}
+              {renderField('Valor Previsto (R$)', 'valorPrevisto', 'number')}
+              
               <div className="flex items-end">
-                <button type="submit" className="w-full py-2 bg-emerald-600 text-white text-[10px] font-black rounded-lg hover:bg-emerald-700 transition-all uppercase tracking-widest">Salvar e Notificar</button>
+                <button 
+                  type="submit" 
+                  className={`w-full py-2.5 text-white text-[10px] font-black rounded-lg transition-all uppercase tracking-widest shadow-md ${
+                    isFormValid() ? 'bg-emerald-600 hover:bg-emerald-700 hover:scale-[1.02]' : 'bg-gray-400 cursor-not-allowed opacity-50'
+                  }`}
+                >
+                  Salvar e Notificar
+                </button>
               </div>
             </form>
           </div>
