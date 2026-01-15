@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Processo, ProcessStatus, ResultadoJulgamento } from '../types';
 import { STATUS_COLORS } from '../constants';
+import * as XLSX from 'xlsx';
 
 interface ProcessTableProps {
   processos: Processo[];
@@ -26,33 +27,31 @@ export const ProcessTable: React.FC<ProcessTableProps> = ({ processos, onAdd }) 
     return new Date(dateStr).toLocaleDateString('pt-BR');
   };
 
-  const parseCSVData = (text: string) => {
+  const processImportedData = (data: any[]) => {
     if (!onAdd) return 0;
-    const lines = text.split(/\r?\n/);
-    const dataLines = lines.slice(1);
-    
     let importCount = 0;
-    dataLines.forEach(line => {
-      if (!line.trim()) return;
-      const separator = line.includes(';') ? ';' : ',';
-      const columns = line.split(separator).map(col => col.replace(/^"(.*)"$/, '$1').trim());
+
+    data.forEach(row => {
+      // row pode ser um array (de strings/objetos) dependendo de como o parser foi chamado
+      // Assumindo que a primeira coluna é ID ou Cliente
+      const columns = Array.isArray(row) ? row : Object.values(row);
       
-      if (columns.length < 3) return;
+      if (columns.length < 2) return;
 
       const newProcess: Processo = {
-        id: columns[0] || Math.random().toString(36).substr(2, 9),
-        cliente: columns[1] || "Cliente Importado",
-        numero: columns[2] || 'N/A',
-        dataInicio: columns[3] || new Date().toISOString().split('T')[0],
+        id: String(columns[0] || Math.random().toString(36).substr(2, 9)),
+        cliente: String(columns[1] || "Cliente Importado"),
+        numero: String(columns[2] || 'N/A'),
+        dataInicio: String(columns[3] || new Date().toISOString().split('T')[0]),
         status: (columns[4] as ProcessStatus) || 'Inicial',
-        tipoSequela: columns[5] || 'Não informada',
-        valorPrevisto: parseFloat(columns[6]?.replace(',', '.')) || 0,
-        valorRPV: parseFloat(columns[7]?.replace(',', '.')) || 0,
-        dataPericia: columns[8] || undefined,
-        periciaRealizada: columns[9]?.toLowerCase().includes('sim'),
+        tipoSequela: String(columns[5] || 'Não informada'),
+        valorPrevisto: parseFloat(String(columns[6]).replace(',', '.')) || 0,
+        valorRPV: parseFloat(String(columns[7]).replace(',', '.')) || 0,
+        dataPericia: columns[8] ? String(columns[8]) : undefined,
+        periciaRealizada: String(columns[9]).toLowerCase().includes('sim'),
         resultadoJulgamento: (columns[10] as ResultadoJulgamento) || 'Pendente',
         ultimaMovimentacao: new Date().toISOString().split('T')[0],
-        valorCausa: (parseFloat(columns[6]?.replace(',', '.')) || 0) * 1.2,
+        valorCausa: (parseFloat(String(columns[6]).replace(',', '.')) || 0) * 1.2,
         probabilidade: 'Média',
         dataPrevista: new Date().toISOString().split('T')[0],
       };
@@ -60,59 +59,91 @@ export const ProcessTable: React.FC<ProcessTableProps> = ({ processos, onAdd }) 
       onAdd(newProcess);
       importCount++;
     });
+
     return importCount;
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+
+    reader.onload = (event) => {
+      const bstr = event.target?.result;
+      try {
+        if (isExcel) {
+          const workbook = XLSX.read(bstr, { type: 'binary' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          // Remove o cabeçalho se existir
+          const count = processImportedData(data.slice(1));
+          alert(`${count} processos importados de arquivo Excel.`);
+        } else {
+          const text = bstr as string;
+          const lines = text.split(/\r?\n/);
+          const data = lines.map(line => {
+            const separator = line.includes(';') ? ';' : ',';
+            return line.split(separator).map(col => col.replace(/^"(.*)"$/, '$1').trim());
+          });
+          const count = processImportedData(data.slice(1));
+          alert(`${count} processos importados de arquivo CSV.`);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao processar o arquivo. Verifique o formato.");
+      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    if (isExcel) {
+      reader.readAsBinaryString(file);
+    } else {
+      reader.readAsText(file);
+    }
   };
 
   const smartUrlTransform = (url: string) => {
     const trimmed = url.trim();
-    
-    // Google Sheets
     if (trimmed.includes('docs.google.com/spreadsheets')) {
       const sheetIdMatch = trimmed.match(/\/d\/([a-zA-Z0-9-_]+)/);
       const gidMatch = trimmed.match(/[#&]gid=([0-9]+)/);
       const gid = gidMatch ? gidMatch[1] : '0';
       return sheetIdMatch ? `https://docs.google.com/spreadsheets/d/${sheetIdMatch[1]}/export?format=csv&gid=${gid}` : trimmed;
     }
-    
-    // Dropbox
     if (trimmed.includes('dropbox.com')) {
       return trimmed.replace('?dl=0', '?dl=1').replace('www.dropbox.com', 'dl.dropboxusercontent.com');
     }
-
-    // Outros links diretos (CSV/OneDrive/Github etc)
     return trimmed;
   };
 
   const handleCloudImport = async () => {
     if (!cloudUrl.trim()) return;
-
     setIsLoadingCloud(true);
     try {
       const finalUrl = smartUrlTransform(cloudUrl);
       const response = await fetch(finalUrl);
-      
-      if (!response.ok) {
-        throw new Error(`Não foi possível acessar o arquivo (${response.status}). Verifique se o link está público.`);
-      }
+      if (!response.ok) throw new Error(`Erro ${response.status}`);
       
       const text = await response.text();
-      
-      // Validação básica se o retorno é HTML (erro comum em links privados)
-      if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
-        throw new Error("O link fornecido retornou uma página de login. O arquivo precisa ser público.");
-      }
-
-      const count = parseCSVData(text);
+      const lines = text.split(/\r?\n/);
+      const data = lines.map(line => {
+        const separator = line.includes(';') ? ';' : ',';
+        return line.split(separator).map(col => col.replace(/^"(.*)"$/, '$1').trim());
+      });
+      const count = processImportedData(data.slice(1));
       
       if (count > 0) {
         alert(`${count} processos sincronizados com sucesso!`);
         setShowCloudModal(false);
         setCloudUrl('');
       } else {
-        alert("O arquivo foi acessado, mas não encontramos dados no formato esperado.");
+        alert("O arquivo foi acessado, mas não encontramos dados válidos.");
       }
     } catch (error: any) {
-      alert(`Erro na sincronização: ${error.message}\n\nDica: Certifique-se de que o arquivo está compartilhado com 'Qualquer pessoa com o link'.`);
+      alert(`Erro na sincronização: ${error.message}`);
     } finally {
       setIsLoadingCloud(false);
     }
@@ -123,19 +154,17 @@ export const ProcessTable: React.FC<ProcessTableProps> = ({ processos, onAdd }) 
     const rows = processos.map(p => [
       p.id, p.cliente, p.numero, p.dataInicio, p.status, p.tipoSequela, p.valorPrevisto, p.valorRPV || 0, p.dataPericia || '', p.periciaRealizada ? 'Sim' : 'Não', p.resultadoJulgamento
     ]);
-
     const csvContent = [headers.join(';'), ...rows.map(row => row.join(';'))].join('\n');
     const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `carteira_processos_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `carteira_${new Date().toISOString().split('T')[0]}.csv`);
     link.click();
   };
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative">
-      {/* Universal Cloud Import Modal */}
       {showCloudModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-[32px] w-full max-w-lg shadow-2xl p-8 animate-in zoom-in-95 duration-200">
@@ -147,57 +176,25 @@ export const ProcessTable: React.FC<ProcessTableProps> = ({ processos, onAdd }) 
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-900">Sincronizar Nuvem</h3>
-                <p className="text-xs text-gray-500 font-medium">Conecte qualquer planilha online (Drive, Dropbox, OneDrive).</p>
+                <p className="text-xs text-gray-500 font-medium">Conecte planilhas online (CSV/Excel Público).</p>
               </div>
             </div>
-
             <div className="space-y-4">
               <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">URL da Planilha ou Link CSV</label>
-                <div className="relative">
-                  <input 
-                    type="text" 
-                    placeholder="Cole o link compartilhado aqui..."
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none transition-all pr-10"
-                    value={cloudUrl}
-                    onChange={(e) => setCloudUrl(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleCloudImport()}
-                  />
-                  {cloudUrl && (
-                    <div className="absolute right-3 top-2.5">
-                      {cloudUrl.includes('google.com') && <svg className="w-5 h-5 text-green-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" /></svg>}
-                      {cloudUrl.includes('dropbox.com') && <svg className="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M3 7.06L7 4 12 7.15l-4 3.06L3 7.06zM12 7.15L17 4l4 3.06-5 3.15 5 3.06-4 3.06L12 13.26l-4 3.06-4-3.06-5-3.15 5-3.06-5-3.06zM7 16.32l5 3.06 5-3.06-5-3.06-5 3.06z" /></svg>}
-                    </div>
-                  )}
-                </div>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Link da Planilha</label>
+                <input 
+                  type="text" 
+                  placeholder="Cole o link aqui..."
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                  value={cloudUrl}
+                  onChange={(e) => setCloudUrl(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCloudImport()}
+                />
               </div>
-
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <p className="text-[9px] font-black text-gray-400 uppercase mb-1">Google Sheets</p>
-                  <p className="text-[9px] text-gray-500 leading-tight">Link deve estar em "Qualquer pessoa com link pode ler".</p>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <p className="text-[9px] font-black text-gray-400 uppercase mb-1">Outras Nuvens</p>
-                  <p className="text-[9px] text-gray-500 leading-tight">Use links diretos de exportação ou arquivos CSV públicos.</p>
-                </div>
-              </div>
-
               <div className="flex gap-3 pt-4">
-                <button 
-                  onClick={() => setShowCloudModal(false)}
-                  className="flex-1 py-3 bg-gray-100 text-gray-500 text-[10px] font-black rounded-xl hover:bg-gray-200 uppercase tracking-widest transition-all"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  onClick={handleCloudImport}
-                  disabled={isLoadingCloud || !cloudUrl}
-                  className="flex-1 py-3 bg-blue-600 text-white text-[10px] font-black rounded-xl hover:bg-blue-700 uppercase tracking-widest transition-all shadow-lg shadow-blue-100 flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {isLoadingCloud ? (
-                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                  ) : "Sincronizar Dados"}
+                <button onClick={() => setShowCloudModal(false)} className="flex-1 py-3 bg-gray-100 text-gray-500 text-[10px] font-black rounded-xl hover:bg-gray-200 uppercase tracking-widest transition-all">Cancelar</button>
+                <button onClick={handleCloudImport} disabled={isLoadingCloud || !cloudUrl} className="flex-1 py-3 bg-blue-600 text-white text-[10px] font-black rounded-xl hover:bg-blue-700 uppercase tracking-widest transition-all shadow-lg shadow-blue-100 flex items-center justify-center gap-2 disabled:opacity-50">
+                  {isLoadingCloud ? <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> : "Sincronizar"}
                 </button>
               </div>
             </div>
@@ -209,55 +206,33 @@ export const ProcessTable: React.FC<ProcessTableProps> = ({ processos, onAdd }) 
         <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-[#0a192f] rounded-xl flex items-center justify-center shadow-lg">
-               <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-               </svg>
+               <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
             </div>
             <div>
               <div className="flex items-center gap-3">
                 <h2 className="text-xl font-bold text-gray-900">Gestão de Carteira</h2>
-                <span className="px-2.5 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-black rounded-full uppercase tracking-wider shadow-sm">
-                  {filtered.length} Processos
-                </span>
+                <span className="px-2.5 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-black rounded-full uppercase tracking-wider shadow-sm">{filtered.length} Processos</span>
               </div>
-              <p className="text-sm text-gray-500 font-medium">Dados unificados: Planilha Local + Nuvem Universal.</p>
+              <p className="text-sm text-gray-500 font-medium">Importe arquivos XLS, XLSX ou CSV.</p>
             </div>
           </div>
-          
           <div className="flex flex-wrap gap-2 w-full xl:w-auto justify-end">
-            <button 
-              onClick={() => setShowCloudModal(true)}
-              className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-100"
-            >
+            <button onClick={() => setShowCloudModal(true)} className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-100">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /></svg>
               Sincronizar Nuvem
             </button>
-            <button 
-              onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 transition-all flex items-center gap-2 shadow-sm"
-            >
+            <button onClick={() => fileInputRef.current?.click()} className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 transition-all flex items-center gap-2 shadow-sm">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-              Importar Local
+              Importar Local (.xls, .xlsx, .csv)
             </button>
-            <button 
-              onClick={exportToCSV}
-              className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 transition-all flex items-center gap-2 shadow-sm"
-            >
+            <button onClick={exportToCSV} className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 transition-all flex items-center gap-2 shadow-sm">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-              Exportar Carteira
+              Exportar
             </button>
-            <input type="file" ref={fileInputRef} onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => parseCSVData(ev.target?.result as string);
-                reader.readAsText(file);
-              }
-            }} accept=".csv" className="hidden" />
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".csv, .xls, .xlsx" className="hidden" />
           </div>
         </div>
       </div>
-
       <div className="overflow-x-auto">
         <table className="w-full text-left min-w-[1100px]">
           <thead className="bg-white border-b border-gray-100">
