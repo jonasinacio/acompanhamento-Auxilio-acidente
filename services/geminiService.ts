@@ -3,14 +3,15 @@ import { GoogleGenAI } from "@google/genai";
 import { Processo } from "../types";
 
 export const getLegalInsights = async (processos: Processo[], query: string): Promise<string> => {
-  // Acesso seguro à chave de API
-  const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : (window as any).API_KEY;
+  // Access API key exclusively from environment variables as per guidelines.
+  const apiKey = process.env.API_KEY;
   
   if (!apiKey) {
     console.warn("API Key não encontrada no ambiente.");
     return "A inteligência artificial não foi configurada corretamente (API Key ausente).";
   }
 
+  // Use a named parameter to initialize the GoogleGenAI client.
   const ai = new GoogleGenAI({ apiKey });
   
   const today = new Date().toISOString().split('T')[0];
@@ -31,10 +32,13 @@ export const getLegalInsights = async (processos: Processo[], query: string): Pr
   `;
 
   try {
+    // Call generateContent with both model name and prompt.
+    // Using gemini-3-flash-preview for general analytics and Q&A.
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: context,
     });
+    // Access the .text property directly (not as a method).
     return response.text || "Não foi possível gerar uma resposta clara no momento.";
   } catch (error) {
     console.error("Gemini AI Error:", error);
