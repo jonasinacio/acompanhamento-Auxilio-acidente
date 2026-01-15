@@ -27,32 +27,36 @@ export const ProcessTable: React.FC<ProcessTableProps> = ({ processos, onAdd }) 
   };
 
   const parseCSVData = (text: string) => {
-    if (!onAdd) return;
-    const lines = text.split('\n');
+    if (!onAdd) return 0;
+    const lines = text.split(/\r?\n/);
     const dataLines = lines.slice(1);
     
     let importCount = 0;
     dataLines.forEach(line => {
       if (!line.trim()) return;
-      // Trata separadores comuns (vírgula ou ponto e vírgula)
+      // Trata separadores comuns (vírgula ou ponto e vírgula) e handles quotes
       const separator = line.includes(';') ? ';' : ',';
-      const columns = line.split(separator);
+      
+      // Basic CSV splitting that handles simple cases. 
+      // For a production app with complex data, a library like PapaParse would be better.
+      const columns = line.split(separator).map(col => col.replace(/^"(.*)"$/, '$1').trim());
+      
       if (columns.length < 3) return;
 
       const newProcess: Processo = {
-        id: columns[0]?.trim() || Math.random().toString(36).substr(2, 9),
-        cliente: columns[1]?.trim() || "Cliente Importado",
-        numero: columns[2]?.trim() || 'N/A',
-        dataInicio: columns[3]?.trim() || new Date().toISOString().split('T')[0],
-        status: (columns[4]?.trim() as ProcessStatus) || 'Inicial',
-        tipoSequela: columns[5]?.trim() || 'Não informada',
+        id: columns[0] || Math.random().toString(36).substr(2, 9),
+        cliente: columns[1] || "Cliente Importado",
+        numero: columns[2] || 'N/A',
+        dataInicio: columns[3] || new Date().toISOString().split('T')[0],
+        status: (columns[4] as ProcessStatus) || 'Inicial',
+        tipoSequela: columns[5] || 'Não informada',
         valorPrevisto: parseFloat(columns[6]?.replace(',', '.')) || 0,
         valorRPV: parseFloat(columns[7]?.replace(',', '.')) || 0,
-        dataPericia: columns[8]?.trim() || undefined,
+        dataPericia: columns[8] || undefined,
         periciaRealizada: columns[9]?.toLowerCase().includes('sim'),
-        resultadoJulgamento: (columns[10]?.trim() as ResultadoJulgamento) || 'Pendente',
+        resultadoJulgamento: (columns[10] as ResultadoJulgamento) || 'Pendente',
         ultimaMovimentacao: new Date().toISOString().split('T')[0],
-        valorCausa: (parseFloat(columns[6]) || 0) * 1.2,
+        valorCausa: (parseFloat(columns[6]?.replace(',', '.')) || 0) * 1.2,
         probabilidade: 'Média',
         dataPrevista: new Date().toISOString().split('T')[0],
       };
@@ -64,28 +68,54 @@ export const ProcessTable: React.FC<ProcessTableProps> = ({ processos, onAdd }) 
   };
 
   const handleCloudImport = async () => {
-    if (!cloudUrl.includes('docs.google.com/spreadsheets')) {
+    const trimmedUrl = cloudUrl.trim();
+    if (!trimmedUrl.includes('docs.google.com/spreadsheets')) {
       alert("Por favor, insira um link válido do Google Sheets.");
       return;
     }
 
     setIsLoadingCloud(true);
     try {
-      // Converte o link de edição para link de exportação CSV
-      const sheetIdMatch = cloudUrl.match(/\/d\/(.*?)(\/|$)/);
-      if (!sheetIdMatch) throw new Error("ID da planilha não encontrado.");
+      // Robust regex to extract Spreadsheet ID
+      const sheetIdMatch = trimmedUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      if (!sheetIdMatch || !sheetIdMatch[1]) {
+        throw new Error("Não foi possível identificar o ID da planilha na URL fornecida.");
+      }
       
-      const exportUrl = `https://docs.google.com/spreadsheets/d/${sheetIdMatch[1]}/export?format=csv`;
+      const spreadsheetId = sheetIdMatch[1];
       
+      // Try to extract gid (specific tab) if present
+      const gidMatch = trimmedUrl.match(/[#&]gid=([0-9]+)/);
+      const gid = gidMatch ? gidMatch[1] : '0';
+      
+      const exportUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
+      
+      // Using a proxy or direct fetch depending on CORS settings. 
+      // Note: Google Sheets export links usually require the sheet to be public (Anyone with link).
       const response = await fetch(exportUrl);
-      if (!response.ok) throw new Error("Não foi possível acessar a planilha. Verifique se ela está compartilhada como 'Qualquer pessoa com o link'.");
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error("Planilha não encontrada. Verifique se o link está correto.");
+        }
+        throw new Error("Acesso negado. Certifique-se de que a planilha está compartilhada como 'Qualquer pessoa com o link'.");
+      }
       
       const csvText = await response.text();
+      
+      if (csvText.includes('<!DOCTYPE html>') || csvText.includes('login.google.com')) {
+        throw new Error("A planilha parece estar protegida ou não compartilhada publicamente.");
+      }
+
       const count = parseCSVData(csvText);
       
-      alert(`${count} processos sincronizados da nuvem com sucesso!`);
-      setShowCloudModal(false);
-      setCloudUrl('');
+      if (count > 0) {
+        alert(`${count} processos sincronizados da nuvem com sucesso!`);
+        setShowCloudModal(false);
+        setCloudUrl('');
+      } else {
+        alert("Nenhum dado válido foi encontrado para importação na planilha.");
+      }
     } catch (error: any) {
       alert(`Erro na importação: ${error.message}`);
     } finally {
@@ -141,12 +171,14 @@ export const ProcessTable: React.FC<ProcessTableProps> = ({ processos, onAdd }) 
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:ring-2 focus:ring-green-500 outline-none transition-all"
                   value={cloudUrl}
                   onChange={(e) => setCloudUrl(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCloudImport()}
                 />
               </div>
 
               <div className="flex gap-3 pt-4">
                 <button 
                   onClick={() => setShowCloudModal(false)}
+                  disabled={isLoadingCloud}
                   className="flex-1 py-3 bg-gray-100 text-gray-500 text-[10px] font-black rounded-xl hover:bg-gray-200 uppercase tracking-widest transition-all"
                 >
                   Cancelar
