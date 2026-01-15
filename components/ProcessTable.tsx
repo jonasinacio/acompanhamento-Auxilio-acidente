@@ -1,16 +1,18 @@
 
-import React, { useState } from 'react';
-import { Processo } from '../types';
+import React, { useState, useRef } from 'react';
+import { Processo, ProcessStatus, ResultadoJulgamento } from '../types';
 import { STATUS_COLORS } from '../constants';
 
 interface ProcessTableProps {
   processos: Processo[];
+  onAdd?: (newProcesso: Processo) => void;
 }
 
-export const ProcessTable: React.FC<ProcessTableProps> = ({ processos }) => {
+export const ProcessTable: React.FC<ProcessTableProps> = ({ processos, onAdd }) => {
   const [filter, setFilter] = useState('');
   const [dateFilterPericia, setDateFilterPericia] = useState('');
   const [dateFilterMovimentacao, setDateFilterMovimentacao] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = processos.filter(p => {
     const matchesSearch = p.cliente.toLowerCase().includes(filter.toLowerCase()) || 
@@ -25,6 +27,85 @@ export const ProcessTable: React.FC<ProcessTableProps> = ({ processos }) => {
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('pt-BR');
+  };
+
+  const exportToCSV = () => {
+    const headers = ['ID', 'Cliente', 'Numero', 'Data Inicio', 'Status', 'Tipo Sequela', 'Valor Previsto', 'Valor RPV', 'Data Pericia', 'Pericia Realizada', 'Resultado'];
+    const rows = processos.map(p => [
+      p.id,
+      p.cliente,
+      p.numero,
+      p.dataInicio,
+      p.status,
+      p.tipoSequela,
+      p.valorPrevisto,
+      p.valorRPV || 0,
+      p.dataPericia || '',
+      p.periciaRealizada ? 'Sim' : 'Não',
+      p.resultadoJulgamento
+    ]);
+
+    const csvContent = [
+      headers.join(';'),
+      ...rows.map(row => row.join(';'))
+    ].join('\n');
+
+    const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `carteira_processos_jonas_inacio_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const importFromCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !onAdd) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const lines = text.split('\n');
+      const dataLines = lines.slice(1);
+      
+      let importCount = 0;
+      dataLines.forEach(line => {
+        if (!line.trim()) return;
+        const columns = line.split(';');
+        if (columns.length < 5) return;
+
+        const newProcess: Processo = {
+          id: columns[0] || Math.random().toString(36).substr(2, 9),
+          cliente: columns[1],
+          numero: columns[2] || 'N/A',
+          dataInicio: columns[3] || new Date().toISOString().split('T')[0],
+          status: (columns[4] as ProcessStatus) || 'Inicial',
+          tipoSequela: columns[5] || 'Não informada',
+          valorPrevisto: parseFloat(columns[6]) || 0,
+          valorRPV: parseFloat(columns[7]) || 0,
+          dataPericia: columns[8] || undefined,
+          periciaRealizada: columns[9]?.toLowerCase().includes('sim'),
+          resultadoJulgamento: (columns[10] as ResultadoJulgamento) || 'Pendente',
+          ultimaMovimentacao: new Date().toISOString().split('T')[0],
+          valorCausa: (parseFloat(columns[6]) || 0) * 1.2,
+          probabilidade: 'Média',
+          dataPrevista: new Date().toISOString().split('T')[0],
+        };
+
+        onAdd(newProcess);
+        importCount++;
+      });
+
+      alert(`${importCount} processos importados com sucesso.`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+    reader.readAsText(file);
   };
 
   return (
@@ -48,8 +129,33 @@ export const ProcessTable: React.FC<ProcessTableProps> = ({ processos }) => {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full xl:w-auto">
-            <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col sm:flex-row gap-4 w-full xl:w-auto">
+             {/* Botões de Ação Planilha */}
+             <div className="flex items-end gap-2">
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={importFromCSV} 
+                  accept=".csv" 
+                  className="hidden" 
+                />
+                <button 
+                  onClick={handleImportClick}
+                  className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 transition-all flex items-center gap-2 shadow-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                  Importar
+                </button>
+                <button 
+                  onClick={exportToCSV}
+                  className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 transition-all flex items-center gap-2 shadow-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                  Exportar
+                </button>
+             </div>
+
+            <div className="flex flex-col gap-1.5 flex-1 min-w-[200px]">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Busca Geral</label>
               <div className="relative">
                 <input 
@@ -61,24 +167,6 @@ export const ProcessTable: React.FC<ProcessTableProps> = ({ processos }) => {
                 />
                 <svg className="absolute right-3 top-2.5 w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
               </div>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Data da Perícia</label>
-              <input 
-                type="date" 
-                className="px-4 py-2.5 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#0a192f] focus:outline-none w-full shadow-sm bg-white"
-                value={dateFilterPericia}
-                onChange={(e) => setDateFilterPericia(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Última Movimentação</label>
-              <input 
-                type="date" 
-                className="px-4 py-2.5 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#0a192f] focus:outline-none w-full shadow-sm bg-white"
-                value={dateFilterMovimentacao}
-                onChange={(e) => setDateFilterMovimentacao(e.target.value)}
-              />
             </div>
           </div>
         </div>

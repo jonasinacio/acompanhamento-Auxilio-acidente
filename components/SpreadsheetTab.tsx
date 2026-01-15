@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Processo, ProcessStatus, ResultadoJulgamento } from '../types';
 
 interface SpreadsheetTabProps {
@@ -18,7 +18,6 @@ interface FormErrors {
 
 export const SpreadsheetTab: React.FC<SpreadsheetTabProps> = ({ processos, onUpdate, onAdd }) => {
   const [showForm, setShowForm] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
     cliente: '',
@@ -141,85 +140,6 @@ export const SpreadsheetTab: React.FC<SpreadsheetTabProps> = ({ processos, onUpd
     alert(`Perícia agendada para ${formData.cliente}. Alerta enviado ao cliente com sucesso!`);
   };
 
-  const exportToCSV = () => {
-    const headers = ['ID', 'Cliente', 'Numero', 'Data Inicio', 'Status', 'Tipo Sequela', 'Valor Previsto', 'Valor RPV', 'Data Pericia', 'Pericia Realizada', 'Resultado'];
-    const rows = processos.map(p => [
-      p.id,
-      p.cliente,
-      p.numero,
-      p.dataInicio,
-      p.status,
-      p.tipoSequela,
-      p.valorPrevisto,
-      p.valorRPV || 0,
-      p.dataPericia || '',
-      p.periciaRealizada ? 'Sim' : 'Não',
-      p.resultadoJulgamento
-    ]);
-
-    const csvContent = [
-      headers.join(';'),
-      ...rows.map(row => row.join(';'))
-    ].join('\n');
-
-    const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `planilha_casos_jonas_inacio_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const importFromCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
-      const lines = text.split('\n');
-      const dataLines = lines.slice(1);
-      
-      let importCount = 0;
-      dataLines.forEach(line => {
-        if (!line.trim()) return;
-        const columns = line.split(';');
-        if (columns.length < 5) return;
-
-        const newProcess: Processo = {
-          id: columns[0] || Math.random().toString(36).substr(2, 9),
-          cliente: columns[1],
-          numero: columns[2] || 'N/A',
-          dataInicio: columns[3] || new Date().toISOString().split('T')[0],
-          status: (columns[4] as ProcessStatus) || 'Inicial',
-          tipoSequela: columns[5] || 'Não informada',
-          valorPrevisto: parseFloat(columns[6]) || 0,
-          valorRPV: parseFloat(columns[7]) || 0,
-          dataPericia: columns[8] || undefined,
-          periciaRealizada: columns[9]?.toLowerCase().includes('sim'),
-          resultadoJulgamento: (columns[10] as ResultadoJulgamento) || 'Pendente',
-          ultimaMovimentacao: new Date().toISOString().split('T')[0],
-          valorCausa: (parseFloat(columns[6]) || 0) * 1.2,
-          probabilidade: 'Média',
-          dataPrevista: new Date().toISOString().split('T')[0],
-        };
-
-        onAdd(newProcess);
-        importCount++;
-      });
-
-      alert(`${importCount} processos importados com sucesso.`);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    };
-    reader.readAsText(file);
-  };
-
   const renderField = (label: string, name: string, type: string, placeholder?: string) => {
     const hasError = touched[name] && !!errors[name as keyof FormErrors];
     return (
@@ -255,31 +175,10 @@ export const SpreadsheetTab: React.FC<SpreadsheetTabProps> = ({ processos, onUpd
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full min-h-[500px]">
         <div className="p-5 bg-gray-50 border-b border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
-            <h2 className="text-base font-bold text-gray-800">Editor de Planilha Conectado</h2>
+            <h2 className="text-base font-bold text-gray-800">Agendamento de Perícias</h2>
             <p className="text-xs text-gray-500">Gestão direta de valores e status dos processos.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={importFromCSV} 
-              accept=".csv" 
-              className="hidden" 
-            />
-            <button 
-              onClick={handleImportClick}
-              className="flex items-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all shadow-sm"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-              Importar
-            </button>
-            <button 
-              onClick={exportToCSV}
-              className="flex items-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all shadow-sm"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-              Exportar
-            </button>
              <button 
               onClick={() => { setShowForm(!showForm); setErrors({}); setTouched({}); }}
               className={`flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white rounded-xl transition-all shadow-lg ${

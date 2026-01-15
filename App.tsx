@@ -137,7 +137,7 @@ const App: React.FC = () => {
 
         {activeTab === 'processos' && (
           <div className="animate-in fade-in slide-in-from-bottom-4">
-            <ProcessTable processos={processos} />
+            <ProcessTable processos={processos} onAdd={handleAddProcesso} />
           </div>
         )}
 
