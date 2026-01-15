@@ -1,0 +1,8 @@
+{
+  "name": " Gestão de Auxílio-Acidente",
+  "description": "Um dashboard avançado para escritórios de advocacia acompanharem processos de auxílio-acidente, com análise de dados e assistente de IA integrado.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
