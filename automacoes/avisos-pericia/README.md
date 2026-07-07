@@ -44,8 +44,9 @@ diferente, então disparam junto com o do cliente sem problema.
 ## Instalação (no Mac, ao lado do `avisos-audiencia`)
 
 ```bash
-# 1. copie esta pasta p/ ~/avisos-pericia  (ou onde o ARAUTO mora)
-cd ~/avisos-pericia
+# 1. copie a pasta automacoes/ inteira p/ ~/pj-automacoes  (os 3 robôs juntos,
+#    porque todos importam o ../pj_comum.py compartilhado)
+cd ~/pj-automacoes/avisos-pericia
 
 # 2. dependência
 pip3 install -r requirements.txt
@@ -117,11 +118,10 @@ export ZAPI_GRUPO="...@g.us"     # id do grupo GERAL
 Sem credencial o robô ainda roda em `--dry` normalmente (só não envia). Em
 `--send` sem credencial ele avisa no log e não carimba — nada se perde.
 
-> **Nota:** o payload dos senders (`enviar_whatsapp_cliente` /
-> `enviar_alerta_interno` em `robo_pericias.py`) segue o formato genérico do
-> ChatGuru / Z-API. Confira os nomes de campo com o que o seu ARAUTO de
-> audiência já usa em produção e ajuste 1:1 — é o único ponto que depende da
-> sua conta.
+> **Nota:** os senders (`enviar_whatsapp_cliente` / `enviar_alerta_interno`)
+> ficam em **`../pj_comum.py`**, compartilhados pelos três robôs. Seguem o
+> formato genérico do ChatGuru / Z-API — confira os nomes de campo com o que o
+> seu ARAUTO de audiência já usa em produção e ajuste 1:1 **num lugar só**.
 
 ---
 
@@ -137,12 +137,14 @@ carimbo), e descomente a linha dele no `run_diario.sh`.
 ## Arquivos
 
 ```
-avisos-pericia/
-├── robo_pericias.py            ← o disparador (motor + régua + saída)
-├── config.py                   ← régua fechada, textos e env  (mexa aqui p/ ajustar)
-├── criar_planilha_modelo.py    ← gera a mãe modelo
-├── run_diario.sh               ← orquestrador (launchd chama este)
-├── com.pj.avisos-pericia.plist ← agendamento 09h05
-├── requirements.txt
-└── README.md
+pj-automacoes/
+├── pj_comum.py                 ← senders + datas + estado (compartilhado)
+└── avisos-pericia/
+    ├── robo_pericias.py            ← o disparador (motor + régua)
+    ├── config.py                   ← régua fechada e textos  (mexa aqui p/ ajustar)
+    ├── criar_planilha_modelo.py    ← gera a mãe modelo
+    ├── run_diario.sh               ← orquestrador (launchd chama este)
+    ├── com.pj.avisos-pericia.plist ← agendamento 09h05
+    ├── requirements.txt
+    └── README.md
 ```

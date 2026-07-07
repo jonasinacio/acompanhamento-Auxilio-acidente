@@ -173,17 +173,9 @@ CHECKLIST_ACIDENTARIA = [
 
 
 # ----------------------------------------------------------------------
-# 4 · SAÍDA — credenciais (SEMPRE via env, nunca commitar segredo)
+# 4 · SAÍDA — os senders (ChatGuru/Z-API) e credenciais moram em
+#     ../pj_comum.py, compartilhados pelos três robôs. Ajuste lá.
 # ----------------------------------------------------------------------
-# WhatsApp cliente (ChatGuru)
-CHATGURU_ENDPOINT = os.environ.get("CHATGURU_ENDPOINT", "")
-CHATGURU_TOKEN    = os.environ.get("CHATGURU_TOKEN", "")
-CHATGURU_ACCOUNT  = os.environ.get("CHATGURU_ACCOUNT_ID", "")
-
-# Alerta grupo interno GERAL (Z-API)
-ZAPI_ENDPOINT = os.environ.get("ZAPI_ENDPOINT", "")
-ZAPI_TOKEN    = os.environ.get("ZAPI_TOKEN", "")
-ZAPI_GRUPO    = os.environ.get("ZAPI_GRUPO_GERAL", "")  # id do grupo GERAL
 
 
 # ----------------------------------------------------------------------

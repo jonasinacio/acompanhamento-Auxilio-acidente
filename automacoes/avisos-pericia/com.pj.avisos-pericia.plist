@@ -20,11 +20,11 @@
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
-        <string>/Users/jonas/avisos-pericia/run_diario.sh</string>
+        <string>/Users/jonas/pj-automacoes/avisos-pericia/run_diario.sh</string>
     </array>
 
     <key>WorkingDirectory</key>
-    <string>/Users/jonas/avisos-pericia</string>
+    <string>/Users/jonas/pj-automacoes/avisos-pericia</string>
 
     <key>StartCalendarInterval</key>
     <dict>
@@ -35,9 +35,9 @@
     </dict>
 
     <key>StandardOutPath</key>
-    <string>/Users/jonas/avisos-pericia/logs/launchd.out.log</string>
+    <string>/Users/jonas/pj-automacoes/avisos-pericia/logs/launchd.out.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/jonas/avisos-pericia/logs/launchd.err.log</string>
+    <string>/Users/jonas/pj-automacoes/avisos-pericia/logs/launchd.err.log</string>
 
     <key>RunAtLoad</key>
     <false/>

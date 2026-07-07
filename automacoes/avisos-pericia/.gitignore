@@ -1,6 +1,0 @@
-# nunca versionar a planilha real (dados de cliente / LGPD) nem estado/logs
-OFICIAL_PERICIAS_2026.xlsx
-alertas_enviados.json
-logs/
-*.xlsx
-!modelo_*.xlsx

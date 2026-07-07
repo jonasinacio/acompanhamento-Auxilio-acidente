@@ -1,0 +1,7 @@
+# Nunca versionar dados de cliente (LGPD), estado ou logs de nenhum robô.
+*.xlsx
+**/logs/
+alertas_enviados.json
+estado_status.json
+**/__pycache__/
+feriados.txt
