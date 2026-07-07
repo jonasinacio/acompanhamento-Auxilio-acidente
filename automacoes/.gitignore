@@ -1,7 +1,12 @@
-# Nunca versionar dados de cliente (LGPD), estado ou logs de nenhum robô.
+# Nunca versionar dados de cliente (LGPD), estado, logs ou SEGREDOS.
 *.xlsx
 **/logs/
 alertas_enviados.json
 estado_status.json
 **/__pycache__/
 feriados.txt
+
+# Credenciais: só o modelo (.env.example) vai pro git; o .env real nunca.
+.env
+.env.local
+!.env.example

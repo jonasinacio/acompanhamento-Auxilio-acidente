@@ -32,6 +32,29 @@ except ImportError:
 
 
 # ----------------------------------------------------------------------
+# .env — carrega automaticamente automacoes/.env (fora do git), se existir.
+# Assim você guarda os segredos num arquivo local em vez do ~/.zshrc.
+# Não sobrescreve variável já definida no ambiente.
+# ----------------------------------------------------------------------
+def _carregar_dotenv():
+    caminho = os.path.join(os.path.dirname(__file__), ".env")
+    if not os.path.exists(caminho):
+        return
+    with open(caminho, encoding="utf-8") as f:
+        for linha in f:
+            linha = linha.strip()
+            if not linha or linha.startswith("#") or "=" not in linha:
+                continue
+            chave, _, valor = linha.partition("=")
+            chave = chave.strip()
+            valor = valor.strip().strip('"').strip("'")
+            os.environ.setdefault(chave, valor)
+
+
+_carregar_dotenv()
+
+
+# ----------------------------------------------------------------------
 # log
 # ----------------------------------------------------------------------
 def log(msg: str) -> None:

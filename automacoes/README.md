@@ -22,14 +22,23 @@ cp -R automacoes ~/pj-automacoes
 cd ~/pj-automacoes
 pip3 install -r avisos-pericia/requirements.txt   # openpyxl (serve p/ os três)
 
-# credenciais (uma vez, no ~/.zshrc) — nunca no código:
-export CHATGURU_ENDPOINT="..."   # WhatsApp cliente
-export CHATGURU_TOKEN="..."
-export CHATGURU_ACCOUNT_ID="..."
-export ZAPI_ENDPOINT="..."       # alerta no grupo GERAL
-export ZAPI_TOKEN="..."
-export ZAPI_GRUPO_GERAL="...@g.us"
+# credenciais: copie o modelo e preencha o .env (fica FORA do git):
+cp .env.example .env
+$EDITOR .env        # preencha ADVBOX_TOKEN, ChatGuru e Z-API
 ```
+
+O `pj_comum.py` carrega o `.env` sozinho. (Se preferir, exporte as mesmas
+variáveis no `~/.zshrc` — tanto faz.)
+
+## 🔒 Segurança de credenciais (leia)
+
+- **Segredo nunca vai pro chat, e-mail ou git.** Só no `.env` local (ignorado
+  pelo git) ou no `~/.zshrc`. O `.env.example` — sem valores — é o único que é
+  versionado.
+- **Vazou? Revogue e gere outro.** Um token colado em conversa ou commit deve
+  ser considerado comprometido: gere um novo no serviço (AdvBox: *Configurações
+  → Integrações e API*) e invalide o antigo.
+- As planilhas reais (dados de cliente, LGPD) também ficam fora do git.
 
 Depois, em cada pasta: `python3 criar_planilha_modelo.py` → `python3 robo_*.py --dry`
 para ensaiar, e por fim carregue o `.plist` no launchd. Cada robô tem seu README.
