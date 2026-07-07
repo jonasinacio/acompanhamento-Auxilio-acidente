@@ -7,12 +7,14 @@ biblioteca (`pj_comum.py`), então você ajusta os senders **num lugar só**.
 
 | Robô | O que faz | Fonte | Dispara | launchd |
 |---|---|---|---|---|
+| **painel-manha** | uma mensagem com as exceções do dia (perícias, emendas, SLA, docs) | lê todas as mães | só grupo GERAL | 08h45 |
 | **avisos-pericia** | avisa o cliente nos marcos da perícia (D-15/D-7/D-2/D+1) + cutuca Pedro e Bia | `OFICIAL_PERICIAS_2026.xlsx` | WhatsApp cliente + grupo GERAL | 09h05 |
 | **alarme-emendas** | vigia o prazo fatal das emendas, escalando até o Jonas | `OFICIAL_EMENDAS_2026.xlsx` | só grupo GERAL | 09h10 |
 | **gatilhos-status** | mudança de status → tarefa obrigatória; atraso de SLA → painel | `OFICIAL_CASOS_2026.xlsx` | só grupo GERAL | 09h15 |
+| **cobra-documentos** | cobra o cliente (D+3/D+7/D+12) os documentos que faltam; escala Pedro | `OFICIAL_DOCUMENTOS_2026.xlsx` | WhatsApp cliente + grupo GERAL | 09h20 |
 
-Rodam em cascata depois do ARAUTO (09h), cada um 5 min à frente, pra não
-competirem pela janela de envio.
+O **painel** abre o dia às 08h45; os demais rodam em cascata depois do ARAUTO
+(09h), cada um 5 min à frente, pra não competirem pela janela de envio.
 
 ## Instalação (Mac, ao lado do ARAUTO)
 

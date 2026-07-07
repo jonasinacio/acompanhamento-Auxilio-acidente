@@ -217,12 +217,85 @@ def test_puxa(tmp):
     check(ws.max_row == 2, "puxa: não podia duplicar linha no self-heal")
 
 
+def test_documentos(tmp):
+    print("• cobra-documentos")
+    xlsx = os.path.join(tmp, "docs.xlsx")
+    est = os.path.join(tmp, "docs_estado.json")
+    header = ["PROCESSO", "CLIENTE", "TELEFONE", "SOLICITADO_EM", "DOCS_FALTANDO",
+              "STATUS", "RECEBIDO_EM", "LEMB_3", "LEMB_7", "ESCALA_PEDRO", "LEMB_12"]
+
+    def row(proc, tel, off, docs, status="AGUARDANDO DOCUMENTOS", receb=""):
+        sol = (H - dt.timedelta(days=off)).strftime("%d/%m/%Y") if off is not None else ""
+        return [proc, "Cli " + proc, tel, sol, docs, status, receb, "", "", "", ""]
+
+    mae(xlsx, header, [
+        row("D3", "5511900000003", 3, "RG; CPF"),                 # LEMB_3
+        row("D7", "5511900000007", 7, "Laudo"),                   # LEMB_7
+        row("D12", "5511900000012", 12, "PPP"),                   # LEMB_12 (+ escala D+10)
+        row("DTEL", "", 3, "RG"),                                 # sem telefone
+        row("DLIST", "5511900000000", 3, ""),                     # sem lista
+        row("DOK", "5511900000009", 7, "x", "COMPLETO", dstr(-1)),  # completo → silêncio
+    ])
+    envp = {"DOCS_MAE": xlsx, "DOCS_ESTADO": est, "DOCS_LOGS": tmp, "PJ_FAKE_SEND": "1"}
+
+    out = roda("cobra-documentos", "robo_documentos.py", ["--dry", "--hoje", HOJE], envp)
+    check("D3 · LEMB_3" in out, "docs: D3 devia LEMB_3")
+    check("D7 · LEMB_7" in out, "docs: D7 devia LEMB_7")
+    check("D12 · LEMB_12" in out, "docs: D12 devia LEMB_12")
+    check("D12 · ESCALA_PEDRO" in out, "docs: D12 devia escalar Pedro (D+10)")
+    check("DTEL" in out and "sem telefone" in out, "docs: DTEL sem telefone → alerta")
+    check("DLIST" in out and "sem lista" in out, "docs: DLIST sem lista → alerta")
+    check("DOK" not in out, "docs: DOK (completo) devia ficar em silêncio")
+
+    # dedupe
+    roda("cobra-documentos", "robo_documentos.py", ["--send", "--hoje", HOJE], envp)
+    out2 = roda("cobra-documentos", "robo_documentos.py", ["--send", "--hoje", HOJE], envp)
+    check("lembretes cliente=0 · alertas internos=0" in out2, "docs: 2ª rodada = zero (dedupe)")
+
+
+def test_painel(tmp):
+    print("• painel-manhã")
+    # reusa mães de perícia (via puxa mock já rodou? não) — cria uma perícia próxima
+    per = os.path.join(tmp, "pnl_per.xlsx")
+    eme = os.path.join(tmp, "pnl_eme.xlsx")
+    mae(per, ["PROCESSO", "CLIENTE", "TELEFONE", "DATA_PERICIA", "HORA", "LOCAL",
+              "TIPO", "ACIDENTARIA", "STATUS", "AVISO_15", "DOC_PEDRO", "ORIENTA_7",
+              "CONFIRMA_2", "RELATO_1"],
+        [["PX", "Fulano Perícia", "551199", dstr(3), "09:00", "L", "J", "NAO",
+          "DESIGNADA", "", "", "", "", ""]])
+    mae(eme, ["PROCESSO", "CLIENTE", "INTIMACAO", "PRAZO_FATAL", "CLASSIFICACAO",
+              "DEPENDE_DOC", "DOC_OK", "STATUS", "PROTOCOLADA_EM",
+              "AL_CLASSIFICAR", "AL_DOC", "AL_2DU", "AL_1DU", "AL_FATAL"],
+        [["EX", "Fulano Emenda", dstr(-5), d_por_diautil(1).strftime("%d/%m/%Y"),
+          "x", "NAO", "NAO", "EMENDA PENDENTE", "", "", "", "", "", ""]])
+    envp = {"PERICIA_MAE": per, "EMENDAS_MAE": eme,
+            "CASOS_MAE": os.path.join(tmp, "nao_existe1.xlsx"),
+            "DOCS_MAE": os.path.join(tmp, "nao_existe2.xlsx"),
+            "PAINEL_ESTADO": os.path.join(tmp, "painel_estado.json"),
+            "PAINEL_LOGS": tmp, "PJ_FAKE_SEND": "1"}
+
+    out = roda("painel-manha", "robo_painel.py", ["--dry", "--hoje", HOJE], envp)
+    check("PAINEL DA MANHÃ" in out, "painel: devia ter o cabeçalho")
+    check("Perícias (próx. 7 dias): 1" in out, "painel: devia contar 1 perícia próxima")
+    check("Fulano Perícia" in out, "painel: devia listar a perícia")
+    check("Emendas críticas" in out and "Fulano Emenda" in out,
+          "painel: devia listar a emenda crítica")
+    check("Casos atrasados" not in out, "painel: mãe de casos ausente → seção some")
+
+    # 1 painel por dia (dedupe)
+    roda("painel-manha", "robo_painel.py", ["--send", "--hoje", HOJE], envp)
+    out2 = roda("painel-manha", "robo_painel.py", ["--send", "--hoje", HOJE], envp)
+    check("já foi enviado" in out2, "painel: 2º envio no mesmo dia devia ser bloqueado")
+
+
 def main():
     sys.path.insert(0, BASE)  # p/ importar pj_comum em d_por_diautil
     with tempfile.TemporaryDirectory() as tmp:
         test_pericia(tmp)
         test_emendas(tmp)
         test_gatilhos(tmp)
+        test_documentos(tmp)
+        test_painel(tmp)
         test_puxa(tmp)
     print("-" * 50)
     if _falhas:
