@@ -53,11 +53,22 @@ para ensaiar, e por fim carregue o `.plist` no launchd. Cada robô tem seu READM
 - **Segredo só em env** — nenhuma credencial no repositório; planilhas reais
   (dados de cliente, LGPD) ficam fora do git (`.gitignore`).
 
+## Testar e ensaiar
+
+```bash
+python3 test_robos.py          # suíte de regressão dos 3 robôs + puxa (mães isoladas)
+```
+
+Para **ensaiar o --send inteiro sem disparar mensagem** (exercita carimbo e
+dedupe, mas nada sai): `PJ_FAKE_SEND=1 python3 robo_pericias.py --send`. Todo
+envio vira um "FAKE-OK". Nunca deixe `PJ_FAKE_SEND` ligado em produção.
+
 ## Dias úteis e feriados
 
-Os robôs de prazo (emendas, SLA) contam **dias úteis**. Crie um
-`pj-automacoes/feriados.txt` com uma data `dd/mm/aaaa` por linha (feriados do
-seu foro). Sem o arquivo, conta só sábado e domingo.
+Os robôs de prazo (emendas, SLA) contam **dias úteis**. O `feriados.txt` já vem
+com os **feriados nacionais de 2026**; **complete** com os estaduais/municipais
+do seu foro e o **recesso forense**. Feriado a menos faz o robô achar que há
+mais prazo do que existe — sempre confira o prazo fatal também no ADVBOX.
 
 ## Estrutura
 

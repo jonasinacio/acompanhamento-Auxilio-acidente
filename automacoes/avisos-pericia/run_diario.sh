@@ -22,8 +22,9 @@ LOG="logs/run_$(date +%F).log"
 {
   echo "==================== $(date '+%F %T') ===================="
 
-  # 1) (quando você ligar o puxa do AdvBox, descomente)
-  # python3 puxa_pericias_advbox.py --write
+  # 1) puxa as perícias novas do AdvBox p/ a mãe.
+  #    Descomente DEPOIS de validar os campos em ../puxa_advbox.py (os «AJUSTE»).
+  # python3 ../puxa_advbox.py --write --destino pericia
 
   # 2) dispara de verdade (troque --send por --dry p/ ensaiar)
   python3 robo_pericias.py --send

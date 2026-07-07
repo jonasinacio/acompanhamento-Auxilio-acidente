@@ -110,12 +110,16 @@ FERIADOS: set[dt.date] = set()
 
 
 def _carregar_feriados():
-    """Lê feriados de automacoes/feriados.txt (1 data por linha) se existir."""
+    """Lê feriados de automacoes/feriados.txt (1 data por linha) se existir.
+    Aceita comentário inline: '01/01/2026   # Ano Novo'."""
     caminho = os.path.join(os.path.dirname(__file__), "feriados.txt")
     if os.path.exists(caminho):
         with open(caminho, encoding="utf-8") as f:
             for ln in f:
-                d = parse_data(ln.strip())
+                ln = ln.split("#", 1)[0].strip()  # tira comentário e espaços
+                if not ln:
+                    continue
+                d = parse_data(ln)
                 if d:
                     FERIADOS.add(d)
 
@@ -224,10 +228,18 @@ ZAPI_TOKEN    = os.environ.get("ZAPI_TOKEN", "")
 ZAPI_GRUPO    = os.environ.get("ZAPI_GRUPO_GERAL", "")
 
 
+# Seam de teste/ensaio: PJ_FAKE_SEND=1 finge um envio bem-sucedido (sem rede),
+# exercitando o caminho de carimbo/dedupe. Útil p/ testes e p/ ensaiar o --send
+# sem disparar mensagem de verdade. NÃO deixe ligado em produção.
+_FAKE_SEND = os.environ.get("PJ_FAKE_SEND") == "1"
+
+
 def enviar_whatsapp_cliente(telefone: str, texto: str, dry: bool) -> tuple[bool, str]:
     """WhatsApp ao cliente via ChatGuru."""
     if dry:
         return True, "DRY (não enviou)"
+    if _FAKE_SEND:
+        return True, "FAKE-OK"
     if not (CHATGURU_ENDPOINT and CHATGURU_TOKEN):
         return False, "ChatGuru sem credencial (CHATGURU_ENDPOINT/TOKEN)"
     import urllib.request
@@ -252,6 +264,8 @@ def enviar_alerta_interno(texto: str, dry: bool) -> tuple[bool, str]:
     """Alerta no grupo interno GERAL via Z-API."""
     if dry:
         return True, "DRY (não enviou)"
+    if _FAKE_SEND:
+        return True, "FAKE-OK"
     if not (ZAPI_ENDPOINT and ZAPI_TOKEN and ZAPI_GRUPO):
         return False, "Z-API sem credencial (ZAPI_ENDPOINT/TOKEN/GRUPO)"
     import urllib.request

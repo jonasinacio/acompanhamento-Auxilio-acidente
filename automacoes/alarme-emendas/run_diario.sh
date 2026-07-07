@@ -15,6 +15,8 @@ mkdir -p logs
 LOG="logs/run_$(date +%F).log"
 {
   echo "==================== $(date '+%F %T') ===================="
+  # puxa emendas novas do AdvBox (descomente após validar ../puxa_advbox.py):
+  # python3 ../puxa_advbox.py --write --destino emenda
   python3 robo_emendas.py --send
   echo "-------------------- fim --------------------"
 } | tee -a "$LOG"

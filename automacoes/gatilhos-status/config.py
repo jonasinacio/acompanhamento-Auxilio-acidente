@@ -95,5 +95,7 @@ SLA_DIAS_UTEIS = {
 # Reforço do alarme de atraso: reavisa a cada N dias úteis enquanto estourado.
 REAVISO_ATRASO_DU = 5
 
-ALERTAS_JSON = os.path.join(os.path.dirname(__file__), "estado_status.json")
-LOG_DIR      = os.path.join(os.path.dirname(__file__), "logs")
+ALERTAS_JSON = os.environ.get(
+    "CASOS_ESTADO", os.path.join(os.path.dirname(__file__), "estado_status.json"))
+LOG_DIR      = os.environ.get(
+    "CASOS_LOGS", os.path.join(os.path.dirname(__file__), "logs"))

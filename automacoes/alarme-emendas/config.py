@@ -61,5 +61,7 @@ NIVEIS = [
     {"id": "AL_FATAL",    "carimbo": "a_hoje","du": 0},  # é hoje
 ]
 
-ALERTAS_JSON = os.path.join(os.path.dirname(__file__), "alertas_enviados.json")
-LOG_DIR      = os.path.join(os.path.dirname(__file__), "logs")
+ALERTAS_JSON = os.environ.get(
+    "EMENDAS_ESTADO", os.path.join(os.path.dirname(__file__), "alertas_enviados.json"))
+LOG_DIR      = os.environ.get(
+    "EMENDAS_LOGS", os.path.join(os.path.dirname(__file__), "logs"))

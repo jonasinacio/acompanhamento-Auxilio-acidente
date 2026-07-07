@@ -4,7 +4,6 @@
 alertas_enviados.json
 estado_status.json
 **/__pycache__/
-feriados.txt
 
 # Credenciais: só o modelo (.env.example) vai pro git; o .env real nunca.
 .env

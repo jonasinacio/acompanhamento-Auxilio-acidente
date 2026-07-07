@@ -181,5 +181,7 @@ CHECKLIST_ACIDENTARIA = [
 # ----------------------------------------------------------------------
 # 5 · ESTADO — dedupe/memória (igual ARAUTO)
 # ----------------------------------------------------------------------
-ALERTAS_JSON = os.path.join(os.path.dirname(__file__), "alertas_enviados.json")
-LOG_DIR      = os.path.join(os.path.dirname(__file__), "logs")
+ALERTAS_JSON = os.environ.get(
+    "PERICIA_ESTADO", os.path.join(os.path.dirname(__file__), "alertas_enviados.json"))
+LOG_DIR      = os.environ.get(
+    "PERICIA_LOGS", os.path.join(os.path.dirname(__file__), "logs"))

@@ -1,0 +1,236 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Suíte de testes dos robôs (stdlib pura — sem pytest).
+Roda cada robô via subprocess, a MESMA CLI que o launchd usa, com mães e estados
+isolados numa pasta temporária. Trava os cenários já validados à mão para você
+poder mexer nos config.py sem medo.
+
+    python3 test_robos.py        # roda tudo; sai 0 se passar, 1 se falhar
+"""
+from __future__ import annotations
+
+import datetime as dt
+import os
+import subprocess
+import sys
+import tempfile
+
+import openpyxl
+
+BASE = os.path.dirname(os.path.abspath(__file__))
+HOJE = "2026-07-07"                    # terça
+H = dt.date(2026, 7, 7)
+
+_falhas: list[str] = []
+_ok = 0
+
+
+def check(cond: bool, msg: str):
+    global _ok
+    if cond:
+        _ok += 1
+    else:
+        _falhas.append(msg)
+        print(f"  ✗ {msg}")
+
+
+def roda(subpasta, script, args, env_extra) -> str:
+    env = dict(os.environ)
+    env.update(env_extra)
+    p = subprocess.run(
+        [sys.executable, script, *args],
+        cwd=os.path.join(BASE, subpasta),
+        env=env, capture_output=True, text=True,
+    )
+    if p.returncode != 0:
+        print(p.stdout); print(p.stderr)
+        raise SystemExit(f"robô {script} saiu com erro {p.returncode}")
+    return p.stdout
+
+
+def mae(path, header, linhas):
+    wb = openpyxl.Workbook(); ws = wb.active; ws.title = "2026"
+    ws.append(header)
+    for ln in linhas:
+        ws.append(ln)
+    wb.save(path)
+
+
+def dstr(offset):
+    return (H + dt.timedelta(days=offset)).strftime("%d/%m/%Y")
+
+
+def d_por_diautil(n):
+    """data que fica a n dias úteis de H (n>0 futuro, n<0 passado)."""
+    import pj_comum as pj
+    if n == 0:
+        return H
+    d = H; step = 1 if n > 0 else -1; c = 0
+    while c != n:
+        d += dt.timedelta(days=step)
+        if pj.eh_dia_util(d):
+            c += step
+    return d
+
+
+# ======================================================================
+def test_pericia(tmp):
+    print("• perícia")
+    xlsx = os.path.join(tmp, "pericia.xlsx")
+    est = os.path.join(tmp, "pericia_estado.json")
+    header = ["PROCESSO", "CLIENTE", "TELEFONE", "DATA_PERICIA", "HORA", "LOCAL",
+              "TIPO", "ACIDENTARIA", "STATUS", "AVISO_15", "DOC_PEDRO", "ORIENTA_7",
+              "CONFIRMA_2", "RELATO_1"]
+
+    def row(proc, tel, marco_off, hora, local, acid, status):
+        data = (H - dt.timedelta(days=marco_off)).strftime("%d/%m/%Y") if marco_off is not None else ""
+        return [proc, "Cli " + proc, tel, data, hora, local, "Judicial", acid, status,
+                "", "", "", "", ""]
+
+    mae(xlsx, header, [
+        row("P15", "5511900000015", -15, "09:00", "L", "NAO", "DESIGNADA"),
+        row("P07", "5511900000007", -7, "11:00", "L", "SIM", "DESIGNADA"),
+        row("P02", "5511900000002", -2, "12:00", "L", "NAO", "DESIGNADA"),
+        row("PPOS", "5511900000001", 1, "13:00", "L", "NAO", "DESIGNADA"),   # D+1 interno
+        row("PTEL", "", -2, "12:00", "L", "NAO", "DESIGNADA"),               # sem telefone
+        row("PLOC", "5511900000099", -15, "09:00", "", "NAO", "DESIGNADA"),  # falta local
+        row("PSD", "5511900000088", None, "", "", "NAO", "DESIGNADA"),       # sem data
+        row("PCAN", "5511900000077", -2, "12:00", "L", "NAO", "CANCELADA"),  # pula
+    ])
+    envp = {"PERICIA_MAE": xlsx, "PERICIA_ESTADO": est, "PERICIA_LOGS": tmp, "PJ_FAKE_SEND": "1"}
+
+    out = roda("avisos-pericia", "robo_pericias.py", ["--dry", "--hoje", HOJE], envp)
+    check("P15 · AVISO_15" in out, "perícia: P15 devia disparar AVISO_15")
+    check("P07 · ORIENTA_7" in out, "perícia: P07 devia disparar ORIENTA_7")
+    check("P02 · CONFIRMA_2" in out, "perícia: P02 devia disparar CONFIRMA_2")
+    check("PPOS · RELATO_1" in out, "perícia: PPOS devia disparar RELATO_1 (interno)")
+    check("PTEL" in out and "sem telefone" in out, "perícia: PTEL devia virar alerta sem telefone")
+    check("PLOC" in out and "incompleto" in out, "perícia: PLOC devia gritar falta local")
+    check("PSD" in out and "sem data" in out, "perícia: PSD devia gritar sem data")
+    check("pulados=1" in out, "perícia: PCAN (CANCELADA) devia ser pulado")
+
+    # dedupe: 1ª --send dispara; 2ª não repete
+    out1 = roda("avisos-pericia", "robo_pericias.py", ["--send", "--hoje", HOJE], envp)
+    out2 = roda("avisos-pericia", "robo_pericias.py", ["--send", "--hoje", HOJE], envp)
+    check("disparos cliente=0 · alertas internos=0" in out2,
+          "perícia: 2ª rodada não podia repetir nada (dedupe)")
+
+
+def test_emendas(tmp):
+    print("• emendas")
+    xlsx = os.path.join(tmp, "emendas.xlsx")
+    est = os.path.join(tmp, "emendas_estado.json")
+    header = ["PROCESSO", "CLIENTE", "INTIMACAO", "PRAZO_FATAL", "CLASSIFICACAO",
+              "DEPENDE_DOC", "DOC_OK", "STATUS", "PROTOCOLADA_EM",
+              "AL_CLASSIFICAR", "AL_DOC", "AL_2DU", "AL_1DU", "AL_FATAL"]
+
+    def row(proc, du, classif="x", dep="NAO", docok="NAO", status="EMENDA PENDENTE", protoc=""):
+        pf = d_por_diautil(du).strftime("%d/%m/%Y")
+        return [proc, "Cli " + proc, dstr(-5), pf, classif, dep, docok, status, protoc,
+                "", "", "", "", ""]
+
+    mae(xlsx, header, [
+        row("E2DU", 2),
+        row("EFATAL", 0),
+        row("EVENC", -1),
+        row("E1DU", 1),
+        row("ECLASS", 5, classif=""),             # sem classificação
+        row("EPROT", 1, status="PROTOCOLADA", protoc=dstr(0)),  # baixada → silêncio
+    ])
+    envp = {"EMENDAS_MAE": xlsx, "EMENDAS_ESTADO": est, "EMENDAS_LOGS": tmp, "PJ_FAKE_SEND": "1"}
+
+    out = roda("alarme-emendas", "robo_emendas.py", ["--dry", "--hoje", HOJE], envp)
+    check("E2DU · AL_2DU" in out, "emendas: E2DU devia AL_2DU")
+    check("EFATAL · AL_FATAL" in out, "emendas: EFATAL devia AL_FATAL")
+    check("EVENC · VENCIDO" in out, "emendas: EVENC devia VENCIDO")
+    check("E1DU · AL_1DU" in out, "emendas: E1DU devia AL_1DU (escala Jonas)")
+    check("ECLASS · CLASSIFICAR" in out, "emendas: ECLASS devia pedir classificação")
+    check("EPROT" not in out, "emendas: EPROT (protocolada) devia ficar em silêncio")
+
+    # escada: no dia seguinte, cada alarme sobe um degrau
+    roda("alarme-emendas", "robo_emendas.py", ["--send", "--hoje", HOJE], envp)
+    out_amanha = roda("alarme-emendas", "robo_emendas.py",
+                      ["--send", "--hoje", "2026-07-08"], envp)
+    check("E2DU · AL_1DU" in out_amanha, "emendas: E2DU devia SUBIR p/ AL_1DU no dia seguinte")
+    check("EFATAL · VENCIDO" in out_amanha, "emendas: EFATAL devia virar VENCIDO no dia seguinte")
+
+
+def test_gatilhos(tmp):
+    print("• gatilhos-status")
+    xlsx = os.path.join(tmp, "casos.xlsx")
+    est = os.path.join(tmp, "casos_estado.json")
+    header = ["PROCESSO", "CLIENTE", "STATUS", "STATUS_DESDE", "RESPONSAVEL"]
+    mae(xlsx, header, [
+        ["C1", "Cli 1", "CONTRATO ASSINADO", dstr(0), "Bia"],
+        ["C2", "Cli 2", "PROTOCOLO ADM", dstr(-15), "Natália"],   # atrasado (SLA 3 d.ú.)
+        ["C3", "Cli 3", "PASTA FECHADA", dstr(-2), "Pedro"],
+    ])
+    envp = {"CASOS_MAE": xlsx, "CASOS_ESTADO": est, "CASOS_LOGS": tmp, "PJ_FAKE_SEND": "1"}
+
+    # 1ª rodada: linha de base — sem gatilho retroativo, mas atraso vale
+    out1 = roda("gatilhos-status", "robo_status.py", ["--send", "--hoje", HOJE], envp)
+    check("gatilhos=0" in out1, "gatilhos: 1ª rodada não podia disparar gatilho retroativo")
+    check("C2 ATRASO PROTOCOLO ADM" in out1, "gatilhos: C2 devia gerar ATRASO de SLA já na 1ª")
+
+    # 2ª rodada sem mudança: nada
+    out2 = roda("gatilhos-status", "robo_status.py", ["--send", "--hoje", HOJE], envp)
+    check("gatilhos=0 · atrasos=0 · mudanças=0" in out2, "gatilhos: 2ª rodada sem mudança = zero")
+
+    # muda C3 e confirma o gatilho
+    wb = openpyxl.load_workbook(xlsx); ws = wb["2026"]
+    ws.cell(row=4, column=3).value = "LAUDO JUNTADO"; wb.save(xlsx)
+    out3 = roda("gatilhos-status", "robo_status.py", ["--send", "--hoje", HOJE], envp)
+    check("C3 gatilho LAUDO JUNTADO" in out3, "gatilhos: C3 mudou → devia disparar LAUDO JUNTADO")
+
+
+def test_puxa(tmp):
+    print("• puxa_advbox (mock + self-heal)")
+    per = os.path.join(tmp, "px_pericia.xlsx")
+    eme = os.path.join(tmp, "px_emenda.xlsx")
+    cas = os.path.join(tmp, "px_casos.xlsx")
+    envp = {"PERICIA_MAE": per, "EMENDAS_MAE": eme, "CASOS_MAE": cas,
+            "PERICIA_LOGS": tmp, "EMENDAS_LOGS": tmp, "CASOS_LOGS": tmp}
+
+    out = roda(".", "puxa_advbox.py", ["--write", "--mock"], envp)
+    check("[pericia] novos=1" in out, "puxa: devia acrescentar 1 perícia")
+    check("[emenda] novos=1" in out, "puxa: devia acrescentar 1 emenda")
+    check("[casos] novos=2" in out, "puxa: devia acrescentar 2 casos")
+
+    # roda de novo: não duplica
+    out2 = roda(".", "puxa_advbox.py", ["--write", "--mock"], envp)
+    check("[pericia] novos=0" in out2 and "[casos] novos=0" in out2,
+          "puxa: 2ª rodada não podia duplicar")
+
+    # self-heal: limpa HORA, edita LOCAL à mão → completa HORA, preserva LOCAL
+    wb = openpyxl.load_workbook(per); ws = wb["2026"]
+    h = {c.value: i + 1 for i, c in enumerate(ws[1])}
+    ws.cell(row=2, column=h["HORA"]).value = None
+    ws.cell(row=2, column=h["LOCAL"]).value = "EDITADO A MAO"
+    wb.save(per)
+    roda(".", "puxa_advbox.py", ["--write", "--mock", "--destino", "pericia"], envp)
+    ws = openpyxl.load_workbook(per)["2026"]
+    check(ws.cell(row=2, column=h["HORA"]).value not in (None, ""),
+          "puxa: devia completar a HORA vazia (self-heal)")
+    check(ws.cell(row=2, column=h["LOCAL"]).value == "EDITADO A MAO",
+          "puxa: NÃO podia sobrescrever o LOCAL editado à mão")
+    check(ws.max_row == 2, "puxa: não podia duplicar linha no self-heal")
+
+
+def main():
+    sys.path.insert(0, BASE)  # p/ importar pj_comum em d_por_diautil
+    with tempfile.TemporaryDirectory() as tmp:
+        test_pericia(tmp)
+        test_emendas(tmp)
+        test_gatilhos(tmp)
+        test_puxa(tmp)
+    print("-" * 50)
+    if _falhas:
+        print(f"❌ {len(_falhas)} falha(s), {_ok} ok")
+        return 1
+    print(f"✅ tudo passou ({_ok} checagens)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
