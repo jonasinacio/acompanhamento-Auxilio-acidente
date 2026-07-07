@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ARAUTO-PERÍCIA · launchd
+  Dispara run_diario.sh às 09h05 (5 min DEPOIS do ARAUTO de audiências às 09h,
+  p/ não competirem pela mesma janela de envio).
+
+  Instalar:
+    1) Edite EXECPATH e WorkingDirectory abaixo p/ o caminho real no seu Mac.
+    2) cp com.pj.avisos-pericia.plist ~/Library/LaunchAgents/
+    3) launchctl load  ~/Library/LaunchAgents/com.pj.avisos-pericia.plist
+    4) (testar já)  launchctl start com.pj.avisos-pericia
+
+  Mac desligado às 09h05? StartCalendarInterval faz catch-up nativo ao ligar.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.pj.avisos-pericia</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/jonas/avisos-pericia/run_diario.sh</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/jonas/avisos-pericia</string>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>9</integer>
+        <key>Minute</key>
+        <integer>5</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/jonas/avisos-pericia/logs/launchd.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/jonas/avisos-pericia/logs/launchd.err.log</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>
