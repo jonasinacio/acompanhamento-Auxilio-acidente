@@ -1,5 +1,5 @@
 
-import { Processo, Intimacao, TipoAto, PrazoRegra } from './types';
+import { Processo, Intimacao, TipoAto, PrazoRegra, FonteCaptura } from './types';
 import { calcularPrazoFinal } from './utils/prazo';
 
 const getRelativeDate = (days: number) => {
@@ -161,11 +161,13 @@ export const TIPO_ATO_COLORS: Record<TipoAto, string> = {
 };
 
 // Constrói uma intimação já com prazo calculado pela regra fixa do tipo.
-const buildIntimacao = (
-  base: Omit<Intimacao, 'prazoDias' | 'dataPrazoFinal'>,
+// `fonte` é opcional e assume DJEN por padrão.
+export const buildIntimacao = (
+  base: Omit<Intimacao, 'prazoDias' | 'dataPrazoFinal' | 'fonte'> & { fonte?: FonteCaptura },
 ): Intimacao => {
   const prazoDias = PRAZO_REGRAS[base.tipoAto].prazoDias;
   return {
+    fonte: 'DJEN',
     ...base,
     prazoDias,
     dataPrazoFinal: calcularPrazoFinal(base.dataDisponibilizacao, prazoDias),
@@ -262,5 +264,38 @@ export const MOCK_INTIMACOES: Intimacao[] = [
     statusLeitura: 'Não Lida',
     processoVinculadoId: null,
     revisaoManual: true,
+  }),
+  // --- Capturadas pelo canal LegalMail (intimação eletrônica por e-mail) ---
+  buildIntimacao({
+    id: 'i7',
+    fonte: 'LegalMail',
+    numeroProcesso: '5008812-77.2023.4.03.6100',
+    tribunal: 'TRF3',
+    orgao: '5ª Vara do JEF de São Paulo',
+    segurado: 'Fernanda Alves Costa',
+    dataDisponibilizacao: getRelativeDate(-1),
+    teorIntegral: 'Intimação eletrônica (LegalMail): fica a parte autora intimada para, no prazo legal, apresentar contrarrazões ao recurso inominado interposto pelo INSS.',
+    teorResumido: 'Intimação para apresentação de contrarrazões ao recurso inominado do INSS.',
+    tipoAto: 'Contrarrazões',
+    confianca: 'Alta',
+    statusLeitura: 'Não Lida',
+    processoVinculadoId: null,
+    revisaoManual: false,
+  }),
+  buildIntimacao({
+    id: 'i8',
+    fonte: 'LegalMail',
+    numeroProcesso: '5021199-40.2022.4.03.6100',
+    tribunal: 'TRF3',
+    orgao: '2ª Vara do JEF de Guarulhos',
+    segurado: 'Roberto Carlos Menezes',
+    dataDisponibilizacao: getRelativeDate(-4),
+    teorIntegral: 'Intimação eletrônica (LegalMail): iniciado o cumprimento de sentença. Intime-se a parte exequente para se manifestar sobre os cálculos apresentados.',
+    teorResumido: 'Início do cumprimento de sentença — manifestação sobre os cálculos.',
+    tipoAto: 'Cumprimento de Sentença',
+    confianca: 'Alta',
+    statusLeitura: 'Lida',
+    processoVinculadoId: null,
+    revisaoManual: false,
   }),
 ];

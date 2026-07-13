@@ -107,6 +107,15 @@ const App: React.FC = () => {
     setIntimacoes(prev => prev.map(i => i.id === updated.id ? updated : i));
   };
 
+  const handleAddIntimacoes = (novas: Intimacao[]) => {
+    // Dedup por id para evitar recaptura do mesmo e-mail/publicação.
+    setIntimacoes(prev => {
+      const existentes = new Set(prev.map(i => i.id));
+      const filtradas = novas.filter(i => !existentes.has(i.id));
+      return [...filtradas, ...prev];
+    });
+  };
+
   if (!isAuthenticated) {
     return <Login onLogin={handleLogin} />;
   }
@@ -182,7 +191,7 @@ const App: React.FC = () => {
 
         {activeTab === 'intimacoes' && (
           <div className="animate-in fade-in slide-in-from-bottom-4">
-            <IntimacoesTab intimacoes={intimacoes} processos={processos} onUpdate={handleUpdateIntimacao} />
+            <IntimacoesTab intimacoes={intimacoes} processos={processos} onUpdate={handleUpdateIntimacao} onAdd={handleAddIntimacoes} />
           </div>
         )}
 

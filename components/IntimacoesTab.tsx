@@ -1,14 +1,16 @@
 
 import React, { useState, useMemo } from 'react';
-import { Intimacao, Processo, TipoAto, StatusLeitura } from '../types';
+import { Intimacao, Processo, TipoAto, StatusLeitura, FonteCaptura } from '../types';
 import { TIPOS_ATO, TIPO_ATO_COLORS, PRAZO_REGRAS } from '../constants';
 import { calcularPrazoFinal, diasUteisRestantes } from '../utils/prazo';
 import { classifyIntimacao } from '../services/geminiService';
+import { capturarLegalMail, MOCK_LEGALMAIL_INBOX } from '../services/legalMailService';
 
 interface IntimacoesTabProps {
   intimacoes: Intimacao[];
   processos: Processo[];
   onUpdate: (updated: Intimacao) => void;
+  onAdd: (novas: Intimacao[]) => void;
 }
 
 type CardFiltro = 'naoLidas' | 'prazo3' | 'atrasadas' | 'periciasAudiencias' | 'revisao' | null;
@@ -18,17 +20,24 @@ const formatDate = (iso: string | null) =>
 
 const PERICIA_AUDIENCIA: TipoAto[] = ['Designação de Perícia', 'Intimação de Audiência'];
 
-export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, processos, onUpdate }) => {
+const FONTE_COLORS: Record<FonteCaptura, string> = {
+  'DJEN': '#4f46e5',
+  'LegalMail': '#0d9488',
+};
+
+export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, processos, onUpdate, onAdd }) => {
   const [busca, setBusca] = useState('');
   const [fTribunal, setFTribunal] = useState('todos');
   const [fTipo, setFTipo] = useState<'todos' | TipoAto>('todos');
   const [fStatus, setFStatus] = useState<'todos' | StatusLeitura>('todos');
   const [fPrazo, setFPrazo] = useState<'todos' | 'com' | 'sem'>('todos');
+  const [fFonte, setFFonte] = useState<'todos' | FonteCaptura>('todos');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
   const [card, setCard] = useState<CardFiltro>(null);
   const [selecionada, setSelecionada] = useState<Intimacao | null>(null);
   const [reclassificandoId, setReclassificandoId] = useState<string | null>(null);
+  const [sincronizando, setSincronizando] = useState(false);
 
   const tribunais = useMemo(
     () => Array.from(new Set(intimacoes.map(i => i.tribunal))).sort(),
@@ -61,6 +70,7 @@ export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, proces
       if (card === 'revisao' && !i.revisaoManual) return false;
 
       if (fTribunal !== 'todos' && i.tribunal !== fTribunal) return false;
+      if (fFonte !== 'todos' && i.fonte !== fFonte) return false;
       if (fTipo !== 'todos' && i.tipoAto !== fTipo) return false;
       if (fStatus !== 'todos' && i.statusLeitura !== fStatus) return false;
       if (fPrazo === 'com' && !i.dataPrazoFinal) return false;
@@ -75,7 +85,24 @@ export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, proces
       }
       return true;
     }).sort((a, b) => b.dataDisponibilizacao.localeCompare(a.dataDisponibilizacao));
-  }, [intimacoes, card, fTribunal, fTipo, fStatus, fPrazo, dataInicio, dataFim, busca]);
+  }, [intimacoes, card, fTribunal, fFonte, fTipo, fStatus, fPrazo, dataInicio, dataFim, busca]);
+
+  const sincronizarLegalMail = async () => {
+    setSincronizando(true);
+    try {
+      const novas = await capturarLegalMail(MOCK_LEGALMAIL_INBOX, intimacoes, processos);
+      if (novas.length > 0) {
+        onAdd(novas);
+        alert(`${novas.length} nova(s) intimação(ões) capturada(s) do LegalMail.`);
+      } else {
+        alert('Nenhuma intimação nova no LegalMail (inbox já sincronizado).');
+      }
+    } catch (e) {
+      alert('Falha ao sincronizar o LegalMail. Tente novamente.');
+    } finally {
+      setSincronizando(false);
+    }
+  };
 
   const toggleLeitura = (i: Intimacao) => {
     onUpdate({ ...i, statusLeitura: i.statusLeitura === 'Lida' ? 'Não Lida' : 'Lida' });
@@ -146,7 +173,8 @@ export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, proces
   };
 
   const now = new Date();
-  const capturadas24h = intimacoes.filter(i => {
+  const capturadas24hPorFonte = (fonte: FonteCaptura) => intimacoes.filter(i => {
+    if (i.fonte !== fonte) return false;
     const d = new Date(i.dataDisponibilizacao + 'T12:00:00');
     return (now.getTime() - d.getTime()) <= 1000 * 60 * 60 * 24 * 1.5;
   }).length;
@@ -162,28 +190,43 @@ export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, proces
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">Intimações Judiciais</h2>
-              <p className="text-sm text-gray-500 font-medium">Captação diária DJEN/CNJ · classificação por IA · rito previdenciário (JEF / Vara Federal)</p>
+              <p className="text-sm text-gray-500 font-medium">Captação DJEN/CNJ + LegalMail · classificação por IA · rito previdenciário (JEF / Vara Federal)</p>
             </div>
           </div>
 
-          {/* Painel de Saúde da Captura */}
-          <div className="flex flex-wrap gap-3">
-            <div className="px-4 py-2 bg-emerald-50 rounded-xl border border-emerald-100">
-              <p className="text-[9px] font-black text-emerald-700 uppercase tracking-widest">Última Captura DJEN</p>
-              <p className="text-sm font-bold text-emerald-800">Hoje, {now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
-            </div>
-            <div className="px-4 py-2 bg-indigo-50 rounded-xl border border-indigo-100">
-              <p className="text-[9px] font-black text-indigo-700 uppercase tracking-widest">Capturadas (24h)</p>
-              <p className="text-sm font-bold text-indigo-800">{capturadas24h}</p>
-            </div>
-            <div className="px-4 py-2 bg-fuchsia-50 rounded-xl border border-fuchsia-100">
-              <p className="text-[9px] font-black text-fuchsia-700 uppercase tracking-widest">Fila IA (Revisão)</p>
-              <p className="text-sm font-bold text-fuchsia-800">{metrics.revisao}</p>
-            </div>
-            <div className="px-4 py-2 bg-gray-50 rounded-xl border border-gray-100">
-              <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Falhas Recentes</p>
-              <p className="text-sm font-bold text-gray-700">0</p>
-            </div>
+          <button
+            onClick={sincronizarLegalMail}
+            disabled={sincronizando}
+            className="px-4 py-2.5 bg-teal-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-teal-700 transition-all flex items-center gap-2 shadow-lg shadow-teal-100 disabled:opacity-50 self-start"
+          >
+            {sincronizando ? (
+              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+            )}
+            {sincronizando ? 'Sincronizando...' : 'Sincronizar LegalMail'}
+          </button>
+        </div>
+
+        {/* Painel de Saúde da Captura (dois canais) */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6 pt-6 border-t border-gray-100">
+          <div className="px-4 py-3 bg-indigo-50 rounded-xl border border-indigo-100">
+            <p className="text-[9px] font-black text-indigo-700 uppercase tracking-widest">Canal DJEN/CNJ</p>
+            <p className="text-sm font-bold text-indigo-800">Hoje, {now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
+            <p className="text-[10px] text-indigo-500 font-medium">{capturadas24hPorFonte('DJEN')} capturada(s) em 24h</p>
+          </div>
+          <div className="px-4 py-3 bg-teal-50 rounded-xl border border-teal-100">
+            <p className="text-[9px] font-black text-teal-700 uppercase tracking-widest">Canal LegalMail</p>
+            <p className="text-sm font-bold text-teal-800">Hoje, {now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
+            <p className="text-[10px] text-teal-500 font-medium">{capturadas24hPorFonte('LegalMail')} capturada(s) em 24h</p>
+          </div>
+          <div className="px-4 py-3 bg-fuchsia-50 rounded-xl border border-fuchsia-100">
+            <p className="text-[9px] font-black text-fuchsia-700 uppercase tracking-widest">Fila IA (Revisão)</p>
+            <p className="text-lg font-black text-fuchsia-800">{metrics.revisao}</p>
+          </div>
+          <div className="px-4 py-3 bg-gray-50 rounded-xl border border-gray-100">
+            <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Falhas Recentes</p>
+            <p className="text-lg font-black text-gray-700">0</p>
           </div>
         </div>
       </div>
@@ -208,6 +251,14 @@ export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, proces
           <div className="flex-1 min-w-[200px]">
             <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Busca (segurado / processo)</label>
             <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Digite para buscar..." className="w-full mt-1 px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
+          </div>
+          <div>
+            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Fonte</label>
+            <select value={fFonte} onChange={e => setFFonte(e.target.value as any)} className="w-full mt-1 px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="todos">Todas</option>
+              <option value="DJEN">DJEN/CNJ</option>
+              <option value="LegalMail">LegalMail</option>
+            </select>
           </div>
           <div>
             <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Tribunal / Vara</label>
@@ -248,9 +299,9 @@ export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, proces
             <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Disp. até</label>
             <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} className="w-full mt-1 px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
           </div>
-          {(card || busca || fTribunal !== 'todos' || fTipo !== 'todos' || fStatus !== 'todos' || fPrazo !== 'todos' || dataInicio || dataFim) && (
+          {(card || busca || fTribunal !== 'todos' || fFonte !== 'todos' || fTipo !== 'todos' || fStatus !== 'todos' || fPrazo !== 'todos' || dataInicio || dataFim) && (
             <button
-              onClick={() => { setCard(null); setBusca(''); setFTribunal('todos'); setFTipo('todos'); setFStatus('todos'); setFPrazo('todos'); setDataInicio(''); setDataFim(''); }}
+              onClick={() => { setCard(null); setBusca(''); setFTribunal('todos'); setFFonte('todos'); setFTipo('todos'); setFStatus('todos'); setFPrazo('todos'); setDataInicio(''); setDataFim(''); }}
               className="px-3 py-2 text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-100 rounded-lg hover:bg-gray-200 transition-all"
             >Limpar</button>
           )}
@@ -278,7 +329,10 @@ export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, proces
                   <tr key={i.id} className={`hover:bg-[#f8fafc] transition-all ${i.statusLeitura === 'Não Lida' ? 'bg-indigo-50/20' : ''}`}>
                     <td className="px-5 py-4 text-xs font-bold text-gray-600 whitespace-nowrap">{formatDate(i.dataDisponibilizacao)}</td>
                     <td className="px-5 py-4">
-                      <div className="text-sm font-bold text-gray-900">{i.segurado}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[8px] font-black text-white px-1.5 py-0.5 rounded uppercase" style={{ backgroundColor: FONTE_COLORS[i.fonte] }}>{i.fonte}</span>
+                        <div className="text-sm font-bold text-gray-900">{i.segurado}</div>
+                      </div>
                       <div className="text-[10px] text-indigo-600 font-black mt-0.5">{i.numeroProcesso}</div>
                       <div className="text-[10px] text-gray-400 font-medium">{i.tribunal} · {i.orgao}</div>
                       {i.processoVinculadoId

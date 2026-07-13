@@ -62,6 +62,10 @@ export type TipoAto =
 export type ConfiancaIA = 'Alta' | 'Média' | 'Baixa';
 export type StatusLeitura = 'Não Lida' | 'Lida' | 'Arquivada';
 
+// Canal de captura da intimação. DJEN/CNJ é a fonte estruturada oficial;
+// LegalMail (Certisign) entrega citações/intimações eletrônicas por e-mail.
+export type FonteCaptura = 'DJEN' | 'LegalMail';
+
 // Regra de prazo cadastrada por tipo de ato. `prazoDias` em dias úteis;
 // `null` => ato meramente informativo (sem prazo processual para o escritório).
 export interface PrazoRegra {
@@ -71,6 +75,7 @@ export interface PrazoRegra {
 
 export interface Intimacao {
   id: string;
+  fonte: FonteCaptura; // Canal de origem (DJEN ou LegalMail)
   numeroProcesso: string;
   tribunal: string;   // Ex.: TRF3, TRF4, Turma Recursal
   orgao: string;      // Vara / Juizado / Turma
