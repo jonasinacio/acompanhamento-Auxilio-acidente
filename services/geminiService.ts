@@ -53,6 +53,18 @@ export interface ClassificacaoIntimacao {
   confianca: ConfiancaIA;
 }
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Considera transitórios os erros que valem uma nova tentativa (sobrecarga /
+// rate limit): 503 UNAVAILABLE e 429 RESOURCE_EXHAUSTED, comuns no tier gratuito.
+// Erros de credencial/entrada (4xx) não são reprocessados.
+const isTransientError = (error: any): boolean => {
+  const status = error?.status ?? error?.code;
+  if (status === 503 || status === 429) return true;
+  const msg = String(error?.message ?? error ?? '');
+  return /UNAVAILABLE|RESOURCE_EXHAUSTED|high demand|overloaded/i.test(msg);
+};
+
 /**
  * Classifica o teor de uma intimação do DJEN em: tipo do ato, resumo e nível
  * de confiança. A IA identifica APENAS o tipo e o resumo — o prazo é sempre
@@ -88,31 +100,39 @@ Teor da publicação:
 """${teorIntegral}"""
 `;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: prompt,
-      config: { responseMimeType: 'application/json' },
-    });
+  // Até 3 tentativas com backoff exponencial (1s, 2s, 4s) apenas para erros
+  // transitórios. Falha definitiva (ou erro não transitório) => null => revisão manual.
+  const MAX_TENTATIVAS = 3;
+  for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: prompt,
+        config: { responseMimeType: 'application/json' },
+      });
 
-    const raw = (response.text || '').trim().replace(/^```json\s*|\s*```$/g, '');
-    const parsed = JSON.parse(raw);
+      const raw = (response.text || '').trim().replace(/^```json\s*|\s*```$/g, '');
+      const parsed = JSON.parse(raw);
 
-    const tipoAto: TipoAto = TIPOS_ATO.includes(parsed.tipoAto)
-      ? parsed.tipoAto
-      : 'Outro';
-    const confianca: ConfiancaIA =
-      ['Alta', 'Média', 'Baixa'].includes(parsed.confianca)
-        ? parsed.confianca
-        : 'Baixa';
+      const tipoAto: TipoAto = TIPOS_ATO.includes(parsed.tipoAto)
+        ? parsed.tipoAto
+        : 'Outro';
+      const confianca: ConfiancaIA =
+        ['Alta', 'Média', 'Baixa'].includes(parsed.confianca)
+          ? parsed.confianca
+          : 'Baixa';
 
-    return {
-      tipoAto,
-      teorResumido: String(parsed.teorResumido || '').trim() || 'Resumo indisponível.',
-      confianca,
-    };
-  } catch (error) {
-    console.error("Erro na classificação da intimação:", error);
-    return null;
+      return {
+        tipoAto,
+        teorResumido: String(parsed.teorResumido || '').trim() || 'Resumo indisponível.',
+        confianca,
+      };
+    } catch (error) {
+      const transitorio = isTransientError(error);
+      console.error(`Erro na classificação da intimação (tentativa ${tentativa}/${MAX_TENTATIVAS}):`, error);
+      if (!transitorio || tentativa === MAX_TENTATIVAS) return null;
+      await sleep(1000 * 2 ** (tentativa - 1)); // 1s, 2s, 4s...
+    }
   }
+  return null;
 };
