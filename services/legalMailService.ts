@@ -127,6 +127,98 @@ export const capturarLegalMail = async (
   return novas;
 };
 
+// ============================================================
+// Adaptador de FONTE — permite trocar a caixa simulada pela API real
+// do LegalMail sem alterar o pipeline de captura/classificação.
+// ============================================================
+
+export interface LegalMailSource {
+  nome: string;
+  fetchNovosEmails: () => Promise<LegalMailEmail[]>;
+}
+
+// Fonte simulada (desenvolvimento/demonstração).
+export const mockLegalMailSource: LegalMailSource = {
+  nome: 'LegalMail (simulado)',
+  fetchNovosEmails: async () => MOCK_LEGALMAIL_INBOX,
+};
+
+export interface LegalMailApiConfig {
+  apiUrl: string;
+  apiKey: string;
+  authHeader?: string; // padrão: 'Authorization'
+  authScheme?: string; // padrão: 'Bearer ' (use '' para chave crua no header)
+}
+
+/**
+ * AJUSTE AQUI conforme o payload real da API do LegalMail.
+ * Mapeia um item bruto da resposta para o nosso LegalMailEmail. Tenta os nomes
+ * de campo mais comuns; basta fixar os corretos quando você confirmar o formato.
+ */
+export const mapRawToLegalMailEmail = (raw: any): LegalMailEmail => ({
+  messageId: String(raw.messageId ?? raw.id ?? raw.idMensagem ?? raw.protocolo ?? crypto.randomUUID?.() ?? Math.random()),
+  recebidoEm: String(raw.recebidoEm ?? raw.dataRecebimento ?? raw.data ?? new Date().toISOString()).split('T')[0],
+  assunto: String(raw.assunto ?? raw.subject ?? raw.titulo ?? ''),
+  remetente: String(raw.remetente ?? raw.from ?? raw.origem ?? 'legalmail'),
+  corpo: String(raw.corpo ?? raw.body ?? raw.conteudo ?? raw.teor ?? raw.mensagem ?? ''),
+});
+
+/**
+ * Fonte que consome a API HTTP do LegalMail. A chave NUNCA é embutida no
+ * código: vem de configuração (env). Observação de produção: idealmente esta
+ * chamada roda no backend/proxy — chamar direto do browser expõe a chave no
+ * bundle e pode esbarrar em CORS.
+ */
+export const criarLegalMailApiSource = (config: LegalMailApiConfig): LegalMailSource => ({
+  nome: 'LegalMail (API)',
+  fetchNovosEmails: async () => {
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    const scheme = config.authScheme ?? 'Bearer ';
+    headers[config.authHeader ?? 'Authorization'] = `${scheme}${config.apiKey}`;
+
+    const resp = await fetch(config.apiUrl, { headers });
+    if (!resp.ok) throw new Error(`LegalMail API respondeu ${resp.status}`);
+
+    const data = await resp.json();
+    const lista: any[] = Array.isArray(data)
+      ? data
+      : (data.mensagens ?? data.items ?? data.data ?? data.results ?? []);
+    return lista.map(mapRawToLegalMailEmail);
+  },
+});
+
+/**
+ * Resolve a fonte a partir do ambiente: usa a API real quando
+ * LEGALMAIL_API_URL e LEGALMAIL_API_KEY estiverem definidos; caso contrário,
+ * cai na fonte simulada.
+ */
+export const resolverLegalMailSource = (): LegalMailSource => {
+  const apiUrl = process.env.LEGALMAIL_API_URL;
+  const apiKey = process.env.LEGALMAIL_API_KEY;
+  if (apiUrl && apiKey) {
+    return criarLegalMailApiSource({
+      apiUrl,
+      apiKey,
+      authHeader: process.env.LEGALMAIL_AUTH_HEADER,
+      authScheme: process.env.LEGALMAIL_AUTH_SCHEME,
+    });
+  }
+  return mockLegalMailSource;
+};
+
+/**
+ * Captura a partir de uma FONTE (mock ou API): busca os e-mails novos e os
+ * processa pelo mesmo pipeline (parse + IA + prazo + vínculo + dedup).
+ */
+export const capturarLegalMailDaFonte = async (
+  source: LegalMailSource,
+  existentes: Intimacao[],
+  processos: Processo[],
+): Promise<Intimacao[]> => {
+  const emails = await source.fetchNovosEmails();
+  return capturarLegalMail(emails, existentes, processos);
+};
+
 const hoje = new Date();
 const relDate = (dias: number) => {
   const d = new Date(hoje);

@@ -4,7 +4,7 @@ import { Intimacao, Processo, TipoAto, StatusLeitura, FonteCaptura } from '../ty
 import { TIPOS_ATO, TIPO_ATO_COLORS, PRAZO_REGRAS } from '../constants';
 import { calcularPrazoFinal, diasUteisRestantes } from '../utils/prazo';
 import { classifyIntimacao } from '../services/geminiService';
-import { capturarLegalMail, MOCK_LEGALMAIL_INBOX } from '../services/legalMailService';
+import { capturarLegalMailDaFonte, resolverLegalMailSource } from '../services/legalMailService';
 
 interface IntimacoesTabProps {
   intimacoes: Intimacao[];
@@ -90,15 +90,16 @@ export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, proces
   const sincronizarLegalMail = async () => {
     setSincronizando(true);
     try {
-      const novas = await capturarLegalMail(MOCK_LEGALMAIL_INBOX, intimacoes, processos);
+      const source = resolverLegalMailSource(); // API real se configurada, senão simulada
+      const novas = await capturarLegalMailDaFonte(source, intimacoes, processos);
       if (novas.length > 0) {
         onAdd(novas);
-        alert(`${novas.length} nova(s) intimação(ões) capturada(s) do LegalMail.`);
+        alert(`${novas.length} nova(s) intimação(ões) capturada(s) via ${source.nome}.`);
       } else {
-        alert('Nenhuma intimação nova no LegalMail (inbox já sincronizado).');
+        alert(`Nenhuma intimação nova (${source.nome} já sincronizado).`);
       }
-    } catch (e) {
-      alert('Falha ao sincronizar o LegalMail. Tente novamente.');
+    } catch (e: any) {
+      alert(`Falha ao sincronizar o LegalMail: ${e?.message ?? 'erro desconhecido'}.`);
     } finally {
       setSincronizando(false);
     }

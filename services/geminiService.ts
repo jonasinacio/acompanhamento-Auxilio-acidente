@@ -5,7 +5,7 @@ import { TIPOS_ATO } from "../constants";
 
 export const getLegalInsights = async (processos: Processo[], query: string): Promise<string> => {
   // Access API key exclusively from environment variables as per guidelines.
-  const apiKey = process.env.API_KEY;
+  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
   
   if (!apiKey) {
     console.warn("API Key não encontrada no ambiente.");
@@ -74,7 +74,7 @@ const isTransientError = (error: any): boolean => {
 export const classifyIntimacao = async (
   teorIntegral: string,
 ): Promise<ClassificacaoIntimacao | null> => {
-  const apiKey = process.env.API_KEY;
+  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
   if (!apiKey) {
     console.warn("API Key não encontrada — classificação por IA indisponível.");
     return null;
