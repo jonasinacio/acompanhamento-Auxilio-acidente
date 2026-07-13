@@ -5,6 +5,7 @@ import { TIPOS_ATO, TIPO_ATO_COLORS, PRAZO_REGRAS } from '../constants';
 import { calcularPrazoFinal, diasUteisRestantes } from '../utils/prazo';
 import { classifyIntimacao } from '../services/geminiService';
 import { capturarLegalMailDaFonte, resolverLegalMailSource } from '../services/legalMailService';
+import { capturarDjenDaFonte, resolverDjenSource } from '../services/djenService';
 
 interface IntimacoesTabProps {
   intimacoes: Intimacao[];
@@ -37,7 +38,7 @@ export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, proces
   const [card, setCard] = useState<CardFiltro>(null);
   const [selecionada, setSelecionada] = useState<Intimacao | null>(null);
   const [reclassificandoId, setReclassificandoId] = useState<string | null>(null);
-  const [sincronizando, setSincronizando] = useState(false);
+  const [sincronizandoCanal, setSincronizandoCanal] = useState<'DJEN' | 'LegalMail' | null>(null);
 
   const tribunais = useMemo(
     () => Array.from(new Set(intimacoes.map(i => i.tribunal))).sort(),
@@ -87,11 +88,12 @@ export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, proces
     }).sort((a, b) => b.dataDisponibilizacao.localeCompare(a.dataDisponibilizacao));
   }, [intimacoes, card, fTribunal, fFonte, fTipo, fStatus, fPrazo, dataInicio, dataFim, busca]);
 
-  const sincronizarLegalMail = async () => {
-    setSincronizando(true);
+  const sincronizar = async (canal: 'DJEN' | 'LegalMail') => {
+    setSincronizandoCanal(canal);
     try {
-      const source = resolverLegalMailSource(); // API real se configurada, senão simulada
-      const novas = await capturarLegalMailDaFonte(source, intimacoes, processos);
+      const source = canal === 'DJEN' ? resolverDjenSource() : resolverLegalMailSource();
+      const capturar = canal === 'DJEN' ? capturarDjenDaFonte : capturarLegalMailDaFonte;
+      const novas = await capturar(source as any, intimacoes, processos);
       if (novas.length > 0) {
         onAdd(novas);
         alert(`${novas.length} nova(s) intimação(ões) capturada(s) via ${source.nome}.`);
@@ -99,9 +101,9 @@ export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, proces
         alert(`Nenhuma intimação nova (${source.nome} já sincronizado).`);
       }
     } catch (e: any) {
-      alert(`Falha ao sincronizar o LegalMail: ${e?.message ?? 'erro desconhecido'}.`);
+      alert(`Falha ao sincronizar ${canal}: ${e?.message ?? 'erro desconhecido'}.`);
     } finally {
-      setSincronizando(false);
+      setSincronizandoCanal(null);
     }
   };
 
@@ -195,18 +197,32 @@ export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, proces
             </div>
           </div>
 
-          <button
-            onClick={sincronizarLegalMail}
-            disabled={sincronizando}
-            className="px-4 py-2.5 bg-teal-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-teal-700 transition-all flex items-center gap-2 shadow-lg shadow-teal-100 disabled:opacity-50 self-start"
-          >
-            {sincronizando ? (
-              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-            ) : (
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-            )}
-            {sincronizando ? 'Sincronizando...' : 'Sincronizar LegalMail'}
-          </button>
+          <div className="flex gap-2 self-start">
+            <button
+              onClick={() => sincronizar('DJEN')}
+              disabled={sincronizandoCanal !== null}
+              className="px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-100 disabled:opacity-50"
+            >
+              {sincronizandoCanal === 'DJEN' ? (
+                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+              )}
+              {sincronizandoCanal === 'DJEN' ? 'Sincronizando...' : 'Sincronizar DJEN'}
+            </button>
+            <button
+              onClick={() => sincronizar('LegalMail')}
+              disabled={sincronizandoCanal !== null}
+              className="px-4 py-2.5 bg-teal-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-teal-700 transition-all flex items-center gap-2 shadow-lg shadow-teal-100 disabled:opacity-50"
+            >
+              {sincronizandoCanal === 'LegalMail' ? (
+                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+              )}
+              {sincronizandoCanal === 'LegalMail' ? 'Sincronizando...' : 'Sincronizar LegalMail'}
+            </button>
+          </div>
         </div>
 
         {/* Painel de Saúde da Captura (dois canais) */}

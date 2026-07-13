@@ -19,10 +19,11 @@
 // webhook devem rodar no BACKEND, para não expor a api_key no bundle do browser
 // nem esbarrar em CORS.
 
-import { Intimacao, Processo, TipoAto } from '../types';
-import { PRAZO_REGRAS } from '../constants';
-import { calcularPrazoFinal } from '../utils/prazo';
-import { classifyIntimacao } from './geminiService';
+import { Intimacao, Processo } from '../types';
+import { stripHtml, construirIntimacao } from './intimacaoBuilder';
+
+// Reexporta stripHtml para consumidores existentes do módulo.
+export { stripHtml };
 
 const LEGALMAIL_BASE_PADRAO = 'https://app.legalmail.com.br';
 
@@ -84,67 +85,6 @@ export interface LegalMailWebhookPayload {
 }
 
 // ------------------------------------------------------------
-// Utilidades
-// ------------------------------------------------------------
-
-// Remove marcação HTML e normaliza espaços do teor da intimação.
-export const stripHtml = (html: string): string =>
-  (html || '')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/(p|div|li)>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/[ \t]+/g, ' ')
-    .replace(/\n{2,}/g, '\n')
-    .trim();
-
-const resumoFallback = (texto: string): string =>
-  texto.length > 140 ? texto.slice(0, 137).trim() + '...' : texto;
-
-// Monta uma Intimacao a partir de um teor bruto + metadados, classificando
-// pela IA e calculando o prazo pela regra fixa. Vincula ao Processo por número.
-const construirIntimacao = async (params: {
-  id: string;
-  numeroProcesso: string;
-  tribunal: string;
-  orgao: string;
-  seguradoFallback: string;
-  dataDisponibilizacao: string;
-  teorIntegral: string;
-  processos: Processo[];
-}): Promise<Intimacao> => {
-  const { id, numeroProcesso, tribunal, orgao, seguradoFallback, dataDisponibilizacao, teorIntegral, processos } = params;
-
-  const classificacao = await classifyIntimacao(teorIntegral);
-  const tipoAto: TipoAto = classificacao?.tipoAto ?? 'Outro';
-  const prazoDias = PRAZO_REGRAS[tipoAto].prazoDias;
-
-  const processoVinculado = processos.find(p => p.numero === numeroProcesso);
-
-  return {
-    id,
-    fonte: 'LegalMail',
-    numeroProcesso,
-    tribunal: tribunal || 'Justiça Federal',
-    orgao: orgao || 'Órgão não identificado',
-    segurado: processoVinculado?.cliente ?? seguradoFallback ?? 'Segurado não identificado',
-    dataDisponibilizacao: (dataDisponibilizacao || new Date().toISOString()).split('T')[0],
-    teorIntegral,
-    teorResumido: classificacao?.teorResumido ?? resumoFallback(teorIntegral),
-    tipoAto,
-    confianca: classificacao?.confianca ?? 'Baixa',
-    prazoDias,
-    dataPrazoFinal: calcularPrazoFinal((dataDisponibilizacao || new Date().toISOString()).split('T')[0], prazoDias),
-    statusLeitura: 'Não Lida',
-    processoVinculadoId: processoVinculado?.id ?? null,
-    revisaoManual: !classificacao || classificacao.confianca === 'Baixa',
-  };
-};
-
-// ------------------------------------------------------------
 // Webhook (modo recomendado): converte o payload de push em Intimações.
 // Uso típico: no backend receiver, chame parseLegalMailWebhook(body, processos).
 // ------------------------------------------------------------
@@ -159,6 +99,7 @@ export const parseLegalMailWebhook = async (
         ? stripHtml(doc.text ?? '')
         : (doc.title ? `Documento (PDF): ${doc.title}` : 'Documento PDF anexado à movimentação.');
       intimacoes.push(await construirIntimacao({
+        fonte: 'LegalMail',
         id: `lm-wh-${doc.id ?? `${proc.numero_processo}-${doc.movement_date ?? ''}`}`,
         numeroProcesso: proc.numero_processo,
         tribunal: proc.tribunal ?? '',
@@ -224,6 +165,7 @@ export const capturarLegalMailApi = async (
       if (jaCapturados.has(id)) continue;
       novas.push(await construirIntimacao({
         id,
+        fonte: 'LegalMail',
         numeroProcesso: proc.numero_processo,
         tribunal: proc.tribunal ?? '',
         orgao: proc.juizo ?? '',
@@ -310,6 +252,7 @@ export const mockLegalMailSource: LegalMailSource = {
         if (jaCapturados.has(id)) continue;
         novas.push(await construirIntimacao({
           id,
+          fonte: 'LegalMail',
           numeroProcesso: proc.numero_processo,
           tribunal: proc.tribunal ?? '',
           orgao: proc.juizo ?? '',
