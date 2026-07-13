@@ -1,6 +1,7 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { Processo } from "../types";
+import { Processo, TipoAto, ConfiancaIA } from "../types";
+import { TIPOS_ATO } from "../constants";
 
 export const getLegalInsights = async (processos: Processo[], query: string): Promise<string> => {
   // Access API key exclusively from environment variables as per guidelines.
@@ -43,5 +44,75 @@ export const getLegalInsights = async (processos: Processo[], query: string): Pr
   } catch (error) {
     console.error("Gemini AI Error:", error);
     return "O assistente de IA encontrou um erro. Por favor, tente novamente em instantes.";
+  }
+};
+
+export interface ClassificacaoIntimacao {
+  tipoAto: TipoAto;
+  teorResumido: string;
+  confianca: ConfiancaIA;
+}
+
+/**
+ * Classifica o teor de uma intimação do DJEN em: tipo do ato, resumo e nível
+ * de confiança. A IA identifica APENAS o tipo e o resumo — o prazo é sempre
+ * calculado por regra fixa (utils/prazo.ts), nunca estimado pela IA.
+ * Em caso de falha/ausência de API key, retorna null para acionar revisão manual.
+ */
+export const classifyIntimacao = async (
+  teorIntegral: string,
+): Promise<ClassificacaoIntimacao | null> => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    console.warn("API Key não encontrada — classificação por IA indisponível.");
+    return null;
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
+
+  const prompt = `
+Você é um analista de intimações judiciais especializado em Direito Previdenciário,
+atuando em ações de auxílio-acidente/benefícios que tramitam no Juizado Especial
+Federal (JEF) e em Varas Federais (PJe).
+
+Classifique o teor da publicação abaixo. Retorne ESTRITAMENTE um objeto JSON, sem
+markdown, com as chaves:
+- "tipoAto": exatamente um dos valores: ${JSON.stringify(TIPOS_ATO)}
+- "teorResumido": resumo objetivo do ato em uma frase (português do Brasil)
+- "confianca": "Alta", "Média" ou "Baixa"
+
+Use "Outro" e confiança "Baixa" quando o teor for genérico ou ambíguo.
+NÃO informe prazos — apenas o tipo do ato e o resumo.
+
+Teor da publicação:
+"""${teorIntegral}"""
+`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+      config: { responseMimeType: 'application/json' },
+    });
+
+    const raw = (response.text || '').trim().replace(/^```json\s*|\s*```$/g, '');
+    const parsed = JSON.parse(raw);
+
+    const tipoAto: TipoAto = TIPOS_ATO.includes(parsed.tipoAto)
+      ? parsed.tipoAto
+      : 'Outro';
+    const confianca: ConfiancaIA =
+      ['Alta', 'Média', 'Baixa'].includes(parsed.confianca)
+        ? parsed.confianca
+        : 'Baixa';
+
+    return {
+      tipoAto,
+      teorResumido: String(parsed.teorResumido || '').trim() || 'Resumo indisponível.',
+      confianca,
+    };
+  } catch (error) {
+    console.error("Erro na classificação da intimação:", error);
+    return null;
   }
 };

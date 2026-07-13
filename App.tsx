@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { MOCK_PROCESSOS } from './constants.ts';
+import { MOCK_PROCESSOS, MOCK_INTIMACOES } from './constants.ts';
 import { StatsCard } from './components/StatsCard.tsx';
 import { ProcessTable } from './components/ProcessTable.tsx';
 import { LegalCharts } from './components/LegalCharts.tsx';
@@ -8,10 +8,12 @@ import { AIAssistant } from './components/AIAssistant.tsx';
 import { NotificationPanel } from './components/NotificationPanel.tsx';
 import { SpreadsheetTab } from './components/SpreadsheetTab.tsx';
 import { UserManagementTab } from './components/UserManagementTab.tsx';
+import { IntimacoesTab } from './components/IntimacoesTab.tsx';
 import { Login } from './components/Login.tsx';
-import { Processo, User, UserRole } from './types.ts';
+import { Processo, User, UserRole, Intimacao } from './types.ts';
+import { diasUteisRestantes } from './utils/prazo.ts';
 
-type TabId = 'dashboard' | 'processos' | 'planilha' | 'equipe';
+type TabId = 'dashboard' | 'processos' | 'intimacoes' | 'planilha' | 'equipe';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -37,14 +39,41 @@ const App: React.FC = () => {
     return [{ id: '1', nome: 'Jonas Inácio', email: 'jonas@advocacia.com', role: 'gestor', dataCriacao: '2024-01-01' }];
   });
 
+  const [intimacoes, setIntimacoes] = useState<Intimacao[]>(() => {
+    try {
+      const saved = localStorage.getItem('adv_intimacoes');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) && parsed.length > 0 ? parsed : MOCK_INTIMACOES;
+      }
+    } catch (e) {}
+    return MOCK_INTIMACOES;
+  });
+
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
-  const [role, setRole] = useState<UserRole>('gestor'); 
+  const [role, setRole] = useState<UserRole>('gestor');
 
   useEffect(() => {
     try {
       localStorage.setItem('adv_processos', JSON.stringify(processos));
     } catch (e) {}
   }, [processos]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('adv_intimacoes', JSON.stringify(intimacoes));
+    } catch (e) {}
+  }, [intimacoes]);
+
+  // Contadores de triagem para o badge de intimações no menu.
+  const intimacoesUrgentes = useMemo(() => {
+    return intimacoes.filter(i => {
+      if (i.statusLeitura === 'Arquivada') return false;
+      if (i.statusLeitura === 'Não Lida') return true;
+      const dias = diasUteisRestantes(i.dataPrazoFinal);
+      return dias !== null && dias <= 3;
+    }).length;
+  }, [intimacoes]);
 
   const stats = useMemo(() => {
     const total = processos.length;
@@ -74,6 +103,10 @@ const App: React.FC = () => {
     setUsers(prev => [...prev, newUser]);
   };
 
+  const handleUpdateIntimacao = (updated: Intimacao) => {
+    setIntimacoes(prev => prev.map(i => i.id === updated.id ? updated : i));
+  };
+
   if (!isAuthenticated) {
     return <Login onLogin={handleLogin} />;
   }
@@ -91,6 +124,12 @@ const App: React.FC = () => {
             <nav className="flex items-center gap-4">
               <button onClick={() => setActiveTab('dashboard')} className={`px-4 py-2 text-[10px] font-black tracking-widest transition-all border-b-2 ${activeTab === 'dashboard' ? 'border-white text-white' : 'border-transparent text-white/40 hover:text-white/70'}`}>DASHBOARD</button>
               <button onClick={() => setActiveTab('processos')} className={`px-4 py-2 text-[10px] font-black tracking-widest transition-all border-b-2 ${activeTab === 'processos' ? 'border-white text-white' : 'border-transparent text-white/40 hover:text-white/70'}`}>CARTEIRA</button>
+              <button onClick={() => setActiveTab('intimacoes')} className={`relative px-4 py-2 text-[10px] font-black tracking-widest transition-all border-b-2 ${activeTab === 'intimacoes' ? 'border-white text-white' : 'border-transparent text-white/40 hover:text-white/70'}`}>
+                INTIMAÇÕES
+                {intimacoesUrgentes > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 flex items-center justify-center bg-red-500 text-white text-[8px] font-black rounded-full">{intimacoesUrgentes}</span>
+                )}
+              </button>
               {role === 'gestor' && (
                 <>
                   <button onClick={() => setActiveTab('planilha')} className={`px-4 py-2 text-[10px] font-black tracking-widest transition-all border-b-2 ${activeTab === 'planilha' ? 'border-white text-white' : 'border-transparent text-white/40 hover:text-white/70'}`}>PERÍCIAS</button>
@@ -138,6 +177,12 @@ const App: React.FC = () => {
         {activeTab === 'processos' && (
           <div className="animate-in fade-in slide-in-from-bottom-4">
             <ProcessTable processos={processos} onAdd={handleAddProcesso} />
+          </div>
+        )}
+
+        {activeTab === 'intimacoes' && (
+          <div className="animate-in fade-in slide-in-from-bottom-4">
+            <IntimacoesTab intimacoes={intimacoes} processos={processos} onUpdate={handleUpdateIntimacao} />
           </div>
         )}
 
