@@ -330,11 +330,58 @@ export const criarLegalMailApiSource = (config: LegalMailApiConfig): LegalMailSo
   capturar: (existentes, processos) => capturarLegalMailApi(config, existentes, processos),
 });
 
+// Fonte que lê do NOSSO backend de webhook (recomendada para o browser): as
+// intimações já chegam classificadas, sem expor a api_key nem consultar a API
+// do LegalMail a partir do cliente.
+export const criarBackendSource = (backendUrl: string): LegalMailSource => ({
+  nome: 'LegalMail (via backend)',
+  capturar: async () => {
+    const resp = await fetch(`${backendUrl.replace(/\/$/, '')}/intimacoes`, {
+      headers: { Accept: 'application/json' },
+    });
+    if (!resp.ok) throw new Error(`Backend respondeu ${resp.status}`);
+    const data = await resp.json();
+    return (Array.isArray(data) ? data : data.intimacoes ?? []) as Intimacao[];
+  },
+});
+
 /**
- * Resolve a fonte a partir do ambiente: usa a API real quando
- * LEGALMAIL_API_KEY estiver definido; caso contrário, a fonte simulada.
+ * Registra a URL de webhook no LegalMail
+ * (POST /api/v1/workspace/notifications/endpoint). Deve ser chamado a partir do
+ * BACKEND, onde a api_key fica protegida.
+ */
+export const registrarWebhookLegalMail = async (params: {
+  apiKey: string;
+  endpoint: string;        // URL pública do seu receiver
+  nomeAplicacao: string;
+  keyEndpoint?: string;    // chave de segurança opcional (recebida como clientkey)
+  base?: string;
+}): Promise<{ status: string }> => {
+  const base = params.base ?? LEGALMAIL_BASE_PADRAO;
+  const qs = new URLSearchParams({
+    api_key: params.apiKey,
+    endpoint: params.endpoint,
+    nome_aplicacao: params.nomeAplicacao,
+  });
+  if (params.keyEndpoint) qs.set('key_endpoint', params.keyEndpoint);
+  const resp = await fetch(`${base}/api/v1/workspace/notifications/endpoint?${qs.toString()}`, {
+    method: 'POST',
+    headers: { Accept: 'application/json' },
+  });
+  if (!resp.ok) throw new Error(`Falha ao registrar webhook: HTTP ${resp.status}`);
+  return resp.json();
+};
+
+/**
+ * Resolve a fonte a partir do ambiente, por ordem de preferência:
+ *   1. LEGALMAIL_BACKEND_URL  -> lê do nosso backend de webhook (recomendado);
+ *   2. LEGALMAIL_API_KEY      -> chama a API do LegalMail direto (polling);
+ *   3. fonte simulada.
  */
 export const resolverLegalMailSource = (): LegalMailSource => {
+  const backendUrl = process.env.LEGALMAIL_BACKEND_URL;
+  if (backendUrl) return criarBackendSource(backendUrl);
+
   const apiKey = process.env.LEGALMAIL_API_KEY;
   if (apiKey) {
     return criarLegalMailApiSource({
