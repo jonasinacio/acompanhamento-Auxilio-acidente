@@ -24,6 +24,13 @@ export interface AdvogadoMonitorado {
   nome?: string;
 }
 
+// Advogados monitorados por padrão (cadastro do escritório). Pode ser
+// sobrescrito por DJEN_ADVOGADOS no ambiente. Consulta por OAB+UF é suficiente;
+// o nome é apenas para exibição e NÃO é usado como filtro (evita perder itens).
+export const ADVOGADOS_MONITORADOS: AdvogadoMonitorado[] = [
+  { numeroOab: '160291', ufOab: 'MG' },
+];
+
 // Item retornado por /api/v1/comunicacao (campos usados; a API traz mais).
 export interface DjenComunicacao {
   id?: number | string;
@@ -198,14 +205,20 @@ const advogadosDoEnv = (): AdvogadoMonitorado[] => {
 };
 
 /**
- * Resolve a fonte DJEN: usa a API pública do CNJ quando há advogados
- * monitorados configurados (DJEN_ADVOGADOS); caso contrário, a fonte simulada.
+ * Resolve a fonte DJEN, por ordem de preferência:
+ *   1. DJEN_MOCK=1                 -> força a fonte simulada (offline/demo);
+ *   2. DJEN_ADVOGADOS (env)        -> API pública do CNJ com esses advogados;
+ *   3. ADVOGADOS_MONITORADOS       -> API pública do CNJ com o cadastro padrão;
+ *   4. fonte simulada (lista vazia).
  */
 export const resolverDjenSource = (): DjenSource => {
+  if (process.env.DJEN_MOCK === '1') return mockDjenSource;
+
   const advogados = advogadosDoEnv();
-  if (advogados.length > 0) {
+  const lista = advogados.length > 0 ? advogados : ADVOGADOS_MONITORADOS;
+  if (lista.length > 0) {
     return criarDjenApiSource({
-      advogados,
+      advogados: lista,
       base: process.env.DJEN_API_BASE,
       diasRetroativos: process.env.DJEN_DIAS ? Number(process.env.DJEN_DIAS) : undefined,
     });
