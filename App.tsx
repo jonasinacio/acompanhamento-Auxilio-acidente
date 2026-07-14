@@ -12,6 +12,7 @@ import { IntimacoesTab } from './components/IntimacoesTab.tsx';
 import { Login } from './components/Login.tsx';
 import { Processo, User, UserRole, Intimacao } from './types.ts';
 import { diasUteisRestantes } from './utils/prazo.ts';
+import { intimacoesBackendAtivo, listarIntimacoes, patchIntimacao } from './services/intimacoesApi.ts';
 
 type TabId = 'dashboard' | 'processos' | 'intimacoes' | 'planilha' | 'equipe';
 
@@ -52,6 +53,7 @@ const App: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [role, setRole] = useState<UserRole>('gestor');
+  const backendAtivo = intimacoesBackendAtivo();
 
   useEffect(() => {
     try {
@@ -59,11 +61,26 @@ const App: React.FC = () => {
     } catch (e) {}
   }, [processos]);
 
+  // Persistência das intimações: no backend central (compartilhado) quando
+  // configurado; senão, cache local no navegador.
   useEffect(() => {
+    if (backendAtivo) return; // com backend, a fonte da verdade é a API
     try {
       localStorage.setItem('adv_intimacoes', JSON.stringify(intimacoes));
     } catch (e) {}
-  }, [intimacoes]);
+  }, [intimacoes, backendAtivo]);
+
+  // Carrega as intimações do backend na inicialização (fallback: mantém o local).
+  const carregarDoBackend = React.useCallback(async () => {
+    if (!backendAtivo) return;
+    try {
+      setIntimacoes(await listarIntimacoes());
+    } catch (e) {
+      console.warn('Falha ao carregar intimações do backend; usando cache local.', e);
+    }
+  }, [backendAtivo]);
+
+  useEffect(() => { carregarDoBackend(); }, [carregarDoBackend]);
 
   // Contadores de triagem para o badge de intimações no menu.
   const intimacoesUrgentes = useMemo(() => {
@@ -104,7 +121,13 @@ const App: React.FC = () => {
   };
 
   const handleUpdateIntimacao = (updated: Intimacao) => {
-    setIntimacoes(prev => prev.map(i => i.id === updated.id ? updated : i));
+    setIntimacoes(prev => prev.map(i => i.id === updated.id ? updated : i)); // atualização otimista
+    if (backendAtivo) {
+      patchIntimacao(updated.id, updated).catch(e => {
+        console.warn('Falha ao salvar no backend; recarregando estado.', e);
+        carregarDoBackend();
+      });
+    }
   };
 
   const handleAddIntimacoes = (novas: Intimacao[]) => {
@@ -191,7 +214,7 @@ const App: React.FC = () => {
 
         {activeTab === 'intimacoes' && (
           <div className="animate-in fade-in slide-in-from-bottom-4">
-            <IntimacoesTab intimacoes={intimacoes} processos={processos} onUpdate={handleUpdateIntimacao} onAdd={handleAddIntimacoes} />
+            <IntimacoesTab intimacoes={intimacoes} processos={processos} onUpdate={handleUpdateIntimacao} onAdd={handleAddIntimacoes} backendAtivo={backendAtivo} onRefresh={carregarDoBackend} />
           </div>
         )}
 

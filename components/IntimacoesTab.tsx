@@ -6,12 +6,15 @@ import { calcularPrazoFinal, diasUteisRestantes } from '../utils/prazo';
 import { classifyIntimacao } from '../services/geminiService';
 import { capturarLegalMailDaFonte, resolverLegalMailSource } from '../services/legalMailService';
 import { capturarDjenDaFonte, resolverDjenSource } from '../services/djenService';
+import { sincronizarCanalBackend } from '../services/intimacoesApi';
 
 interface IntimacoesTabProps {
   intimacoes: Intimacao[];
   processos: Processo[];
   onUpdate: (updated: Intimacao) => void;
   onAdd: (novas: Intimacao[]) => void;
+  backendAtivo?: boolean;
+  onRefresh?: () => Promise<void> | void;
 }
 
 type CardFiltro = 'naoLidas' | 'prazo3' | 'atrasadas' | 'periciasAudiencias' | 'revisao' | null;
@@ -26,7 +29,7 @@ const FONTE_COLORS: Record<FonteCaptura, string> = {
   'LegalMail': '#0d9488',
 };
 
-export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, processos, onUpdate, onAdd }) => {
+export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, processos, onUpdate, onAdd, backendAtivo, onRefresh }) => {
   const [busca, setBusca] = useState('');
   const [fTribunal, setFTribunal] = useState('todos');
   const [fTipo, setFTipo] = useState<'todos' | TipoAto>('todos');
@@ -91,14 +94,24 @@ export const IntimacoesTab: React.FC<IntimacoesTabProps> = ({ intimacoes, proces
   const sincronizar = async (canal: 'DJEN' | 'LegalMail') => {
     setSincronizandoCanal(canal);
     try {
-      const source = canal === 'DJEN' ? resolverDjenSource() : resolverLegalMailSource();
-      const capturar = canal === 'DJEN' ? capturarDjenDaFonte : capturarLegalMailDaFonte;
-      const novas = await capturar(source as any, intimacoes, processos);
-      if (novas.length > 0) {
-        onAdd(novas);
-        alert(`${novas.length} nova(s) intimação(ões) capturada(s) via ${source.nome}.`);
+      if (backendAtivo) {
+        // Captura no servidor (central) e recarrega a lista compartilhada.
+        const adicionadas = await sincronizarCanalBackend(canal);
+        await onRefresh?.();
+        alert(adicionadas > 0
+          ? `${adicionadas} nova(s) intimação(ões) capturada(s) via ${canal} (servidor).`
+          : `Nenhuma intimação nova (${canal} já sincronizado).`);
       } else {
-        alert(`Nenhuma intimação nova (${source.nome} já sincronizado).`);
+        // Sem backend: captura no próprio cliente (fonte real ou simulada).
+        const source = canal === 'DJEN' ? resolverDjenSource() : resolverLegalMailSource();
+        const capturar = canal === 'DJEN' ? capturarDjenDaFonte : capturarLegalMailDaFonte;
+        const novas = await capturar(source as any, intimacoes, processos);
+        if (novas.length > 0) {
+          onAdd(novas);
+          alert(`${novas.length} nova(s) intimação(ões) capturada(s) via ${source.nome}.`);
+        } else {
+          alert(`Nenhuma intimação nova (${source.nome} já sincronizado).`);
+        }
       }
     } catch (e: any) {
       alert(`Falha ao sincronizar ${canal}: ${e?.message ?? 'erro desconhecido'}.`);
