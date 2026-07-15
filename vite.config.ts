@@ -9,7 +9,7 @@ import react from '@vitejs/plugin-react';
 // ficar SÓ no backend; se definidos no build do front, seriam embutidos no JS.
 const CHAVES_EXPOSTAS = [
   'API_KEY', 'GEMINI_API_KEY', 'GEMINI_MODEL',
-  'OPENAI_API_KEY', 'OPENAI_MODEL',
+  'OPENAI_API_KEY', 'OPENAI_MODEL', 'OPENAI_BASE_URL',
   'INTIMACOES_API_URL', 'APP_TOKEN',
   'DJEN_MOCK', 'DJEN_ADVOGADOS', 'DJEN_API_BASE', 'DJEN_DIAS',
   'LEGALMAIL_BACKEND_URL', 'LEGALMAIL_API_KEY', 'LEGALMAIL_API_BASE', 'LEGALMAIL_MAX_PROCESSOS',

@@ -92,10 +92,15 @@ const normalizar = (parsed: any): ClassificacaoIntimacao => ({
   confianca: ['Alta', 'Média', 'Baixa'].includes(parsed?.confianca) ? parsed.confianca as ConfiancaIA : 'Baixa',
 });
 
-// Chamada REST à OpenAI (sem SDK, evita incompatibilidades de versão).
+// Endereço da API compatível com OpenAI. Padrão: OpenAI. Pode apontar para
+// Groq (grátis), OpenRouter, Ollama local etc. via OPENAI_BASE_URL.
+const OPENAI_BASE = () =>
+  (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').trim().replace(/\/$/, '');
+
+// Chamada REST a uma API compatível com OpenAI (sem SDK).
 type Msg = { role: 'system' | 'user'; content: string };
 const chamarOpenAI = async (mensagens: Msg[], json: boolean): Promise<string> => {
-  const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+  const resp = await fetch(`${OPENAI_BASE()}/chat/completions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${openaiKey()}` },
     body: JSON.stringify({
