@@ -3,24 +3,18 @@ import { GoogleGenAI } from "@google/genai";
 import { Processo, TipoAto, ConfiancaIA } from "../types";
 import { TIPOS_ATO } from "../constants";
 
-export const getLegalInsights = async (processos: Processo[], query: string): Promise<string> => {
-  // Access API key exclusively from environment variables as per guidelines.
-  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
-  
-  if (!apiKey) {
-    console.warn("API Key não encontrada no ambiente.");
-    return "A inteligência artificial não foi configurada corretamente (API Key ausente).";
-  }
+// Provedor de IA: usa OpenAI (ChatGPT) quando OPENAI_API_KEY está definido;
+// caso contrário, Gemini (API_KEY/GEMINI_API_KEY). A chave é sempre "limpa"
+// (trim) para evitar erros de caractere invisível ao colar.
+const openaiKey = () => (process.env.OPENAI_API_KEY || '').trim();
+const geminiKey = () => (process.env.API_KEY || process.env.GEMINI_API_KEY || '').trim();
 
-  // Use a named parameter to initialize the GoogleGenAI client.
-  const ai = new GoogleGenAI({ apiKey });
-  
+export const getLegalInsights = async (processos: Processo[], query: string): Promise<string> => {
   const today = new Date().toISOString().split('T')[0];
-  
   const context = `
     Você é um assistente jurídico sênior e analista estratégico para um escritório de advocacia especializado em Auxílio-Acidente.
     A data de hoje é: ${today}.
-    
+
     Abaixo estão os dados dos processos do escritório de Jonas Inácio:
     ${JSON.stringify(processos, null, 2)}
 
@@ -33,16 +27,21 @@ export const getLegalInsights = async (processos: Processo[], query: string): Pr
   `;
 
   try {
-    // Call generateContent with both model name and prompt.
-    // Using gemini-3-flash-preview for general analytics and Q&A.
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: context,
-    });
-    // Access the .text property directly (not as a method).
-    return response.text || "Não foi possível gerar uma resposta clara no momento.";
+    if (openaiKey()) {
+      const texto = await chamarOpenAI([
+        { role: 'system', content: 'Você é um assistente jurídico sênior. Responda em português do Brasil.' },
+        { role: 'user', content: context },
+      ], false);
+      return texto || "Não foi possível gerar uma resposta clara no momento.";
+    }
+    if (geminiKey()) {
+      const ai = new GoogleGenAI({ apiKey: geminiKey() });
+      const response = await ai.models.generateContent({ model: MODELO_GEMINI, contents: context });
+      return response.text || "Não foi possível gerar uma resposta clara no momento.";
+    }
+    return "A inteligência artificial não foi configurada (defina OPENAI_API_KEY ou GEMINI_API_KEY).";
   } catch (error) {
-    console.error("Gemini AI Error:", error);
+    console.error("AI Error:", error);
     return "O assistente de IA encontrou um erro. Por favor, tente novamente em instantes.";
   }
 };
@@ -53,36 +52,20 @@ export interface ClassificacaoIntimacao {
   confianca: ConfiancaIA;
 }
 
+// Modelos padrão (ajustáveis por env). Gemini estável em vez de "-preview".
+const MODELO_GEMINI = (process.env.GEMINI_MODEL || 'gemini-2.0-flash').trim();
+const MODELO_OPENAI = (process.env.OPENAI_MODEL || 'gpt-4o-mini').trim();
+
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Considera transitórios os erros que valem uma nova tentativa (sobrecarga /
-// rate limit): 503 UNAVAILABLE e 429 RESOURCE_EXHAUSTED, comuns no tier gratuito.
-// Erros de credencial/entrada (4xx) não são reprocessados.
+// Erros transitórios (vale nova tentativa): 429 e 5xx / sobrecarga.
 const isTransientError = (error: any): boolean => {
   const status = error?.status ?? error?.code;
-  if (status === 503 || status === 429) return true;
-  const msg = String(error?.message ?? error ?? '');
-  return /UNAVAILABLE|RESOURCE_EXHAUSTED|high demand|overloaded/i.test(msg);
+  if (status === 429 || (typeof status === 'number' && status >= 500)) return true;
+  return /UNAVAILABLE|RESOURCE_EXHAUSTED|high demand|overloaded|rate limit/i.test(String(error?.message ?? error ?? ''));
 };
 
-/**
- * Classifica o teor de uma intimação do DJEN em: tipo do ato, resumo e nível
- * de confiança. A IA identifica APENAS o tipo e o resumo — o prazo é sempre
- * calculado por regra fixa (utils/prazo.ts), nunca estimado pela IA.
- * Em caso de falha/ausência de API key, retorna null para acionar revisão manual.
- */
-export const classifyIntimacao = async (
-  teorIntegral: string,
-): Promise<ClassificacaoIntimacao | null> => {
-  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    console.warn("API Key não encontrada — classificação por IA indisponível.");
-    return null;
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
-
-  const prompt = `
+const promptClassificacao = (teor: string) => `
 Você é um analista de intimações judiciais especializado em Direito Previdenciário,
 atuando em ações de auxílio-acidente/benefícios que tramitam no Juizado Especial
 Federal (JEF) e em Varas Federais (PJe).
@@ -97,41 +80,75 @@ Use "Outro" e confiança "Baixa" quando o teor for genérico ou ambíguo.
 NÃO informe prazos — apenas o tipo do ato e o resumo.
 
 Teor da publicação:
-"""${teorIntegral}"""
+"""${teor}"""
 `;
 
-  // Até 3 tentativas com backoff exponencial (1s, 2s, 4s) apenas para erros
-  // transitórios. Falha definitiva (ou erro não transitório) => null => revisão manual.
-  const MAX_TENTATIVAS = 3;
-  for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
+const extrairJson = (txt: string): any =>
+  JSON.parse((txt || '').trim().replace(/^```json\s*|\s*```$/g, ''));
+
+const normalizar = (parsed: any): ClassificacaoIntimacao => ({
+  tipoAto: TIPOS_ATO.includes(parsed?.tipoAto) ? parsed.tipoAto as TipoAto : 'Outro',
+  teorResumido: String(parsed?.teorResumido || '').trim() || 'Resumo indisponível.',
+  confianca: ['Alta', 'Média', 'Baixa'].includes(parsed?.confianca) ? parsed.confianca as ConfiancaIA : 'Baixa',
+});
+
+// Chamada REST à OpenAI (sem SDK, evita incompatibilidades de versão).
+type Msg = { role: 'system' | 'user'; content: string };
+const chamarOpenAI = async (mensagens: Msg[], json: boolean): Promise<string> => {
+  const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${openaiKey()}` },
+    body: JSON.stringify({
+      model: MODELO_OPENAI,
+      messages: mensagens,
+      temperature: 0,
+      ...(json ? { response_format: { type: 'json_object' } } : {}),
+    }),
+  });
+  if (!resp.ok) {
+    const corpo = await resp.text();
+    throw Object.assign(new Error(`OpenAI ${resp.status}: ${corpo.slice(0, 200)}`), { status: resp.status });
+  }
+  const data = await resp.json();
+  return data.choices?.[0]?.message?.content ?? '';
+};
+
+/**
+ * Classifica o teor de uma intimação (tipo, resumo, confiança). O prazo é
+ * sempre calculado por regra fixa — a IA nunca "adivinha" prazo.
+ * Até 3 tentativas com backoff para erros transitórios; null => revisão manual.
+ */
+export const classifyIntimacao = async (
+  teorIntegral: string,
+): Promise<ClassificacaoIntimacao | null> => {
+  const usarOpenAI = !!openaiKey();
+  const usarGemini = !usarOpenAI && !!geminiKey();
+  if (!usarOpenAI && !usarGemini) {
+    console.warn("Nenhuma chave de IA configurada (OPENAI_API_KEY ou GEMINI_API_KEY).");
+    return null;
+  }
+
+  const MAX = 3;
+  for (let tentativa = 1; tentativa <= MAX; tentativa++) {
     try {
+      if (usarOpenAI) {
+        const texto = await chamarOpenAI([
+          { role: 'system', content: 'Você classifica intimações judiciais previdenciárias e responde SOMENTE JSON válido.' },
+          { role: 'user', content: promptClassificacao(teorIntegral) },
+        ], true);
+        return normalizar(extrairJson(texto));
+      }
+      const ai = new GoogleGenAI({ apiKey: geminiKey() });
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: prompt,
+        model: MODELO_GEMINI,
+        contents: promptClassificacao(teorIntegral),
         config: { responseMimeType: 'application/json' },
       });
-
-      const raw = (response.text || '').trim().replace(/^```json\s*|\s*```$/g, '');
-      const parsed = JSON.parse(raw);
-
-      const tipoAto: TipoAto = TIPOS_ATO.includes(parsed.tipoAto)
-        ? parsed.tipoAto
-        : 'Outro';
-      const confianca: ConfiancaIA =
-        ['Alta', 'Média', 'Baixa'].includes(parsed.confianca)
-          ? parsed.confianca
-          : 'Baixa';
-
-      return {
-        tipoAto,
-        teorResumido: String(parsed.teorResumido || '').trim() || 'Resumo indisponível.',
-        confianca,
-      };
+      return normalizar(extrairJson(response.text || ''));
     } catch (error) {
-      const transitorio = isTransientError(error);
-      console.error(`Erro na classificação da intimação (tentativa ${tentativa}/${MAX_TENTATIVAS}):`, error);
-      if (!transitorio || tentativa === MAX_TENTATIVAS) return null;
-      await sleep(1000 * 2 ** (tentativa - 1)); // 1s, 2s, 4s...
+      console.error(`Erro na classificação (tentativa ${tentativa}/${MAX}):`, (error as any)?.message ?? error);
+      if (!isTransientError(error) || tentativa === MAX) return null;
+      await sleep(1000 * 2 ** (tentativa - 1)); // 1s, 2s, 4s
     }
   }
   return null;

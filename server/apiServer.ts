@@ -36,6 +36,23 @@ import { capturarDjenDaFonte, resolverDjenSource } from '../services/djenService
 import type { Intimacao } from '../types';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Carrega .env.local / .env (se existirem) para process.env — assim as chaves
+// ficam num ARQUIVO, sem precisar colar no terminal (evita mascaramento/erros).
+const carregarEnvLocal = () => {
+  for (const nome of ['.env.local', '.env']) {
+    const p = path.join(__dirname, '..', nome);
+    if (!fs.existsSync(p)) continue;
+    for (const linha of fs.readFileSync(p, 'utf-8').split(/\r?\n/)) {
+      const m = linha.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+      if (!m) continue;
+      const valor = m[2].trim().replace(/^["']|["']$/g, '');
+      if (process.env[m[1]] === undefined) process.env[m[1]] = valor;
+    }
+  }
+};
+carregarEnvLocal();
+
 const DATA_DIR = path.join(__dirname, 'data');
 const STORE = path.join(DATA_DIR, 'intimacoes.json');
 const DIST_DIR = path.join(__dirname, '..', 'dist'); // front compilado (npm run build)
