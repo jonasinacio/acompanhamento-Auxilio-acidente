@@ -38,6 +38,29 @@ import type { Intimacao } from '../types';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, 'data');
 const STORE = path.join(DATA_DIR, 'intimacoes.json');
+const DIST_DIR = path.join(__dirname, '..', 'dist'); // front compilado (npm run build)
+
+// -------------------- Servir o front compilado (deploy único) --------------------
+const MIME: Record<string, string> = {
+  '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg',
+  '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.map': 'application/json',
+};
+// Serve um arquivo de dist/ com fallback para index.html (SPA). Retorna true se atendeu.
+const servirEstatico = (pathname: string, res: http.ServerResponse): boolean => {
+  if (!fs.existsSync(DIST_DIR)) return false;
+  const rel = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
+  let alvo = path.join(DIST_DIR, rel);
+  // Impede path traversal e cai para o index em rotas do SPA.
+  if (!alvo.startsWith(DIST_DIR) || !fs.existsSync(alvo) || fs.statSync(alvo).isDirectory()) {
+    alvo = path.join(DIST_DIR, 'index.html');
+  }
+  if (!fs.existsSync(alvo)) return false;
+  res.writeHead(200, { 'Content-Type': MIME[path.extname(alvo)] ?? 'application/octet-stream' });
+  res.end(fs.readFileSync(alvo));
+  return true;
+};
 
 // -------------------- Persistência (JSON local; troque por um BD em produção) --------------------
 const lerStore = (): Intimacao[] => {
@@ -179,6 +202,9 @@ export const handleRequest = async (req: http.IncomingMessage, res: http.ServerR
       return json(res, 502, { error: e?.message ?? 'falha ao registrar' });
     }
   }
+
+  // Front compilado (deploy único): serve dist/ para GETs que não são de API.
+  if (method === 'GET' && servirEstatico(pathname, res)) return;
 
   return json(res, 404, { error: 'rota não encontrada' });
 };

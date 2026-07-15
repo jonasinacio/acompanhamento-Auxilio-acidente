@@ -5,9 +5,16 @@
 
 import { Intimacao } from '../types';
 
-const base = (): string => (process.env.INTIMACOES_API_URL || '').replace(/\/$/, '');
+// INTIMACOES_API_URL:
+//   - vazio            -> sem backend (modo localStorage / individual);
+//   - 'same-origin' ou '/' -> mesma origem (deploy único: back serve o front);
+//   - URL absoluta     -> backend em outra origem (ex.: dev com portas separadas).
+const RAW_URL = (process.env.INTIMACOES_API_URL || '').trim();
 
-export const intimacoesBackendAtivo = (): boolean => !!base();
+const base = (): string =>
+  (RAW_URL === 'same-origin' || RAW_URL === '/') ? '' : RAW_URL.replace(/\/$/, '');
+
+export const intimacoesBackendAtivo = (): boolean => RAW_URL !== '';
 
 const headers = (): Record<string, string> => {
   const h: Record<string, string> = { 'Content-Type': 'application/json' };
