@@ -11,7 +11,7 @@
 
 **2.** As comunicações têm caráter **meramente informativo** sobre o andamento, não substituem a orientação jurídica formal e **não implicam promessa de resultado**.
 
-**3.** O escritório se comunica pelos canais oficiais: número **(31) 3500-1770** e perfil **@jonasinacio.adv**. O escritório **NUNCA solicita senhas, dados bancários, códigos ou transferências de valores por mensagem**. Qualquer contato nesse sentido deve ser **desconsiderado e imediatamente comunicado** ao escritório (prevenção ao golpe do falso advogado).
+**3.** O escritório se comunica pelos canais oficiais: WhatsApp **https://wa.me/553135001770** — (31) 3500-1770 — e perfil **https://instagram.com/jonasinacio.adv** (@jonasinacio.adv). O escritório **NUNCA solicita senhas, dados bancários, códigos ou transferências de valores por mensagem**. Qualquer contato nesse sentido deve ser **desconsiderado e imediatamente comunicado** ao escritório (prevenção ao golpe do falso advogado).
 
 **4.** Os dados pessoais do(a) CONTRATANTE serão tratados de acordo com a **Lei Geral de Proteção de Dados (Lei nº 13.709/2018)**, exclusivamente para as finalidades da prestação do serviço contratado.
 
@@ -22,4 +22,4 @@
 ---
 
 ### Versão curta (checkbox no ZapSign)
-> ☑ Autorizo o escritório a me enviar informações sobre o andamento do meu processo por WhatsApp, SMS, ligação e e-mail. Estou ciente de que o escritório nunca pede senhas, dados ou contas bancárias por mensagem, e que o número oficial é (31) 3500-1770 / @jonasinacio.adv. Posso revogar a autorização a qualquer momento.
+> ☑ Autorizo o escritório a me enviar informações sobre o andamento do meu processo por WhatsApp, SMS, ligação e e-mail. Estou ciente de que o escritório nunca pede senhas, dados ou contas bancárias por mensagem, e que os canais oficiais são https://wa.me/553135001770 e https://instagram.com/jonasinacio.adv. Posso revogar a autorização a qualquer momento.
