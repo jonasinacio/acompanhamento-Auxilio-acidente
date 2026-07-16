@@ -1,0 +1,1174 @@
+<title>POP · Esteira Previdenciária — do lead ao encerramento</title>
+<style>
+  :root{
+    --ink:#15242c; --ink-soft:#22343d;
+    --paper:#eaeeee; --card:#ffffff; --card-2:#f4f6f5;
+    --line:#d3dad9; --line-strong:#b9c4c2;
+    --text:#1c2b31; --text-2:#48595f; --text-3:#6d7d81;
+    --petrol:#0f7c85; --petrol-deep:#0b565c; --petrol-tint:#e2efef;
+    --ochre:#b07216; --ochre-tint:#f4e9d4;
+    --sage:#4f8468; --indigo:#4a5675;
+    --good:#2f8f5b; --warn:#bd7d15; --crit:#bd4630;
+    --shadow:0 1px 2px rgba(21,36,44,.06),0 8px 24px -12px rgba(21,36,44,.22);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+    --maxw:1120px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --ink:#0e1a20; --ink-soft:#152730;
+      --paper:#101b21; --card:#16242b; --card-2:#1a2b33;
+      --line:#264049; --line-strong:#31525d;
+      --text:#e7edec; --text-2:#a9bbbe; --text-3:#7f9498;
+      --petrol:#43b3bc; --petrol-deep:#2b7d85; --petrol-tint:#14343a;
+      --ochre:#d9a34a; --ochre-tint:#3a2f16;
+      --sage:#71b18e; --indigo:#8f9cc0;
+      --good:#4bb47a; --warn:#d6a24a; --crit:#e0715a;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="light"]{
+    --ink:#15242c; --ink-soft:#22343d; --paper:#eaeeee; --card:#ffffff; --card-2:#f4f6f5;
+    --line:#d3dad9; --line-strong:#b9c4c2; --text:#1c2b31; --text-2:#48595f; --text-3:#6d7d81;
+    --petrol:#0f7c85; --petrol-deep:#0b565c; --petrol-tint:#e2efef; --ochre:#b07216; --ochre-tint:#f4e9d4;
+    --sage:#4f8468; --indigo:#4a5675; --good:#2f8f5b; --warn:#bd7d15; --crit:#bd4630;
+    --shadow:0 1px 2px rgba(21,36,44,.06),0 8px 24px -12px rgba(21,36,44,.22);
+  }
+  :root[data-theme="dark"]{
+    --ink:#0e1a20; --ink-soft:#152730; --paper:#101b21; --card:#16242b; --card-2:#1a2b33;
+    --line:#264049; --line-strong:#31525d; --text:#e7edec; --text-2:#a9bbbe; --text-3:#7f9498;
+    --petrol:#43b3bc; --petrol-deep:#2b7d85; --petrol-tint:#14343a; --ochre:#d9a34a; --ochre-tint:#3a2f16;
+    --sage:#71b18e; --indigo:#8f9cc0; --good:#4bb47a; --warn:#d6a24a; --crit:#e0715a;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px -14px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+  body{margin:0;background:var(--paper);color:var(--text);font-family:var(--sans);
+    font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  h1,h2,h3,h4{font-family:var(--serif);font-weight:600;text-wrap:balance;line-height:1.15;margin:0}
+  p{margin:0}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  .eyebrow{font-family:var(--sans);font-size:11.5px;font-weight:700;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--petrol)}
+  .mono{font-family:var(--mono)}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  /* ---- top nav ---- */
+  nav.top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 88%,transparent);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  nav.top .wrap{display:flex;align-items:center;gap:18px;height:56px}
+  nav.top .brand{font-family:var(--serif);font-weight:600;font-size:15px;white-space:nowrap}
+  nav.top .brand b{color:var(--petrol)}
+  nav.top .links{display:flex;gap:4px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
+  nav.top .links::-webkit-scrollbar{display:none}
+  nav.top .links a{font-size:12.5px;color:var(--text-2);text-decoration:none;padding:6px 10px;
+    border-radius:7px;white-space:nowrap;transition:background .15s,color .15s}
+  nav.top .links a:hover{background:var(--card-2);color:var(--text)}
+  nav.top .links a:focus-visible{outline:2px solid var(--petrol);outline-offset:2px}
+
+  /* ---- hero ---- */
+  header.hero{background:
+      radial-gradient(120% 140% at 88% -10%, color-mix(in srgb,var(--petrol) 22%,var(--ink)) 0%, transparent 46%),
+      var(--ink);
+    color:#eef4f4;border-bottom:1px solid var(--line-strong);overflow:hidden;position:relative}
+  header.hero .wrap{padding:60px 24px 52px;position:relative;z-index:1}
+  header.hero .eyebrow{color:var(--ochre)}
+  header.hero h1{font-size:clamp(30px,5.4vw,54px);color:#f4f8f7;margin:14px 0 0;letter-spacing:-.01em}
+  header.hero h1 em{font-style:normal;color:var(--petrol);
+    background:linear-gradient(transparent 62%, color-mix(in srgb,var(--petrol) 30%,transparent) 62%)}
+  header.hero .sub{margin-top:20px;max-width:60ch;color:#c8d6d6;font-size:17px}
+  header.hero .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+  header.hero .chip{font-size:12px;letter-spacing:.02em;padding:6px 12px;border-radius:999px;
+    border:1px solid rgba(255,255,255,.18);color:#dbe7e6;background:rgba(255,255,255,.05)}
+  header.hero .chip b{color:#fff;font-weight:600}
+  .plume{position:absolute;inset:0;z-index:0;opacity:.5;
+    background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,.09) 1px, transparent 0);
+    background-size:22px 22px;mask-image:linear-gradient(90deg,transparent,#000 60%)}
+
+  /* ---- sections ---- */
+  section{padding:56px 0;border-bottom:1px solid var(--line)}
+  section.alt{background:var(--card-2)}
+  .shead{max-width:64ch;margin-bottom:30px}
+  .shead h2{font-size:clamp(22px,3.2vw,30px);margin-top:8px}
+  .shead p{color:var(--text-2);margin-top:10px}
+
+  .grid{display:grid;gap:16px}
+  @media(min-width:720px){.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;
+    box-shadow:var(--shadow)}
+
+  /* actor cards */
+  .actor{position:relative;padding-top:22px}
+  .actor::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;border-radius:14px 14px 0 0;
+    background:var(--accent)}
+  .actor .who{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .actor .who h3{font-size:20px}
+  .actor .who .tag{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--accent)}
+  .actor .role{color:var(--text-2);font-size:14px;margin-top:6px;min-height:44px}
+  .actor dl{margin:14px 0 0;display:grid;gap:10px}
+  .actor dt{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3)}
+  .actor dd{margin:2px 0 0;font-size:13px;color:var(--text)}
+  .a-bia{--accent:var(--petrol)} .a-nat{--accent:var(--ochre)}
+  .a-ped{--accent:var(--sage)} .a-jon{--accent:var(--indigo)}
+
+  /* distribution rule */
+  .rule4{display:grid;gap:12px}
+  @media(min-width:720px){.rule4{grid-template-columns:repeat(2,1fr)}}
+  .rulerow{display:flex;gap:14px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
+    border-left:4px solid var(--accent);border-radius:11px;padding:14px 16px}
+  .rulerow .cond{font-size:14px;color:var(--text-2)}
+  .rulerow .cond b{color:var(--text);font-weight:600}
+  .rulerow .arrow{color:var(--accent);font-weight:700}
+  .rulerow .to{margin-left:auto;font-family:var(--serif);font-weight:600;color:var(--accent);white-space:nowrap}
+
+  /* drive tree */
+  .drivewrap{display:grid;gap:16px}
+  @media(min-width:860px){.drivewrap{grid-template-columns:1.05fr .95fr}}
+  .tree{background:var(--ink);color:#dbe7e6;border-radius:14px;padding:22px;font-family:var(--mono);
+    font-size:13px;line-height:1.85;overflow-x:auto;border:1px solid var(--line-strong)}
+  .tree .root{color:var(--petrol);font-weight:600}
+  .tree .fn{color:#f2d9a7}
+  .tree .cm{color:#7f9498}
+  .docs table{width:100%;border-collapse:collapse;font-size:13.5px}
+  .docs th,.docs td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  .docs th{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);font-weight:700}
+  .docs td.ob{white-space:nowrap}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;line-height:1.5}
+  .pill.req{background:var(--petrol-tint);color:var(--petrol-deep)}
+  .pill.cond{background:var(--ochre-tint);color:var(--ochre)}
+  .gate{margin-top:16px;background:var(--petrol-tint);border:1px solid color-mix(in srgb,var(--petrol) 30%,transparent);
+    border-radius:12px;padding:16px 18px}
+  .gate h4{font-size:15px;color:var(--petrol-deep)}
+  .gate ul{margin:10px 0 0;padding-left:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+  .gate li{font-size:12.5px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .gate li::before{content:"✓ ";color:var(--good);font-weight:700}
+
+  /* esteira / flow */
+  .flowscroll{overflow-x:auto;padding-bottom:10px;margin:0 -24px;padding-left:24px;padding-right:24px}
+  .flow{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(190px,1fr);gap:0;min-width:min-content}
+  .stage{position:relative;padding:0 14px}
+  .stage:not(:last-child)::after{content:"→";position:absolute;right:-8px;top:26px;color:var(--petrol);
+    font-weight:700;font-size:18px;z-index:2}
+  .stage .box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;height:100%;
+    box-shadow:var(--shadow);border-top:3px solid var(--accent,var(--petrol))}
+  .stage .st{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--accent,var(--petrol-deep))}
+  .stage h4{font-size:15px;margin:7px 0 0}
+  .stage .desc{font-size:12.5px;color:var(--text-2);margin-top:6px}
+  .stage .foot{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+  .stage .who-b{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--card-2);
+    border:1px solid var(--line);color:var(--text-2)}
+  .stage .sla{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--ochre-tint);color:var(--ochre)}
+  .s-com{--accent:var(--petrol)} .s-doc{--accent:var(--sage)} .s-tri{--accent:var(--indigo)}
+  .s-adm{--accent:var(--ochre)} .s-jud{--accent:var(--petrol-deep)} .s-fin{--accent:var(--indigo)}
+
+  .branch{display:grid;gap:12px;margin-top:14px}
+  @media(min-width:720px){.branch{grid-template-columns:1fr 1fr}}
+  .branchcard{border:1px dashed var(--line-strong);border-radius:12px;padding:16px;background:var(--card)}
+  .branchcard h4{font-size:15px} .branchcard .st{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--petrol-deep)}
+  .branchcard p{font-size:13px;color:var(--text-2);margin-top:6px}
+
+  /* client ribbon */
+  .ribbon{margin-top:18px;background:linear-gradient(90deg,var(--petrol-tint),transparent);
+    border:1px solid var(--line);border-left:4px solid var(--petrol);border-radius:12px;padding:16px 18px}
+  .ribbon .lab{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--petrol-deep)}
+  .ribbon .steps{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .ribbon .steps span{font-size:12.5px;background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:5px 12px}
+  .ribbon .steps b{color:var(--petrol-deep)}
+
+  /* phase steps */
+  .phases{display:grid;gap:14px}
+  @media(min-width:720px){.phases{grid-template-columns:1fr 1fr}}
+  .phase{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:18px 20px;box-shadow:var(--shadow)}
+  .phase .head{display:flex;align-items:center;gap:10px}
+  .phase .num{font-family:var(--serif);font-size:13px;font-weight:700;color:#fff;background:var(--petrol);
+    width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex:none}
+  .phase h3{font-size:16px}
+  .phase ol{margin:12px 0 0;padding-left:20px;display:grid;gap:7px}
+  .phase li{font-size:13.5px;color:var(--text)}
+  .phase li b{color:var(--petrol-deep);font-weight:600}
+  .phase .trig{margin-top:12px;font-size:12.5px;color:var(--ochre);font-weight:600}
+  .phase .trig::before{content:"⚡ ";}
+
+  /* status table */
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:13px;background:var(--card);box-shadow:var(--shadow)}
+  table.status{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
+  table.status th,table.status td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  table.status thead th{position:sticky;top:0;background:var(--ink);color:#e7f0ef;font-size:11px;
+    letter-spacing:.07em;text-transform:uppercase;font-weight:700}
+  table.status tbody tr:last-child td{border-bottom:0}
+  table.status tbody tr:hover{background:var(--card-2)}
+  table.status .st{font-family:var(--mono);font-weight:700;font-size:12px;color:var(--petrol-deep)}
+  table.status .r{white-space:nowrap;color:var(--text-2)}
+  table.status .sla{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ochre);font-weight:600}
+
+  /* kpi */
+  .kpi{display:grid;gap:14px}
+  @media(min-width:640px){.kpi{grid-template-columns:repeat(2,1fr)}}
+  @media(min-width:960px){.kpi{grid-template-columns:repeat(3,1fr)}}
+  .kpicard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .kpicard .grp{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--petrol)}
+  .kpicard h4{font-size:15px;margin-top:6px}
+  .kpicard p{font-size:12.5px;color:var(--text-2);margin-top:6px}
+
+  /* tools */
+  .tools{display:grid;gap:12px}
+  @media(min-width:720px){.tools{grid-template-columns:repeat(2,1fr)}}
+  .tool{display:flex;gap:14px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:14px 16px}
+  .tool .k{font-family:var(--mono);font-size:12px;font-weight:700;color:#fff;background:var(--petrol-deep);
+    padding:5px 9px;border-radius:7px;white-space:nowrap;flex:none}
+  .tool .d{font-size:13px;color:var(--text-2)}
+  .tool .d b{color:var(--text);font-weight:600;font-family:var(--sans)}
+  .notebox{margin-top:16px;background:var(--ochre-tint);border:1px solid color-mix(in srgb,var(--ochre) 32%,transparent);
+    border-radius:12px;padding:14px 18px;font-size:13.5px;color:var(--text)}
+  .notebox b{color:var(--ochre)}
+
+  /* golden rules */
+  .rules{counter-reset:r;display:grid;gap:12px}
+  @media(min-width:720px){.rules{grid-template-columns:1fr 1fr}}
+  .grule{counter-increment:r;position:relative;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:16px 18px 16px 56px}
+  .grule::before{content:counter(r);position:absolute;left:16px;top:16px;font-family:var(--serif);font-weight:700;
+    font-size:16px;color:var(--petrol);width:28px;height:28px;border-radius:8px;background:var(--petrol-tint);
+    display:grid;place-items:center}
+  .grule h4{font-size:14.5px} .grule p{font-size:12.5px;color:var(--text-2);margin-top:5px}
+
+  /* tech ref */
+  .ref table{width:100%;border-collapse:collapse;font-size:13px}
+  .ref th,.ref td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line)}
+  .ref th{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);font-weight:700}
+  .ref td.id{font-family:var(--mono);font-weight:600;color:var(--petrol-deep);white-space:nowrap}
+
+  /* automação — flowter recipes */
+  .flowtag{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--petrol-deep);
+    background:var(--petrol-tint);border:1px solid color-mix(in srgb,var(--petrol) 28%,transparent);
+    padding:5px 12px;border-radius:999px;margin-bottom:14px}
+  .honesty{display:grid;gap:12px;margin-bottom:26px}
+  @media(min-width:720px){.honesty{grid-template-columns:1fr 1fr}}
+  .hbox{border-radius:12px;padding:14px 16px;font-size:13px;border:1px solid var(--line);background:var(--card)}
+  .hbox h4{font-size:13px;letter-spacing:.02em}
+  .hbox.native{border-left:4px solid var(--good)}
+  .hbox.bridge{border-left:4px solid var(--warn)}
+  .hbox ul{margin:8px 0 0;padding-left:18px;color:var(--text-2)}
+  .hbox li{margin:3px 0}
+
+  .setup{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:18px 20px;margin-bottom:22px;box-shadow:var(--shadow)}
+  .setup h3{font-size:16px} .setup p{font-size:13px;color:var(--text-2);margin-top:6px}
+  .setup .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .setup .chips span{font-family:var(--mono);font-size:11px;background:var(--card-2);border:1px solid var(--line);
+    border-radius:7px;padding:4px 9px;color:var(--text-2)}
+
+  .recipes{display:grid;gap:16px}
+  @media(min-width:820px){.recipes{grid-template-columns:1fr 1fr}}
+  .recipe{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow);
+    display:flex;flex-direction:column}
+  .recipe .rtop{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .recipe .rtag{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--petrol)}
+  .recipe .rbadge{font-size:9.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;padding:3px 9px;
+    border-radius:999px;white-space:nowrap;flex:none}
+  .recipe .rbadge.free{background:var(--good);color:#fff}
+  .recipe .rbadge.paid{background:var(--ochre);color:#fff}
+  .recipe .fallback{margin-top:12px;font-size:12px;background:var(--card-2);border:1px solid var(--line);
+    border-radius:9px;padding:9px 12px;color:var(--text)}
+  .recipe .fallback b{color:var(--good)}
+  .recipe h3{font-size:17px;margin-top:6px}
+  .recipe .trigger{margin-top:12px;font-size:13px;background:var(--ochre-tint);border-radius:9px;padding:9px 12px;
+    color:var(--text)}
+  .recipe .trigger b{color:var(--ochre)}
+  .recipe .trigger .mono{color:var(--text)}
+  .recipe .then{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);
+    margin:14px 0 8px}
+  .recipe ol.acts{margin:0;padding-left:0;list-style:none;display:grid;gap:8px}
+  .recipe ol.acts li{position:relative;padding-left:26px;font-size:13px}
+  .recipe ol.acts li::before{content:"→";position:absolute;left:4px;top:0;color:var(--petrol);font-weight:700}
+  .recipe ol.acts .meta{display:block;font-size:11px;color:var(--text-3);margin-top:2px}
+  .recipe ol.acts .meta b{color:var(--sage);font-weight:700}
+  .recipe ol.acts .meta i{font-style:normal;color:var(--ochre);font-weight:700}
+  .recipe .msg{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
+  .recipe .msg .ml{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+  .recipe .msg blockquote{margin:6px 0 0;font-size:12.5px;color:var(--text-2);font-style:italic;
+    border-left:3px solid var(--petrol);padding-left:11px;line-height:1.5}
+  .recipe .note{margin-top:auto;font-size:11.5px;color:var(--text-3);padding-top:12px}
+  .recipe .note::before{content:"⚠ ";color:var(--warn)}
+  .recipe .rbadge.flow{background:var(--petrol);color:#fff}
+  .recipe .rbadge.wa{background:#1a9c54;color:#fff}
+  .recipe .zapi{margin-top:12px;background:var(--ink);color:#dbe7e6;border-radius:9px;padding:11px 13px;
+    font-family:var(--mono);font-size:11.5px;line-height:1.6;overflow-x:auto;white-space:pre;border:1px solid var(--line-strong)}
+  .recipe .zapi .ck{color:var(--ochre);font-weight:700} .recipe .zapi .cs{color:#8fd0a6}
+
+  /* automação: arquitetura + wiring Flowter→Z-API */
+  .arch{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+  .arch .node{flex:1 1 158px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:3px;border-top:3px solid var(--accent)}
+  .arch .node .nlab{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+  .arch .node b{font-size:14px;font-family:var(--serif)}
+  .arch .node .nsub{font-size:11px;color:var(--text-3);font-family:var(--mono)}
+  .arch .n1{--accent:var(--ochre)} .arch .n2{--accent:var(--petrol)}
+  .arch .n3{--accent:#1a9c54} .arch .n4{--accent:var(--indigo)}
+  .arch .conn{display:flex;align-items:center;color:var(--petrol);font-weight:800;font-size:20px}
+  @media(max-width:640px){.arch{flex-direction:column}.arch .conn{transform:rotate(90deg);justify-content:center}}
+
+  .wiring{display:grid;gap:18px;margin-bottom:14px}
+  @media(min-width:820px){.wiring{grid-template-columns:1fr 1fr;align-items:start}}
+  .wiring .wcol h3{font-size:16px;margin-top:6px} .wiring .wcol p{font-size:13px;color:var(--text-2);margin-top:8px}
+  .wsteps{margin:12px 0 0;padding-left:18px;display:grid;gap:6px;font-size:13px;color:var(--text)}
+  .codeblock{background:var(--ink);color:#dbe7e6;border-radius:12px;padding:18px;font-family:var(--mono);
+    font-size:12.5px;line-height:1.7;overflow-x:auto;border:1px solid var(--line-strong);white-space:pre}
+  .codeblock .ck{color:var(--ochre);font-weight:700} .codeblock .cv{color:#f2d9a7} .codeblock .cs{color:#8fd0a6}
+
+  .safety{background:var(--card);border:1px solid var(--line);border-left:4px solid #1a9c54;border-radius:12px;
+    padding:18px 20px;margin-bottom:22px;box-shadow:var(--shadow)}
+  .safety h3{font-size:16px;display:flex;align-items:center;gap:8px}
+  .safety .sglabel{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1a9c54;margin-bottom:6px}
+  .safety .grid2{display:grid;gap:9px 22px;margin-top:12px}
+  @media(min-width:640px){.safety .grid2{grid-template-columns:1fr 1fr}}
+  .safety .it{font-size:13px;padding-left:26px;position:relative;color:var(--text-2)}
+  .safety .it::before{content:"✓";position:absolute;left:2px;top:0;color:#1a9c54;font-weight:800}
+  .safety .it.star::before{content:"★";color:var(--ochre)}
+  .safety .it b{color:var(--text);font-weight:600}
+
+  /* biblioteca de mensagens */
+  .msglib{display:grid;gap:14px}
+  @media(min-width:720px){.msglib{grid-template-columns:1fr 1fr}}
+  .msgc{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:18px;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;border-top:3px solid var(--accent,var(--petrol))}
+  .msgc.auto{--accent:#1a9c54} .msgc.gated{--accent:var(--ochre)}
+  .msgc .mtop{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .msgc .mtag{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--accent,var(--petrol))}
+  .msgc .mbadge{font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;
+    border-radius:999px;white-space:nowrap;color:#fff;background:var(--accent,var(--petrol))}
+  .msgc .mwhen{font-family:var(--mono);font-size:11px;color:var(--text-3);margin-top:6px}
+  .msgc blockquote{margin:11px 0 0;font-size:13px;color:var(--text);border-left:3px solid var(--accent,var(--petrol));
+    padding-left:12px;line-height:1.55;white-space:pre-line}
+  .msgc .mnote{margin-top:11px;font-size:11.5px;color:var(--ochre)}
+  .msgc .mnote::before{content:"⚠ "}
+  .stdfoot{background:var(--petrol-tint);border:1px solid color-mix(in srgb,var(--petrol) 30%,transparent);
+    border-radius:13px;padding:18px 20px;margin-bottom:18px}
+  .stdfoot .sglabel{color:var(--petrol-deep)}
+  .stdfoot blockquote{margin:10px 0 0;font-size:13px;color:var(--text);white-space:pre-line;line-height:1.6;
+    border-left:3px solid var(--petrol);padding-left:13px}
+  .stdfoot .scam{color:var(--crit);font-weight:600}
+
+  footer{background:var(--ink);color:#c3d2d1;padding:40px 0}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:16px;align-items:baseline;justify-content:space-between}
+  footer .live{font-size:13px;color:#9fb2b1;max-width:60ch}
+  footer .live b{color:var(--ochre)}
+  footer .v{font-family:var(--mono);font-size:12px;color:#7f9498}
+
+  .themebtn{margin-left:8px;flex:none;background:var(--card-2);border:1px solid var(--line);color:var(--text-2);
+    width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:15px;display:grid;place-items:center}
+  .themebtn:focus-visible{outline:2px solid var(--petrol);outline-offset:2px}
+</style>
+
+<nav class="top">
+  <div class="wrap">
+    <span class="brand">Jonas Inácio · <b>Legal Ops</b></span>
+    <div class="links">
+      <a href="#atores">Atores</a>
+      <a href="#distribuicao">Distribuição</a>
+      <a href="#pasta">A pasta</a>
+      <a href="#esteira">A esteira</a>
+      <a href="#passos">Passo a passo</a>
+      <a href="#status">Status &amp; SLA</a>
+      <a href="#ferramentas">Ferramentas</a>
+      <a href="#automacao">Automação</a>
+      <a href="#mensagens">Mensagens</a>
+      <a href="#kpi">KPIs</a>
+      <a href="#regras">Regras de ouro</a>
+      <a href="#ref">Referência</a>
+    </div>
+    <button class="themebtn" id="themebtn" aria-label="Alternar tema" title="Alternar tema">◐</button>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="plume"></div>
+  <div class="wrap">
+    <div class="eyebrow">Procedimento Operacional Padrão · Advocacia Previdenciária</div>
+    <h1>A Esteira Previdenciária<br>— <em>do lead ao encerramento</em></h1>
+    <p class="sub">Como um caso de auxílio-acidente e demais benefícios do INSS percorre o ADVBOX, o Google
+      Drive e o Meu INSS — quem faz o quê, o que dispara cada fase e qual o prazo de cada etapa.</p>
+    <div class="meta">
+      <span class="chip">Escopo: <b>administrativo + judicial · INSS</b></span>
+      <span class="chip">Versão <b>1.0</b> · derivada do Manual v4.1</span>
+      <span class="chip">Dono: <b>Direção Jurídica (Jonas)</b></span>
+      <span class="chip">Sem Trello — o quadro é o <b>status do ADVBOX</b></span>
+    </div>
+  </div>
+</header>
+
+<!-- ATORES -->
+<section id="atores">
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow">Os atores</div>
+      <h2>Quatro pessoas movem a esteira</h2>
+      <p>Sem robôs: cada núcleo tem um papel fixo, o que decide sozinho e a linha em que precisa escalar.
+        A regra central é não sobrepor filas — cada um sabe o que executa e o que sobe.</p>
+    </div>
+    <div class="grid g4">
+      <div class="card actor a-bia">
+        <div class="who"><h3>Bia</h3><span class="tag">Atendimento &amp; coordenação</span></div>
+        <p class="role">Atendimento, follow-up, comunicação com o cliente e controle operacional do
+          administrativo, das emendas e das perícias.</p>
+        <dl>
+          <div><dt>Decide sozinha</dt><dd>Cobrar cliente, registrar contato, controlar tarefa no ADVBOX,
+            acompanhar prazos, confirmar protocolo ou baixa.</dd></div>
+          <div><dt>Escala quando</dt><dd>Objeção jurídica, reclamação sensível, atraso crítico ou risco de prazo.</dd></div>
+        </dl>
+      </div>
+      <div class="card actor a-nat">
+        <div class="who"><h3>Natália</h3><span class="tag">Técnica adm/judicial &amp; perícias</span></div>
+        <p class="role">Condução técnica do administrativo e do judicial: emendas, protocolos, petições,
+          movimentações, perícias e definição da exigência documental.</p>
+        <dl>
+          <div><dt>Decide sozinha</dt><dd>Protocolar ADM padrão, redigir/protocolar emendas, acompanhar
+            prazos judiciais, classificar exigências e definir documentos.</dd></div>
+          <div><dt>Escala quando</dt><dd>Tese incomum, risco de indeferimento, recurso, laudo desfavorável,
+            sentença ou dúvida de rota.</dd></div>
+        </dl>
+      </div>
+      <div class="card actor a-ped">
+        <div class="who"><h3>Pedro</h3><span class="tag">Provas · Documentos · Drive</span></div>
+        <p class="role">Organização documental, montagem da pasta, checklist, Drive, CNIS, Meu INSS e
+          solicitação de documentos ao cliente <em>quando acionado</em> por Bia ou Natália.</p>
+        <dl>
+          <div><dt>Decide sozinho</dt><dd>Montar pasta, renomear/salvar, validar checklist, baixar CNIS/laudos,
+            pedir documentos ao cliente e sinalizar pendências.</dd></div>
+          <div><dt>Escala quando</dt><dd>Documento contraditório, ilegível crítico, divergência de CPF/nome ou
+            prova que trava prazo.</dd></div>
+        </dl>
+      </div>
+      <div class="card actor a-jon">
+        <div class="who"><h3>Jonas</h3><span class="tag">Direção &amp; estratégia</span></div>
+        <p class="role">Decisão estratégica, exceções, laudos, sentenças, recursos, execução, alvarás e
+          financeiro crítico.</p>
+        <dl>
+          <div><dt>Decide sozinho</dt><dd>Rota jurídica, teses estratégicas, recurso, impugnação, execução,
+            acordo e estratégia financeira.</dd></div>
+          <div><dt>Recebe sempre</dt><dd>Resumo objetivo com fatos, documentos, risco, dúvida central e sugestão
+            de encaminhamento.</dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DISTRIBUIÇÃO -->
+<section id="distribuicao" class="alt">
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow">A regra de distribuição</div>
+      <h2>Uma frase decide de quem é a tarefa</h2>
+      <p>A regra de ouro: Bia e Natália cuidam do administrativo, das emendas e das perícias. Pedro é dono
+        da <em>documentação que alimenta</em> essas filas — não das filas.</p>
+    </div>
+    <div class="rule4">
+      <div class="rulerow" style="--accent:var(--petrol)">
+        <span class="cond">Se é <b>atendimento, follow-up, cobrança, agenda ou cliente</b></span>
+        <span class="arrow">→</span><span class="to">Bia</span>
+      </div>
+      <div class="rulerow" style="--accent:var(--ochre)">
+        <span class="cond">Se é <b>administrativo técnico, emenda, protocolo, prazo ou perícia</b></span>
+        <span class="arrow">→</span><span class="to">Natália</span>
+      </div>
+      <div class="rulerow" style="--accent:var(--sage)">
+        <span class="cond">Se é <b>documento, Drive, CNIS, prova ou pedido de documento ao cliente</b></span>
+        <span class="arrow">→</span><span class="to">Pedro</span>
+      </div>
+      <div class="rulerow" style="--accent:var(--indigo)">
+        <span class="cond">Se é <b>estratégia, risco, laudo, sentença, recurso, execução ou dinheiro</b></span>
+        <span class="arrow">→</span><span class="to">Jonas</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- A PASTA -->
+<section id="pasta">
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow">A pasta do cliente</div>
+      <h2>A esteira só roda com a pasta fechada</h2>
+      <p>A montagem da pasta é um <em>gate</em> de qualidade — pasta incompleta gera petição fraca e perícia
+        mal preparada. Pedro é o dono; Bia e Natália acionam quando a fase exigir documento.</p>
+    </div>
+    <div class="drivewrap">
+      <div class="tree" aria-label="Estrutura de pastas no Google Drive">
+<span class="root">[Nome do Cliente]/</span>            <span class="cm">← raiz do caso no Drive</span>
+├── <span class="fn">01 - Documentos Pessoais/</span>   <span class="cm">RG/CNH, CPF, comprovante, procuração</span>
+├── <span class="fn">02 - Provas Médicas/</span>        <span class="cm">laudos, exames, prontuários (cronológico)</span>
+├── <span class="fn">03 - CNIS e Meu INSS/</span>       <span class="cm">CNIS, histórico, laudos INSS, cartas</span>
+├── <span class="fn">04 - Administrativo/</span>        <span class="cm">protocolos, exigências, decisões</span>
+├── <span class="fn">05 - Judicial/</span>              <span class="cm">inicial, emendas, perícia, sentença</span>
+├── <span class="fn">06 - Perícia/</span>               <span class="cm">orientações, docs p/ levar, relato, laudo</span>
+└── <span class="fn">07 - Pendências/</span>            <span class="cm">faltantes, ilegíveis, em validação</span>
+      </div>
+      <div>
+        <div class="card docs">
+          <table>
+            <thead><tr><th>Documento</th><th>Exigência</th></tr></thead>
+            <tbody>
+              <tr><td>RG ou CNH <span class="cm mono">frente e verso</span></td><td class="ob"><span class="pill req">Obrigatório</span></td></tr>
+              <tr><td>CPF</td><td class="ob"><span class="pill req">Obrigatório</span></td></tr>
+              <tr><td>Comprovante de residência</td><td class="ob"><span class="pill req">Obrigatório</span></td></tr>
+              <tr><td>Documentos médicos <span class="cm mono">por categoria/data</span></td><td class="ob"><span class="pill req">Obrigatório</span></td></tr>
+              <tr><td>Senha GOV.BR <span class="cm mono">local autorizado</span></td><td class="ob"><span class="pill req">Obrigatório</span></td></tr>
+              <tr><td>CNIS <span class="cm mono">valida vínculo/carência</span></td><td class="ob"><span class="pill req">Obrigatório</span></td></tr>
+              <tr><td>Laudos do INSS</td><td class="ob"><span class="pill cond">Quando houver</span></td></tr>
+              <tr><td>Complementares <span class="cm mono">CAT, CTPS, PPP…</span></td><td class="ob"><span class="pill cond">Conforme caso</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="gate">
+          <h4>Quando a pasta fica "fechada" — o gate</h4>
+          <ul>
+            <li>Identidade (RG/CNH + CPF)</li>
+            <li>Comprovante de residência</li>
+            <li>Documentos médicos organizados</li>
+            <li>CNIS validado</li>
+            <li>Checklist rodado por Pedro</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- A ESTEIRA -->
+<section id="esteira" class="alt">
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow">O fluxo</div>
+      <h2>A esteira — o status do ADVBOX é o quadro</h2>
+      <p>No lugar das listas de um Trello, as colunas são os <em>status do ADVBOX</em>. O gatilho de cada
+        fase é a <b>mudança de status</b> — nada roda "ligado à toa"; cada mudança gera tarefa, prazo e responsável.</p>
+    </div>
+
+    <div class="flowscroll">
+      <div class="flow">
+        <div class="stage s-com"><div class="box">
+          <div class="st">LEAD</div><h4>Comercial</h4>
+          <p class="desc">Contato recebido pelo ChatGuru/WhatsApp. Qualifica e envia contrato via ZapSign.</p>
+          <div class="foot"><span class="who-b">Bia</span><span class="sla">15 min</span></div>
+        </div></div>
+        <div class="stage s-com"><div class="box">
+          <div class="st">CONTRATO ASSINADO</div><h4>Abre a operação</h4>
+          <p class="desc">Aceite assinado dispara checklist de documentos e abertura de pasta.</p>
+          <div class="foot"><span class="who-b">Bia → Pedro</span><span class="sla">mesmo dia</span></div>
+        </div></div>
+        <div class="stage s-doc"><div class="box">
+          <div class="st">AGUARDANDO DOCS</div><h4>Coleta</h4>
+          <p class="desc">Pedro solicita, confere legibilidade, renomeia e salva no Drive.</p>
+          <div class="foot"><span class="who-b">Pedro</span><span class="sla">7 dias úteis</span></div>
+        </div></div>
+        <div class="stage s-doc"><div class="box">
+          <div class="st">PASTA FECHADA</div><h4>Gate de qualidade</h4>
+          <p class="desc">Checklist validado. Só aqui a triagem decide a rota.</p>
+          <div class="foot"><span class="who-b">Pedro → Natália</span><span class="sla">≤ 7 d.ú.</span></div>
+        </div></div>
+        <div class="stage s-tri"><div class="box">
+          <div class="st">TRIAGEM</div><h4>Define a via</h4>
+          <p class="desc">Natália aplica a matriz: administrativo ou judicial, por força probatória e risco.</p>
+          <div class="foot"><span class="who-b">Natália</span><span class="sla">2–5 d.ú.</span></div>
+        </div></div>
+        <div class="stage s-jud"><div class="box">
+          <div class="st">ADM · ou · JUD</div><h4>Protocola / Ajuíza</h4>
+          <p class="desc">Ramo administrativo (Meu INSS) ou judicial (inicial). Ver ramificação abaixo.</p>
+          <div class="foot"><span class="who-b">Natália + Bia</span></div>
+        </div></div>
+        <div class="stage s-adm"><div class="box">
+          <div class="st">EXIGÊNCIA / EMENDA</div><h4>Pendência</h4>
+          <p class="desc">Exigência ADM ou emenda judicial. Natália classifica; Pedro coleta se faltar doc.</p>
+          <div class="foot"><span class="who-b">Natália + Bia</span><span class="sla">1 d.ú. / 2 antes do fatal</span></div>
+        </div></div>
+        <div class="stage s-jud"><div class="box">
+          <div class="st">PERÍCIA DESIGNADA</div><h4>Preparo</h4>
+          <p class="desc">Sequência D-15, D-7, D-2, D+1. Bia comunica; Pedro organiza docs para levar.</p>
+          <div class="foot"><span class="who-b">Bia + Natália</span><span class="sla">D-15…D+1</span></div>
+        </div></div>
+        <div class="stage s-jud"><div class="box">
+          <div class="st">LAUDO JUNTADO</div><h4>Análise</h4>
+          <p class="desc">Natália prepara resumo técnico; Jonas decide manifestação, impugnação ou nova perícia.</p>
+          <div class="foot"><span class="who-b">Natália → Jonas</span><span class="sla">5 d.ú.</span></div>
+        </div></div>
+        <div class="stage s-jud"><div class="box">
+          <div class="st">SENTENÇA</div><h4>Classifica a rota</h4>
+          <p class="desc">Procedência total/parcial ou improcedência. Jonas define recurso.</p>
+          <div class="foot"><span class="who-b">Jonas + Natália</span><span class="sla">3 d.ú.</span></div>
+        </div></div>
+        <div class="stage s-fin"><div class="box">
+          <div class="st">EXECUÇÃO → ALVARÁ</div><h4>Vira recebimento</h4>
+          <p class="desc">Cálculos, alvará expedido, kit bancário. Jonas valida valores e honorários.</p>
+          <div class="foot"><span class="who-b">Jonas / apoio</span><span class="sla">semanal</span></div>
+        </div></div>
+        <div class="stage s-fin"><div class="box">
+          <div class="st">FINALIZADO</div><h4>Encerra</h4>
+          <p class="desc">Honorários apurados, repasse ao cliente e baixa após conferência.</p>
+          <div class="foot"><span class="who-b">Todos</span><span class="sla">baixa imediata</span></div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="branch">
+      <div class="branchcard">
+        <div class="st">RAMO ADMINISTRATIVO</div>
+        <h4>Protocolo no Meu INSS</h4>
+        <p>Natália protocola o requerimento; Bia acompanha prazos e comunica; Pedro fornece documentos.
+          Saídas: deferido, deferido com valores (→ Jonas), indeferido (→ reanálise) ou exigência.</p>
+      </div>
+      <div class="branchcard">
+        <div class="st">RAMO JUDICIAL</div>
+        <h4>Ajuizamento da inicial</h4>
+        <p>Natália redige a inicial com a pasta validada, ajuíza e registra número/fase/data (status
+          <span class="mono">AJUIZADO</span>). Bia apoia comunicação; Pedro, documentos.</p>
+      </div>
+    </div>
+
+    <div class="ribbon">
+      <div class="lab">Trilha do cliente · Bia avisa pelo ChatGuru a cada avanço — nunca um retrocesso</div>
+      <div class="steps">
+        <span><b>①</b> contrato &amp; documentos iniciais</span>
+        <span><b>②</b> protocolado / ajuizado</span>
+        <span><b>③</b> perícia: D-15 · D-7 · D-2</span>
+        <span><b>④</b> resultado &amp; próximo passo</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PASSO A PASSO -->
+<section id="passos">
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow">Passo a passo, por fase</div>
+      <h2>O que acontece dentro de cada status</h2>
+      <p>Cada fase termina numa condição objetiva de saída — o gatilho ⚡ que abre a próxima.</p>
+    </div>
+    <div class="phases">
+      <div class="phase">
+        <div class="head"><span class="num">1</span><h3>Comercial — entrada do cliente</h3></div>
+        <ol>
+          <li>Primeiro contato em <b>até 15 min</b> (ChatGuru), com empatia e nome do cliente.</li>
+          <li>Qualifica: benefício buscado, laudos, histórico administrativo e aderência ao escopo.</li>
+          <li>Apresenta honorários e envia contrato via <b>ZapSign</b>; follow-up sem assinatura em 24h.</li>
+        </ol>
+        <div class="trig">Assinou → status CONTRATO ASSINADO + passa para Pedro (checklist).</div>
+      </div>
+      <div class="phase">
+        <div class="head"><span class="num">2</span><h3>Provas &amp; Drive</h3></div>
+        <ol>
+          <li>Pedro cria a pasta no Drive e solicita os documentos iniciais ao cliente.</li>
+          <li>Baixa <b>CNIS e laudos do Meu INSS</b>; renomeia com padrão e salva por categoria.</li>
+          <li>Roda o checklist completo — nada de nome genérico ("scan", "documento 1").</li>
+        </ol>
+        <div class="trig">Checklist validado → status PASTA FECHADA + vai para triagem.</div>
+      </div>
+      <div class="phase">
+        <div class="head"><span class="num">3</span><h3>Triagem &amp; matriz</h3></div>
+        <ol>
+          <li>Natália lê a força probatória: sequela, nexo/acidente, histórico e coerência dos laudos.</li>
+          <li>Laudos fortes → <b>JUDICIAL</b>; prova fraca com chance → <b>ADMINISTRATIVO</b>.</li>
+          <li>Dúvida estratégica ou documentação contraditória → consulta Jonas.</li>
+        </ol>
+        <div class="trig">Rota definida → abre fila ADM ou JUD.</div>
+      </div>
+      <div class="phase">
+        <div class="head"><span class="num">4</span><h3>Administrativo — Bia &amp; Natália</h3></div>
+        <ol>
+          <li>Natália define a via e os documentos; Bia abre/confere tarefas no ADVBOX.</li>
+          <li>Faltou documento? Bia aciona <b>Pedro</b> com lista objetiva e prazo.</li>
+          <li>Natália protocola no Meu INSS; Bia acompanha e comunica o cliente.</li>
+        </ol>
+        <div class="trig">Resultado / exigência / indeferimento registrado no ADVBOX e no Drive.</div>
+      </div>
+      <div class="phase">
+        <div class="head"><span class="num">5</span><h3>Emendas judiciais</h3></div>
+        <ol>
+          <li>Natália classifica a intimação: simples, documental, jurídica ou estratégica.</li>
+          <li>Bia abre a tarefa, controla o <b>prazo fatal</b> e o interno; aciona Pedro se depender de doc.</li>
+          <li>Natália redige e protocola — preferencialmente <b>2 dias úteis antes do fatal</b>.</li>
+        </ol>
+        <div class="trig">Comprovante salvo → Bia baixa a tarefa operacional.</div>
+      </div>
+      <div class="phase">
+        <div class="head"><span class="num">6</span><h3>Perícia médica</h3></div>
+        <ol>
+          <li><b>D-15</b>: Bia informa data, local e regra geral. <b>D-7</b>: orientação + checklist de conduta.</li>
+          <li><b>D-2</b>: confirma presença, rota e documentos; Pedro organiza o que levar.</li>
+          <li><b>D+1</b>: Bia coleta o relato do cliente e registra no ADVBOX.</li>
+        </ol>
+        <div class="trig">Proibido orientar cliente a mentir, exagerar ou omitir — preparo é clareza da verdade.</div>
+      </div>
+      <div class="phase">
+        <div class="head"><span class="num">7</span><h3>Laudo &amp; sentença</h3></div>
+        <ol>
+          <li>Natália confere aderência do laudo à tese e resposta aos quesitos; monta resumo.</li>
+          <li>Jonas decide: concordar, impugnar, pedir esclarecimentos ou nova perícia.</li>
+          <li>Sentença classificada (total/parcial/improcedência) com próximo passo registrado.</li>
+        </ol>
+        <div class="trig">Jonas define viabilidade de recurso por fundamento, prova, custo e probabilidade.</div>
+      </div>
+      <div class="phase">
+        <div class="head"><span class="num">8</span><h3>Execução, alvará &amp; encerramento</h3></div>
+        <ol>
+          <li>Jonas valida cálculos e estratégia; a equipe apoia documentação.</li>
+          <li>Alvará expedido → <b>kit bancário</b> em até 2 dias úteis.</li>
+          <li>Apura honorários, repassa ao cliente e baixa o caso após conferência.</li>
+        </ol>
+        <div class="trig">Valor levantado sem repasse/baixa = pendência crítica.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATUS & SLA -->
+<section id="status" class="alt">
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow">Status, gatilhos &amp; SLA</div>
+      <h2>Todo status tem dono, prazo e saída objetiva</h2>
+      <p>Status não marcam só onde o caso está — disparam a próxima ação. Atraso de SLA entra na pauta da
+        reunião de segunda.</p>
+    </div>
+    <div class="tablewrap">
+      <table class="status">
+        <thead><tr><th>Status</th><th>Descrição</th><th>Responsável</th><th>SLA</th></tr></thead>
+        <tbody>
+          <tr><td class="st">LEAD</td><td>Contato recebido, ainda não qualificado.</td><td class="r">Bia</td><td class="sla">15 min</td></tr>
+          <tr><td class="st">CONTRATO ASSINADO</td><td>Aderiu; aguarda abertura operacional.</td><td class="r">Bia → Pedro</td><td class="sla">mesmo dia</td></tr>
+          <tr><td class="st">AGUARDANDO DOCS</td><td>Documentos solicitados, em coleta.</td><td class="r">Pedro</td><td class="sla">7 d.ú.</td></tr>
+          <tr><td class="st">PASTA FECHADA</td><td>Documentação completa, checklist validado.</td><td class="r">Pedro</td><td class="sla">≤ 7 d.ú.</td></tr>
+          <tr><td class="st">PROTOCOLO ADM</td><td>Pedido administrativo protocolado.</td><td class="r">Natália + Bia</td><td class="sla">3 d.ú.</td></tr>
+          <tr><td class="st">EXIGÊNCIA ADM</td><td>Exigência administrativa pendente.</td><td class="r">Natália + Bia + Pedro</td><td class="sla">1 d.ú.</td></tr>
+          <tr><td class="st">AJUIZADO</td><td>Ação judicial protocolada.</td><td class="r">Natália</td><td class="sla">5 d.ú.</td></tr>
+          <tr><td class="st">EMENDA PENDENTE</td><td>Intimação de correção/complementação.</td><td class="r">Natália + Bia</td><td class="sla">2 d.ú. antes do fatal</td></tr>
+          <tr><td class="st">PERÍCIA DESIGNADA</td><td>Perícia agendada, fluxo iniciado.</td><td class="r">Natália + Bia</td><td class="sla">D-15·D-7·D-2·D+1</td></tr>
+          <tr><td class="st">LAUDO JUNTADO</td><td>Laudo disponível para análise.</td><td class="r">Natália → Jonas</td><td class="sla">5 d.ú.</td></tr>
+          <tr><td class="st">SENTENÇA</td><td>Sentença publicada, em avaliação.</td><td class="r">Jonas + Natália</td><td class="sla">3 d.ú.</td></tr>
+          <tr><td class="st">EXECUÇÃO</td><td>Fase de cálculos e recebimento.</td><td class="r">Jonas</td><td class="sla">semanal</td></tr>
+          <tr><td class="st">ALVARÁ EXPEDIDO</td><td>Documento emitido para levantamento.</td><td class="r">Jonas / apoio</td><td class="sla">kit em 2 d.ú.</td></tr>
+          <tr><td class="st">FINALIZADO</td><td>Caso encerrado técnica e financeiramente.</td><td class="r">Todos</td><td class="sla">baixa imediata</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- FERRAMENTAS -->
+<section id="ferramentas">
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow">Ferramentas &amp; automações</div>
+      <h2>Os sistemas que operam como um só</h2>
+      <p>Nenhum ato formal fica fora do ADVBOX; nenhum documento relevante fica fora do Drive.</p>
+    </div>
+    <div class="tools">
+      <div class="tool"><span class="k">ADVBOX</span><div class="d"><b>O quadro.</b> Processos, tarefas, prazos, status e indicadores. Toda atividade formal é registrada aqui — é o que substitui o Trello.</div></div>
+      <div class="tool"><span class="k">Google Drive</span><div class="d"><b>A pasta.</b> Fonte oficial dos documentos (01–07). Dono documental: Pedro. Versão local é só transitória.</div></div>
+      <div class="tool"><span class="k">Meu INSS</span><div class="d"><b>A fonte previdenciária.</b> CNIS, laudos, protocolos e exigências. Usado por Natália e Pedro conforme a alçada.</div></div>
+      <div class="tool"><span class="k">Flowter</span><div class="d"><b>O robô da esteira.</b> Automação do ADVBOX: reage à mudança de etapa, cria tarefas por cargo e dispara HTTP Request para sistemas externos.</div></div>
+      <div class="tool"><span class="k">Z-API</span><div class="d"><b>A voz no WhatsApp.</b> Gateway que entrega as mensagens ao cliente no seu tom, acionado pelo Flowter a cada marco da esteira.</div></div>
+      <div class="tool"><span class="k">ChatGuru</span><div class="d"><b>Atendimento de entrada.</b> Recepção e triagem inicial do lead. Os avisos automáticos da esteira migram para o Z-API.</div></div>
+      <div class="tool"><span class="k">ZapSign</span><div class="d"><b>A assinatura.</b> Contrato digital no fechamento comercial. Link salvo no registro do lead.</div></div>
+      <div class="tool"><span class="k">Planilhas</span><div class="d"><b>O apoio analítico.</b> Financeiro e indicadores. Cópia de segurança e acesso controlado.</div></div>
+    </div>
+    <div class="notebox">
+      <b>O Flowter dispara:</b> CONTRATO ASSINADO gera checklist + pasta para Pedro e WhatsApp de boas-vindas ·
+      PASTA FECHADA direciona a triagem · PERÍCIA DESIGNADA gera a sequência D-15/D-7/D-2/D+1 · LAUDO JUNTADO
+      abre o prazo para Jonas · ALVARÁ EXPEDIDO abre o checklist bancário.
+    </div>
+  </div>
+</section>
+
+<!-- AUTOMAÇÃO -->
+<section id="automacao">
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow">Automação · Flowter + Z-API</div>
+      <h2>A esteira roda sozinha — e fala no WhatsApp</h2>
+      <p>O gatilho continua sendo <b>mover o card</b> de etapa. Daí o <b>Flowter</b> assume: cria as tarefas internas
+        (responsável por cargo, prazo e descrição) e dispara um <b>HTTP Request</b> para o <b>Z-API</b>, que entrega
+        a mensagem no <b>WhatsApp do cliente</b> — no seu tom, não mais no texto padrão do SMS.</p>
+    </div>
+
+    <div class="arch" aria-label="Arquitetura da automação">
+      <div class="node n1"><span class="nlab">Gatilho</span><b>Card muda de etapa</b><span class="nsub">ex.: → AJUIZADO</span></div>
+      <div class="conn">→</div>
+      <div class="node n2"><span class="nlab">Flowter</span><b>Tarefa + HTTP Request</b><span class="nsub">delay 1 min</span></div>
+      <div class="conn">→</div>
+      <div class="node n3"><span class="nlab">Z-API</span><b>Rota send-text</b><span class="nsub">monta o WhatsApp</span></div>
+      <div class="conn">→</div>
+      <div class="node n4"><span class="nlab">Cliente</span><b>Recebe no WhatsApp</b><span class="nsub">no seu tom</span></div>
+    </div>
+
+    <div class="wiring">
+      <div class="wcol">
+        <span class="flowtag">A ponte — ligar o Flowter no Z-API</span>
+        <h3>Ação "HTTP Request" do Flowter</h3>
+        <p>No passo do fluxo, adicione a ação <span class="mono">HTTP Request</span> apontando para a rota de envio
+          do Z-API. Os dados do processo (nome, telefone) entram como variáveis do Flowter na mensagem.</p>
+        <ul class="wsteps">
+          <li>Método <b>POST</b> para a URL da sua instância Z-API</li>
+          <li>Header <span class="mono">Client-Token</span> com o token de segurança da conta</li>
+          <li>Body com <span class="mono">phone</span> (do cadastro) e <span class="mono">message</span></li>
+        </ul>
+      </div>
+      <div class="wcol">
+        <div class="codeblock"><span class="ck">POST</span> https://api.z-api.io/instances/<span class="cv">{INSTANCIA}</span>/token/<span class="cv">{TOKEN}</span>/send-text
+<span class="ck">Header</span>  Client-Token: <span class="cv">{token-de-seguranca}</span>
+<span class="ck">Body</span>
+{
+  "phone": "<span class="cv">55DDDNUMERO</span>",
+  "message": "<span class="cs">Olá, {{cliente}}. Seu processo foi
+    protocolado hoje. Acompanhamos os prazos e
+    avisamos a cada mudança. Estamos por aqui.</span>"
+}</div>
+      </div>
+    </div>
+
+    <div class="notebox" style="margin-bottom:22px">
+      <b>Confira 1 coisa na tela do HTTP Request:</b> se der pra <b>editar o body e os headers</b>, o Flowter chama o
+      Z-API <b>direto</b>. Se ele só mandar o JSON padrão do ADVBOX, ponha um <b>tradutor leve</b> (n8n grátis / Make)
+      entre os dois pra reformatar no padrão do Z-API — o resto do fluxo é idêntico. O <b>SMS/e-mail nativo</b> segue
+      disponível como backup em qualquer plano.
+    </div>
+
+    <div class="safety">
+      <div class="sglabel">Segurança do WhatsApp · anti-banimento</div>
+      <h3>🛡️ Por que o número não cai</h3>
+      <p style="font-size:13px;color:var(--text-2);margin-top:6px">O Z-API é WhatsApp não-oficial (via QR). O risco de
+        cair vem do <b>canal e do modo de enviar</b> — não do Flowter. Como aqui são <b>clientes reais, avisos que eles
+        querem e volume baixo</b>, o risco já é baixo; estes cuidados eliminam quase tudo.</p>
+      <div class="grid2">
+        <div class="it star"><b>Número dedicado</b> só para o Z-API — nunca o WhatsApp principal do escritório. Se cair, não perde a linha de atendimento. <em>(decidido)</em></div>
+        <div class="it star"><b>Opt-in no contrato</b> — cláusula "autorizo comunicações por WhatsApp".</div>
+        <div class="it"><b>Só transacional</b> — andamento do caso; nunca promoção ou captação nesse número.</div>
+        <div class="it"><b>Personalize</b> nome e nº do processo — nada de mensagem idêntica em rajada.</div>
+        <div class="it"><b>Horário comercial</b> e envios espaçados (o delay de 1 min do Flowter ajuda).</div>
+        <div class="it"><b>Aqueça o número</b> — uso gradual nas primeiras semanas.</div>
+      </div>
+      <p style="font-size:12px;color:var(--text-3);margin-top:14px">Quer risco zero? Rode o Flowter só para as tarefas
+        internas e deixe o aviso ao cliente no <b>SMS/e-mail nativo</b>; ligue o Z-API quando estiver confortável.
+        Para escalar sem medo, o caminho é o <b>WhatsApp Business API oficial</b> (templates + opt-in).</p>
+    </div>
+
+    <div class="setup">
+      <span class="flowtag">Pré-requisito</span>
+      <h3>Base: as etapas da esteira viram as colunas do CRM</h3>
+      <p>Antes de ligar o Flowter, cadastre em <span class="mono">Configurações → Fases e Etapas</span> os status
+        da esteira, e em <span class="mono">Cargos</span> os quatro núcleos — assim o Flowter atribui por cargo
+        (distribuição automática) e o Kanban vira o quadro que substitui o Trello.</p>
+      <div class="chips">
+        <span>LEAD</span><span>CONTRATO ASSINADO</span><span>AGUARDANDO DOCS</span><span>PASTA FECHADA</span>
+        <span>PROTOCOLO ADM</span><span>EXIGÊNCIA ADM</span><span>AJUIZADO</span><span>EMENDA PENDENTE</span>
+        <span>PERÍCIA DESIGNADA</span><span>LAUDO JUNTADO</span><span>SENTENÇA</span><span>EXECUÇÃO</span>
+        <span>ALVARÁ EXPEDIDO</span><span>FINALIZADO</span>
+      </div>
+      <div class="chips" style="margin-top:8px">
+        <span>Cargo: Atendimento → Bia</span><span>Cargo: Técnico → Natália</span>
+        <span>Cargo: Documentos → Pedro</span><span>Cargo: Direção → Jonas</span>
+      </div>
+    </div>
+
+    <div class="recipes">
+      <!-- 1 onboarding -->
+      <div class="recipe">
+        <div class="rtop"><span class="rtag">Receita 1 · Onboarding pós-assinatura</span><span class="rbadge flow">Flowter</span></div>
+        <h3>Contrato assinado abre a operação</h3>
+        <div class="trigger"><b>Quando</b> processo movido para a etapa <span class="mono">CONTRATO ASSINADO</span></div>
+        <div class="then">Então (Flowter)</div>
+        <ol class="acts">
+          <li>Cria tarefa "Criar pasta 01–07 no Drive + solicitar documentos iniciais"
+            <span class="meta">Responsável: <b>Cargo Documentos (Pedro)</b> · Prazo: <i>mesmo dia</i></span></li>
+          <li>Cria tarefa "Baixar CNIS e laudos no Meu INSS e validar vínculo/carência"
+            <span class="meta">Responsável: <b>Pedro</b> · Prazo: <i>2 d.ú.</i></span></li>
+          <li>HTTP Request → Z-API: WhatsApp de boas-vindas + lista de documentos
+            <span class="meta">Canal: <b>Z-API</b> · move p/ <i>AGUARDANDO DOCS</i> ao concluir a 1ª tarefa</span></li>
+        </ol>
+        <div class="note">A criação da pasta em si é manual (a tarefa lembra o Pedro); ZapSign move o card só com integração.</div>
+      </div>
+
+      <!-- 2 anfitrião -->
+      <div class="recipe">
+        <div class="rtop"><span class="rtag">Receita 2 · Aviso ao cliente (o "Anfitrião")</span><span class="rbadge wa">Flowter + Z-API</span></div>
+        <h3>O cliente ouve cada avanço, no WhatsApp</h3>
+        <div class="trigger"><b>Quando</b> o processo entra em cada etapa-marco, o Flowter dispara o HTTP Request → Z-API</div>
+        <div class="then">Então (WhatsApp no seu tom, por marco)</div>
+        <ol class="acts">
+          <li><span class="mono">CONTRATO ASSINADO</span> → boas-vindas + documentos iniciais</li>
+          <li><span class="mono">PROTOCOLO ADM / AJUIZADO</span> → "seu caso foi protocolado"</li>
+          <li><span class="mono">PERÍCIA DESIGNADA</span> → data, local e "vamos te orientar antes"</li>
+          <li><span class="mono">SENTENÇA</span> → resultado + próximo passo</li>
+        </ol>
+        <div class="msg">
+          <div class="ml">Modelo — protocolado (linguagem simples, sem promessa)</div>
+          <blockquote>"Olá, [nome]. Seu processo foi protocolado hoje. A partir de agora acompanhamos os
+            prazos e avisamos sempre que houver mudança relevante. Qualquer dúvida, estamos por aqui."</blockquote>
+        </div>
+        <div class="zapi"><span class="ck">Z-API send-text</span> → { "phone": "55DDD...", "message": "<span class="cs">Olá, {{cliente}}. Seu processo foi protocolado hoje...</span>" }</div>
+        <div class="note">Só avança, nunca retrocesso. Envie seg–sex, horário comercial, e sempre personalizado (reduz risco de banimento no Z-API).</div>
+      </div>
+
+      <!-- 3 cobrança -->
+      <div class="recipe">
+        <div class="rtop"><span class="rtag">Receita 3 · Cobrança de documentos (aging)</span><span class="rbadge wa">Flowter + Z-API</span></div>
+        <h3>Ninguém fica parado esperando o cliente</h3>
+        <div class="trigger"><b>Quando</b> processo entra em <span class="mono">AGUARDANDO DOCS</span> (SLA 7 d.ú.)</div>
+        <div class="then">Então (cadeia de follow-up)</div>
+        <ol class="acts">
+          <li>D+3 sem retorno → tarefa p/ Pedro + WhatsApp de lembrete (Z-API)
+            <span class="meta">Responsável: <b>Pedro</b> · Prazo: <i>3 d.ú.</i></span></li>
+          <li>D+5 sem retorno → 2º lembrete via Z-API + reforço na tarefa
+            <span class="meta">Responsável: <b>Pedro</b> · Prazo: <i>5 d.ú.</i></span></li>
+          <li>D+7 sem documento → alerta "Aging crítico" e move p/ <span class="mono">07 Pendências</span>
+            <span class="meta">Responsável: <b>Bia</b> (liga para o cliente)</span></li>
+        </ol>
+        <div class="note">Lembretes personalizados e espaçados; a ligação da Bia no D+7 evita depender só de mensagem.</div>
+      </div>
+
+      <!-- 4 perícia -->
+      <div class="recipe">
+        <div class="rtop"><span class="rtag">Receita 4 · Sequência da perícia</span><span class="rbadge wa">Flowter + Z-API</span></div>
+        <h3>D-15 · D-7 · D-2 · D+1 no automático</h3>
+        <div class="trigger"><b>Quando</b> processo entra em <span class="mono">PERÍCIA DESIGNADA</span> (com a data preenchida)</div>
+        <div class="then">Então (Flowter agenda as 4 etapas a partir da data da perícia)</div>
+        <ol class="acts">
+          <li><b>D-15</b> WhatsApp (Z-API): data, local e regra geral + tarefa p/ Bia
+            <span class="meta">Responsável: <b>Bia</b></span></li>
+          <li><b>D-7</b> WhatsApp: orientação + checklist de conduta · aciona Pedro p/ docs
+            <span class="meta">Responsável: <b>Bia / Pedro</b></span></li>
+          <li><b>D-2</b> WhatsApp: confirmar presença, rota e documentos
+            <span class="meta">Responsável: <b>Bia</b></span></li>
+          <li><b>D+1</b> tarefa interna "Coletar relato do cliente e registrar no ADVBOX"
+            <span class="meta">Responsável: <b>Bia</b></span></li>
+        </ol>
+        <div class="note">As datas contam a partir do dia da perícia — a Bia confirma ao registrar a data no processo.</div>
+      </div>
+    </div>
+
+    <div class="notebox" style="margin-top:22px">
+      <b>Ganhos rápidos (mesma mecânica no Flowter):</b> etapa <span class="mono">LAUDO JUNTADO</span> → tarefa
+      "Analisar laudo" para Jonas (5 d.ú.) · etapa <span class="mono">ALVARÁ EXPEDIDO</span> → checklist bancário
+      (2 d.ú.) · qualquer tarefa vencida cai no <b>Meu Painel/Tarefas</b> e entra na pauta de segunda.
+    </div>
+
+    <div class="notebox" style="margin-top:12px;background:var(--petrol-tint);border-color:color-mix(in srgb,var(--petrol) 30%,transparent)">
+      <b style="color:var(--petrol-deep)">Painel de KPIs (nativo):</b> use os <b>indicadores e relatórios nativos</b> do
+      ADVBOX (ranking, metas, tarefas por prazo) + a visão de aging no Kanban. Indicadores mais finos — tempo de
+      montagem de pasta, aging por faixa de dias — podem sair por exportação para planilha, ou depois plugando a API
+      do ADVBOX no seu app React (quando quiser sair do 100% nativo).
+    </div>
+  </div>
+</section>
+
+<!-- MENSAGENS -->
+<section id="mensagens">
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow">Biblioteca de mensagens · Z-API</div>
+      <h2>O texto de cada marco, pronto pra colar</h2>
+      <p>Linguagem simples, sem promessa de resultado, só avanço. As <span class="mono">{{variáveis}}</span> são os
+        campos do processo no Flowter (nome, telefone, número, datas). Verde = envia automático; âmbar = envia só com
+        autorização (resultado é assunto sensível — humano decide). <b>Todas levam o rodapé padrão abaixo.</b></p>
+    </div>
+
+    <div class="stdfoot">
+      <div class="sglabel">Rodapé padrão · anexado ao fim de TODA mensagem</div>
+      <blockquote>Caso queira saber mais, fale com nossa equipe: https://wa.me/553135001770 (31 3500-1770). Este número serve apenas para orientar sobre o andamento do seu processo.
+<span class="scam">⚠️ Cuidado com golpes: nunca informe senhas, dados ou contas bancárias. Não fazemos esse tipo de pedido por mensagem (golpe do falso advogado).</span>
+✅ Perfil oficial do escritório: @jonasinacio.adv</blockquote>
+    </div>
+
+    <div class="msglib">
+      <div class="msgc auto">
+        <div class="mtop"><span class="mtag">Contrato assinado · boas-vindas</span><span class="mbadge">Auto</span></div>
+        <div class="mwhen">etapa → CONTRATO ASSINADO</div>
+        <blockquote>Olá, {{cliente}}! Aqui é da {{escritorio}}. Recebemos seu contrato e já começamos a cuidar do seu caso. 🙌
+O próximo passo é reunir seus documentos — em instantes enviamos a lista. Qualquer dúvida, é só responder por aqui.</blockquote>
+      </div>
+
+      <div class="msgc auto">
+        <div class="mtop"><span class="mtag">Cobrança · lembrete D+3</span><span class="mbadge">Auto</span></div>
+        <div class="mwhen">AGUARDANDO DOCS · D+3 sem retorno</div>
+        <blockquote>Oi, {{cliente}}! Passando para lembrar dos documentos que combinamos, para dar andamento ao seu caso. Assim que você enviar, seguimos com a próxima etapa. Precisa de ajuda para localizar algum deles?</blockquote>
+      </div>
+
+      <div class="msgc auto">
+        <div class="mtop"><span class="mtag">Cobrança · lembrete D+5</span><span class="mbadge">Auto</span></div>
+        <div class="mwhen">AGUARDANDO DOCS · D+5 sem retorno</div>
+        <blockquote>Olá, {{cliente}}. Ainda estamos no aguardo de alguns documentos para avançar com o seu processo — eles são importantes para deixarmos tudo pronto. Consegue nos enviar até esta semana?</blockquote>
+      </div>
+
+      <div class="msgc auto">
+        <div class="mtop"><span class="mtag">Protocolo administrativo</span><span class="mbadge">Auto</span></div>
+        <div class="mwhen">etapa → PROTOCOLO ADM</div>
+        <blockquote>Boa notícia, {{cliente}}! Demos entrada no seu pedido junto ao INSS. Agora acompanhamos o andamento e avisamos assim que houver retorno. Seguimos de olho nos prazos por você.</blockquote>
+      </div>
+
+      <div class="msgc auto">
+        <div class="mtop"><span class="mtag">Ação judicial protocolada</span><span class="mbadge">Auto</span></div>
+        <div class="mwhen">etapa → AJUIZADO</div>
+        <blockquote>{{cliente}}, seu processo foi protocolado na Justiça hoje ✅. A partir de agora acompanhamos cada movimentação e avisamos sempre que houver novidade relevante. Estamos com você nessa.</blockquote>
+      </div>
+
+      <div class="msgc auto">
+        <div class="mtop"><span class="mtag">Documento / exigência</span><span class="mbadge">Auto</span></div>
+        <div class="mwhen">etapa → EXIGÊNCIA ADM / EMENDA (se depende de doc)</div>
+        <blockquote>Oi, {{cliente}}! Para dar sequência ao seu caso, precisamos de um documento. Já te enviamos a descrição do que é — assim que chegar, seguimos na hora. Conte com a gente se tiver dúvida.</blockquote>
+      </div>
+
+      <div class="msgc auto">
+        <div class="mtop"><span class="mtag">Perícia · D-15</span><span class="mbadge">Auto</span></div>
+        <div class="mwhen">PERÍCIA DESIGNADA · 15 dias antes</div>
+        <blockquote>{{cliente}}, sua perícia médica foi marcada 📅
+Data: {{data}} às {{hora}}
+Local: {{local}}
+Nos próximos dias enviamos a orientação completa de preparo. Guarde essa data com atenção — é uma etapa muito importante do seu processo.</blockquote>
+      </div>
+
+      <div class="msgc auto">
+        <div class="mtop"><span class="mtag">Perícia · D-7 orientação</span><span class="mbadge">Auto</span></div>
+        <div class="mwhen">PERÍCIA DESIGNADA · 7 dias antes</div>
+        <blockquote>Oi, {{cliente}}! Faltam poucos dias para sua perícia ({{data}}). Orientações:
+• Leve documento com foto e todos os laudos, exames e receitas
+• Chegue com antecedência ao local: {{local}}
+• Relate suas limitações com sinceridade e clareza — sem exagerar nem omitir
+Qualquer dúvida, estamos aqui.</blockquote>
+      </div>
+
+      <div class="msgc auto">
+        <div class="mtop"><span class="mtag">Perícia · D-2 confirmação</span><span class="mbadge">Auto</span></div>
+        <div class="mwhen">PERÍCIA DESIGNADA · 2 dias antes</div>
+        <blockquote>{{cliente}}, tudo certo para sua perícia em {{data}}, às {{hora}}, no local {{local}}? Confirma pra gente que está tudo ok e que você tem os documentos em mãos? É uma etapa importante e você está preparado(a). 💪</blockquote>
+      </div>
+
+      <div class="msgc gated">
+        <div class="mtop"><span class="mtag">Resultado / sentença</span><span class="mbadge">Com autorização</span></div>
+        <div class="mwhen">etapa → SENTENÇA</div>
+        <blockquote>{{cliente}}, seu processo teve uma decisão importante. Nossa equipe já está analisando o conteúdo e em breve entra em contato para te explicar o que significa e quais os próximos passos. Obrigado pela confiança.</blockquote>
+        <div class="mnote">Não anuncie ganho/perda no automático. Jonas/Natália avaliam e a Bia envia após autorização.</div>
+      </div>
+    </div>
+
+    <div class="notebox" style="margin-top:20px">
+      <b>Os payloads prontos</b> (JSON com <span class="mono">phone</span> + <span class="mono">message</span> e as
+      quebras de linha em <span class="mono">\n</span>) estão no arquivo <b>mensagens-zapi.md</b> que te enviei — é só
+      copiar cada bloco no campo Body do HTTP Request do Flowter e mapear as <span class="mono">{{variáveis}}</span>.
+    </div>
+  </div>
+</section>
+
+<!-- KPIs -->
+<section id="kpi" class="alt">
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow">Painel de indicadores</div>
+      <h2>Onde a esteira trava e onde o dinheiro para</h2>
+      <p>Poucos indicadores, úteis. Lidos na reunião mensal para definir uma melhoria por mês.</p>
+    </div>
+    <div class="kpi">
+      <div class="kpicard"><div class="grp">Comercial</div><h4>Resposta em até 15 min</h4><p>Leads no SLA ÷ total. Evita perda de oportunidade.</p></div>
+      <div class="kpicard"><div class="grp">Comercial</div><h4>Taxa de conversão</h4><p>Contratos assinados ÷ leads. Mede a qualidade do funil.</p></div>
+      <div class="kpicard"><div class="grp">Documental</div><h4>Tempo de montagem de pasta</h4><p>Dias entre contrato e pasta fechada. Controla o gargalo documental.</p></div>
+      <div class="kpicard"><div class="grp">Documental</div><h4>Aging de pendências</h4><p>Casos parados por faixa de dias. Ataca a parada no cliente.</p></div>
+      <div class="kpicard"><div class="grp">Emendas</div><h4>Emendas no prazo interno</h4><p>Protocoladas 2 d.ú. antes do fatal ÷ total. Reduz risco processual.</p></div>
+      <div class="kpicard"><div class="grp">Perícias</div><h4>Perícias com preparo completo</h4><p>Com D-15/D-7/D-2/D+1 feitos ÷ total. Aumenta a qualidade do preparo.</p></div>
+      <div class="kpicard"><div class="grp">Judicial</div><h4>Tempo de ajuizamento</h4><p>Dias entre pasta fechada e protocolo. Controla a produtividade.</p></div>
+      <div class="kpicard"><div class="grp">Financeiro</div><h4>Valores aguardando alvará</h4><p>Créditos parados antes do saque. Ataca dinheiro travado.</p></div>
+      <div class="kpicard"><div class="grp">Qualidade</div><h4>Retrabalho documental</h4><p>Casos devolvidos por falta de documento. Mede aderência ao checklist.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- REGRAS DE OURO -->
+<section id="regras">
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow">Regras de ouro</div>
+      <h2>O que nunca muda</h2>
+      <p>Governança, qualidade e LGPD condensadas — a espinha da operação.</p>
+    </div>
+    <div class="rules">
+      <div class="grule"><h4>Um status por vez</h4><p>Todo caso vive em um único status operacional; toda mudança gera tarefa, prazo e responsável.</p></div>
+      <div class="grule"><h4>Gatilho na mudança de status</h4><p>Cada ação dispara quando o status muda no ADVBOX. Nada fica ligado à toa; o fluxo é idempotente.</p></div>
+      <div class="grule"><h4>Rotina por regra, exceção por Jonas</h4><p>Bia, Natália e Pedro resolvem rotina; Jonas decide exceção, estratégia e risco.</p></div>
+      <div class="grule"><h4>O cliente só ouve avanço</h4><p>Bia avisa a cada fase para frente, em linguagem simples — nunca um retrocesso, nunca promessa de resultado.</p></div>
+      <div class="grule"><h4>Pasta é gate</h4><p>Checklist obrigatório antes de fechar pasta, ajuizar, protocolar emenda e levantar alvará. Sem checklist, é não conforme.</p></div>
+      <div class="grule"><h4>Prazo tem prioridade absoluta</h4><p>Todo prazo processual vem primeiro. Ocultar erro é falta grave; problema relevante sobe na hora.</p></div>
+      <div class="grule"><h4>Nada fora do sistema</h4><p>Ato formal no ADVBOX, documento no Drive. Senha GOV.BR só em local autorizado — nunca em conversa dispersa.</p></div>
+      <div class="grule"><h4>Verdade na perícia</h4><p>Proibido orientar cliente a mentir, exagerar ou omitir. O preparo organiza a verdade, não cria narrativa.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- REFERÊNCIA TÉCNICA -->
+<section id="ref" class="alt">
+  <div class="wrap">
+    <div class="shead">
+      <div class="eyebrow">Referência técnica</div>
+      <h2>Alçadas &amp; gatilhos obrigatórios</h2>
+      <p>Quem decide o quê, e o que cada mudança de status obriga a abrir.</p>
+    </div>
+    <div class="grid g2">
+      <div class="card ref">
+        <table>
+          <thead><tr><th>Tema</th><th>Decisão ordinária</th><th>Exceção</th></tr></thead>
+          <tbody>
+            <tr><td>Qualificação do lead</td><td>Bia (critérios do manual)</td><td class="id">Jonas</td></tr>
+            <tr><td>Fechamento da pasta</td><td>Pedro (checklist)</td><td class="id">Jonas</td></tr>
+            <tr><td>Via ADM ou judicial</td><td>Natália (matriz)</td><td class="id">Jonas</td></tr>
+            <tr><td>Protocolo ADM padrão</td><td>Natália protocola</td><td class="id">Jonas</td></tr>
+            <tr><td>Emenda judicial</td><td>Natália redige/protocola</td><td class="id">Jonas</td></tr>
+            <tr><td>Perícia</td><td>Bia comunica · Natália controla</td><td class="id">Jonas</td></tr>
+            <tr><td>Execução &amp; alvará</td><td>Equipe prepara</td><td class="id">Jonas</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card ref">
+        <table>
+          <thead><tr><th>Mudança de status</th><th>Tarefa obrigatória</th><th>Quem</th></tr></thead>
+          <tbody>
+            <tr><td class="id">CONTRATO ASSINADO</td><td>Checklist + pasta + lista inicial</td><td>Bia → Pedro</td></tr>
+            <tr><td class="id">PASTA FECHADA</td><td>Direcionar por matriz; abrir ADM/JUD</td><td>Pedro → Natália</td></tr>
+            <tr><td class="id">PROTOCOLO ADM</td><td>Acompanhamento semanal + comunicação</td><td>Natália + Bia</td></tr>
+            <tr><td class="id">EXIGÊNCIA ADM</td><td>Classificar; acionar Pedro se faltar doc</td><td>Natália + Bia</td></tr>
+            <tr><td class="id">EMENDA PENDENTE</td><td>Classificar, abrir tarefa, acionar Pedro</td><td>Natália + Bia</td></tr>
+            <tr><td class="id">PERÍCIA DESIGNADA</td><td>Abrir sequência D-15/D-7/D-2/D+1</td><td>Natália + Bia</td></tr>
+            <tr><td class="id">LAUDO JUNTADO</td><td>Notificar Jonas + prazo de análise</td><td>Natália</td></tr>
+            <tr><td class="id">ATRASO DE SLA</td><td>Levar ao painel de exceção da reunião</td><td>Resp. da etapa</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="live">
+      <b>POP vivo</b> — atualiza a cada mudança no fluxo, função, ferramenta ou SLA. Derivado do Manual
+      Operacional e de Legal Ops v4.1. A versão vigente é única e mora na pasta oficial do escritório.
+    </div>
+    <div class="v">Jonas Inácio · Advocacia Previdenciária · POP Esteira v1.0</div>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var btn=document.getElementById('themebtn');
+    var root=document.documentElement;
+    btn.addEventListener('click',function(){
+      var cur=root.getAttribute('data-theme');
+      if(!cur){cur=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}
+      root.setAttribute('data-theme', cur==='dark'?'light':'dark');
+    });
+  })();
+</script>
