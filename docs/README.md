@@ -10,6 +10,7 @@ sem Trello (o quadro é o **status do ADVBOX**), com automação via **Flowter +
 |---------|---------|
 | [`pop-esteira-previdenciaria.html`](./pop-esteira-previdenciaria.html) | POP visual completo (abrir no navegador). Atores, pasta, esteira, automação, segurança, KPIs e regras. |
 | [`mensagens-zapi.md`](./mensagens-zapi.md) | Textos e payloads JSON prontos do Z-API para cada marco, com rodapé padrão anti-golpe. |
+| [`flowter-passo-a-passo-piloto.md`](./flowter-passo-a-passo-piloto.md) | Guia campo a campo para montar o 1º fluxo no Flowter (aviso de ajuizamento) e replicar os demais. |
 | [`flowter-tarefas-internas.md`](./flowter-tarefas-internas.md) | Modelos das tarefas internas do Flowter (onboarding, cobrança, perícia, laudo, alvará). |
 | [`clausula-optin-whatsapp.md`](./clausula-optin-whatsapp.md) | Cláusula de autorização de contato por WhatsApp (LGPD) para o contrato. |
 
