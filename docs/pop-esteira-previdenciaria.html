@@ -1052,6 +1052,33 @@ Qualquer dúvida, estamos aqui.</blockquote>
         <blockquote>{{cliente}}, tudo certo para sua perícia em {{data}}, às {{hora}}, no local {{local}}? Confirma pra gente que está tudo ok e que você tem os documentos em mãos? É uma etapa importante e você está preparado(a). 💪</blockquote>
       </div>
 
+      <div class="msgc auto">
+        <div class="mtop"><span class="mtag">Perícia · D-1 véspera</span><span class="mbadge">Auto</span></div>
+        <div class="mwhen">PERÍCIA DESIGNADA · 1 dia antes</div>
+        <blockquote>{{cliente}}, sua perícia é amanhã, {{data}}, às {{hora}}, no local {{local}}. Separe hoje seus documentos e descanse. Chegue com antecedência. Boa sorte! 💪</blockquote>
+      </div>
+
+      <div class="msgc auto">
+        <div class="mtop"><span class="mtag">Perícia · D+1 pós</span><span class="mbadge">Auto</span></div>
+        <div class="mwhen">PERÍCIA DESIGNADA · 1 dia depois</div>
+        <blockquote>Oi, {{cliente}}! Como foi a sua perícia ontem? Conte rapidamente como o médico te avaliou e se surgiu alguma dúvida. Esse retorno nos ajuda a acompanhar seu processo.</blockquote>
+      </div>
+
+      <div class="msgc auto">
+        <div class="mtop"><span class="mtag">Perícia · remarcada</span><span class="mbadge">Auto</span></div>
+        <div class="mwhen">data da perícia alterada</div>
+        <blockquote>{{cliente}}, atenção: sua perícia foi remarcada 📅
+Nova data: {{data}} às {{hora}} — Local: {{local}}
+Mantenha seus documentos prontos; vamos te orientar de novo conforme a data se aproxima.</blockquote>
+      </div>
+
+      <div class="msgc gated">
+        <div class="mtop"><span class="mtag">Perícia · não compareceu</span><span class="mbadge">Com autorização</span></div>
+        <div class="mwhen">perícia marcada como não realizada</div>
+        <blockquote>{{cliente}}, notamos que sua perícia de {{data}} não foi realizada. Isso pode afetar o andamento — entre em contato para reagendarmos e orientarmos os próximos passos.</blockquote>
+        <div class="mnote">A Bia confirma a falta antes de enviar (evita constranger quem compareceu).</div>
+      </div>
+
       <div class="msgc gated">
         <div class="mtop"><span class="mtag">Resultado / sentença</span><span class="mbadge">Com autorização</span></div>
         <div class="mwhen">etapa → SENTENÇA</div>
