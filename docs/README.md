@@ -16,6 +16,7 @@ sem Trello (o quadro é o **status do ADVBOX**), com automação via **Flowter +
 | [`flowter-tarefas-internas.md`](./flowter-tarefas-internas.md) | Modelos das tarefas internas do Flowter (onboarding, cobrança, perícia, laudo, alvará). |
 | [`flowter-alertas-internos.md`](./flowter-alertas-internos.md) | Como avisar cada responsável da tarefa: nativo (sino/e-mail/push) + WhatsApp via Z-API. |
 | [`clausula-optin-whatsapp.md`](./clausula-optin-whatsapp.md) | Cláusula de autorização de contato por WhatsApp (LGPD) para o contrato. |
+| [`cadencia-revisao-administrativa.md`](./cadencia-revisao-administrativa.md) | Adendo ao manual: Bia revisa os casos administrativos toda quarta-feira. |
 
 ## Arquitetura da automação
 
