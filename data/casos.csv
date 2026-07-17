@@ -1,0 +1,6 @@
+numero,cliente,status,ultimaMovimentacao,valorPrevisto,dataPrevista,dataPericia,periciaRealizada,tipoSequela
+5001234-45.2023.4.03.6100,João da Silva Santos,Perícia,2026-07-08,38000,2026-08-06,2026-07-19,false,Membro Superior
+5005678-12.2022.4.03.6100,Maria Oliveira Ferreira,Finalizado,2026-07-14,28000,2026-07-07,2026-06-07,true,Auditiva
+5012345-99.2023.4.03.6100,Ricardo Pereira Lima,Instrução,2026-06-01,52000,2026-08-31,2026-07-02,true,Coluna - Hérnia
+5009876-33.2021.4.03.6100,Sônia Maria Ribeiro,Sentença,2026-06-09,0,2026-07-22,2026-05-18,true,Visão Monocular
+5011122-88.2024.4.03.6100,Antônio Marcos Souza,Perícia,2026-07-15,12500,2026-08-16,2026-07-18,false,Amputação de Dedo

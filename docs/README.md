@@ -18,6 +18,7 @@ sem Trello (o quadro é o **status do ADVBOX**), com automação via **Flowter +
 | [`clausula-optin-whatsapp.md`](./clausula-optin-whatsapp.md) | Cláusula de autorização de contato por WhatsApp (LGPD) para o contrato. |
 | [`cadencia-revisao-administrativa.md`](./cadencia-revisao-administrativa.md) | Adendo ao manual: Bia revisa os casos administrativos toda quarta-feira. |
 | [`monitoramento-meu-inss.md`](./monitoramento-meu-inss.md) | Adendo ao manual: rotina 2x/semana de conferência de exigências e decisões no Meu INSS. |
+| [`digest-semanal.md`](./digest-semanal.md) | Digest automático semanal da carteira (perícias, prazos, casos parados). Gerador em `scripts/gerar-digest.mjs`. |
 
 ## Arquitetura da automação
 
