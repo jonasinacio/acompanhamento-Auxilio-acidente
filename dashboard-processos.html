@@ -347,7 +347,8 @@ function renderKPIs(){
   const total=DATA.length;
   const fav=countBy("Favorável"), marc=countBy("Perícia Marcada"), rec=countBy("Em Recurso");
   const agp=countBy("Ag. Perícia"), pen=countBy("Ação Pendente"), enc=countBy("Encerrado");
-  const decididos=fav+enc;
+  // "Em Recurso" contam como derrota provável (a maioria perde no recurso)
+  const decididos=fav+enc+rec;
   const taxa=decididos? Math.round(fav/decididos*1000)/10 : 0;
   const cards=[
     {lab:"Total de processos", val:total, k:"var(--accent)", foot:"carteira judicial ativa"},
@@ -357,7 +358,7 @@ function renderKPIs(){
     {lab:"Ag. perícia", val:agp, k:"var(--c-agpericia)", foot:"sem data definida"},
     {lab:"Ação pendente", val:pen, k:"var(--c-pendente)", foot:"requer providência"},
     {lab:"Encerrado", val:enc, k:"var(--c-encerrado)", foot:"baixados / transitados"},
-    {lab:"Taxa de sucesso", val:taxa.toLocaleString("pt-BR")+"%", k:"var(--accent)", foot:"favoráveis ÷ decididos"},
+    {lab:"Taxa de sucesso", val:taxa.toLocaleString("pt-BR")+"%", k:"var(--accent)", foot:"favoráveis ÷ (favoráveis + encerrados + em recurso)"},
   ];
   document.getElementById("kpi-row").innerHTML = cards.map(c=>`
     <div class="kpi" style="--k:${c.k}">
