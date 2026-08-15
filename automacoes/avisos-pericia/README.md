@@ -104,10 +104,11 @@ O Drive/planilha oficial continua sendo a fonte; aqui é só a cópia que o rob�
 Nunca coloque token no código. Exporte antes de rodar (ou no seu `~/.zshrc`):
 
 ```bash
-# WhatsApp ao cliente (ChatGuru)
-export CHATGURU_ENDPOINT="https://s15.chatguru.app/api/v1"   # o seu endpoint
-export CHATGURU_TOKEN="..."
+# WhatsApp ao cliente (ChatGuru) — as MESMAS 4 credenciais do chatguru-mcp
+export CHATGURU_SERVER="15"        # nº do servidor → s15.expertintegrado.app
+export CHATGURU_API_KEY="..."
 export CHATGURU_ACCOUNT_ID="..."
+export CHATGURU_PHONE_ID="..."     # id do seu celular (não é o do cliente)
 
 # Alerta no grupo interno GERAL (Z-API)
 export ZAPI_ENDPOINT="https://api.z-api.io/instances/SEU_ID/token/SEU_TOKEN/send-text"

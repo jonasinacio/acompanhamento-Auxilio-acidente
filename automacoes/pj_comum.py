@@ -9,9 +9,10 @@ Tudo que os três robôs compartilham mora aqui, para você ajustar UMA vez:
 - leitura/escrita da planilha "mãe" (openpyxl) + backup;
 - estado/dedupe em JSON.
 
->>> O ÚNICO ponto que depende da sua conta é o corpo dos dois senders no fim
-    deste arquivo. Compare com o disparo que o seu ARAUTO de audiência já usa
-    em produção e acerte os nomes de campo 1:1. Mais nada precisa mudar.
+>>> O sender do cliente já fala ChatGuru de verdade (contrato portado do
+    ericluciano/chatguru-mcp). Só falta você preencher as 4 credenciais no .env
+    (as MESMAS do MCP). O alerta interno usa Z-API; se preferir tudo no ChatGuru,
+    dá pra apontar o GERAL pra um chat_number também — é só pedir.
 """
 
 from __future__ import annotations
@@ -216,16 +217,47 @@ def carimbo_agora(hoje: dt.date) -> str:
 
 
 # ======================================================================
-# SAÍDA — senders (AJUSTE AQUI p/ bater com o seu ARAUTO de audiência)
+# SAÍDA — senders
 # ======================================================================
+# WhatsApp ao cliente = ChatGuru. Contrato confirmado a partir do
+# ericluciano/chatguru-mcp (index.js): a URL é derivada do número do servidor
+# (s{SERVER}.expertintegrado.app/api/v1); key/account_id/phone_id/action vão na
+# QUERY, e chat_number/text no CORPO form-urlencoded. Use as MESMAS 4 credenciais
+# do MCP (ChatGuru > Configurações > Celulares) — um .env serve pros dois.
 # Credenciais só por variável de ambiente (nunca commitar segredo).
-CHATGURU_ENDPOINT = os.environ.get("CHATGURU_ENDPOINT", "")
-CHATGURU_TOKEN    = os.environ.get("CHATGURU_TOKEN", "")
+CHATGURU_ENDPOINT = os.environ.get("CHATGURU_ENDPOINT", "")   # opcional: URL completa; sobrepõe SERVER
+CHATGURU_SERVER   = os.environ.get("CHATGURU_SERVER", "")     # nº do servidor (ex.: 15) → monta a URL
+CHATGURU_API_KEY  = os.environ.get("CHATGURU_API_KEY", os.environ.get("CHATGURU_TOKEN", ""))
 CHATGURU_ACCOUNT  = os.environ.get("CHATGURU_ACCOUNT_ID", "")
+CHATGURU_PHONE_ID = os.environ.get("CHATGURU_PHONE_ID", "")   # id do SEU celular na conta (fixo, não é o do cliente)
 
 ZAPI_ENDPOINT = os.environ.get("ZAPI_ENDPOINT", "")
 ZAPI_TOKEN    = os.environ.get("ZAPI_TOKEN", "")
 ZAPI_GRUPO    = os.environ.get("ZAPI_GRUPO_GERAL", "")
+
+
+def normalizar_telefone_br(v) -> str:
+    """
+    Número no formato que o ChatGuru guarda (DDI+DDD+número, só dígitos).
+    Regra do 9º dígito (portada do chatguru-mcp): DDDs >= 31 são armazenados SEM
+    o 9 extra do celular. Ex.: 5531912345678 → 553112345678. DDDs 11-30 mantêm.
+    """
+    d = re.sub(r"\D", "", str(v or ""))
+    if not d.startswith("55") and 10 <= len(d) <= 11:
+        d = "55" + d
+    if d.startswith("55") and len(d) == 13:
+        ddd = int(d[2:4])
+        if ddd >= 31 and d[4] == "9":
+            d = d[:4] + d[5:]
+    return d
+
+
+def _chatguru_url() -> str:
+    if CHATGURU_ENDPOINT:
+        return CHATGURU_ENDPOINT
+    if CHATGURU_SERVER:
+        return f"https://s{CHATGURU_SERVER}.expertintegrado.app/api/v1"
+    return ""
 
 
 # Seam de teste/ensaio: PJ_FAKE_SEND=1 finge um envio bem-sucedido (sem rede),
@@ -234,30 +266,48 @@ ZAPI_GRUPO    = os.environ.get("ZAPI_GRUPO_GERAL", "")
 _FAKE_SEND = os.environ.get("PJ_FAKE_SEND") == "1"
 
 
-def enviar_whatsapp_cliente(telefone: str, texto: str, dry: bool) -> tuple[bool, str]:
-    """WhatsApp ao cliente via ChatGuru."""
+def enviar_whatsapp_cliente(telefone: str, texto: str, dry: bool,
+                            send_date: str | None = None) -> tuple[bool, str]:
+    """
+    WhatsApp ao cliente via ChatGuru (action=message_send).
+    send_date opcional ('YYYY-MM-DD HH:MM') agenda o disparo na própria ChatGuru.
+    """
     if dry:
         return True, "DRY (não enviou)"
     if _FAKE_SEND:
         return True, "FAKE-OK"
-    if not (CHATGURU_ENDPOINT and CHATGURU_TOKEN):
-        return False, "ChatGuru sem credencial (CHATGURU_ENDPOINT/TOKEN)"
+    base = _chatguru_url()
+    if not (base and CHATGURU_API_KEY and CHATGURU_ACCOUNT and CHATGURU_PHONE_ID):
+        return False, ("ChatGuru sem credencial "
+                       "(CHATGURU_SERVER/API_KEY/ACCOUNT_ID/PHONE_ID)")
     import urllib.request
     import urllib.parse
-    payload = urllib.parse.urlencode({
-        "key": CHATGURU_TOKEN,
+    numero = normalizar_telefone_br(telefone)
+    query = urllib.parse.urlencode({
+        "key": CHATGURU_API_KEY,
         "account_id": CHATGURU_ACCOUNT,
-        "phone_id": telefone,
-        "chat_number": telefone,
-        "text": texto,
+        "phone_id": CHATGURU_PHONE_ID,
         "action": "message_send",
-    }).encode()
+    })
+    corpo = {"chat_number": numero, "text": texto}
+    if send_date:
+        corpo["send_date"] = send_date
+    body = urllib.parse.urlencode(corpo).encode()
     try:
-        req = urllib.request.Request(CHATGURU_ENDPOINT, data=payload)
+        req = urllib.request.Request(
+            f"{base}?{query}", data=body,
+            headers={"Content-Type": "application/x-www-form-urlencoded"})
         with urllib.request.urlopen(req, timeout=30) as r:
-            return (200 <= r.status < 300), f"HTTP {r.status}"
+            raw = r.read().decode("utf-8", "replace")
     except Exception as e:  # noqa: BLE001
         return False, f"erro ChatGuru: {e}"
+    try:
+        data = json.loads(raw)
+    except ValueError:
+        data = {}
+    if data.get("success") is False:
+        return False, f"ChatGuru recusou: {data.get('error') or data.get('message') or raw[:120]}"
+    return True, "ChatGuru OK"
 
 
 def enviar_alerta_interno(texto: str, dry: bool) -> tuple[bool, str]:

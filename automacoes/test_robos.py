@@ -288,8 +288,71 @@ def test_painel(tmp):
     check("já foi enviado" in out2, "painel: 2º envio no mesmo dia devia ser bloqueado")
 
 
+def test_chatguru():
+    print("• chatguru (contrato do sender)")
+    import urllib.request as U
+    import pj_comum as pj
+
+    # regra do 9º dígito (portada do chatguru-mcp)
+    check(pj.normalizar_telefone_br("11991095702") == "5511991095702",
+          "chatguru: DDD 11-30 mantém o 9 e ganha o 55")
+    check(pj.normalizar_telefone_br("+55 (31) 99123-4567") == "553191234567",
+          "chatguru: DDD 31+ perde o 9 extra")
+
+    captured = {}
+
+    class FakeResp:
+        def __init__(self, body):
+            self._b = body
+        def read(self):
+            return self._b
+        def __enter__(self):
+            return self
+        def __exit__(self, *a):
+            return False
+
+    real = U.urlopen
+    pj.CHATGURU_SERVER = "15"; pj.CHATGURU_API_KEY = "KEY"
+    pj.CHATGURU_ACCOUNT = "ACC"; pj.CHATGURU_PHONE_ID = "PH"
+    pj._FAKE_SEND = False
+
+    def fake_ok(req, timeout=None):
+        captured["url"] = req.full_url
+        captured["body"] = req.data
+        return FakeResp(b'{"success":true}')
+
+    U.urlopen = fake_ok
+    try:
+        ok, info = pj.enviar_whatsapp_cliente("11991095702", "oi", dry=False)
+    finally:
+        U.urlopen = real
+    check(ok, "chatguru: envio simulado devia dar OK")
+    check("s15.expertintegrado.app/api/v1" in captured.get("url", ""),
+          "chatguru: URL deriva do CHATGURU_SERVER")
+    check("action=message_send" in captured.get("url", "")
+          and "key=KEY" in captured.get("url", ""),
+          "chatguru: key/action vão na QUERY")
+    check(b"chat_number=5511991095702" in captured.get("body", b""),
+          "chatguru: número normalizado no CORPO")
+    check(b"phone_id" not in captured.get("body", b""),
+          "chatguru: phone_id é fixo (query), não vai no corpo")
+
+    def fake_fail(req, timeout=None):
+        return FakeResp(b'{"success":false,"error":"numero invalido"}')
+
+    U.urlopen = fake_fail
+    try:
+        ok2, info2 = pj.enviar_whatsapp_cliente("11991095702", "oi", dry=False)
+    finally:
+        U.urlopen = real
+    check(not ok2 and "recusou" in info2,
+          "chatguru: success:false devia virar falha (não confiar só no HTTP 200)")
+    pj._FAKE_SEND = True  # restaura p/ os testes de subprocess
+
+
 def main():
     sys.path.insert(0, BASE)  # p/ importar pj_comum em d_por_diautil
+    test_chatguru()
     with tempfile.TemporaryDirectory() as tmp:
         test_pericia(tmp)
         test_emendas(tmp)

@@ -1,9 +1,13 @@
 # PJ-AUTOMAÇÕES — robôs do escritório (padrão ARAUTO)
 
-Três robôs internos que estendem o padrão do **ARAUTO** (robô de avisos de
+Cinco robôs internos que estendem o padrão do **ARAUTO** (robô de avisos de
 audiência) para o resto da operação do Manual v4.1. Todos seguem a mesma
 arquitetura — *mãe → motor → régua → estado → saída* — e compartilham uma única
-biblioteca (`pj_comum.py`), então você ajusta os senders **num lugar só**.
+biblioteca (`pj_comum.py`), então você configura o envio **num lugar só**.
+
+O WhatsApp ao cliente já fala **ChatGuru** de verdade (contrato portado do
+`ericluciano/chatguru-mcp`): basta preencher as 4 credenciais no `.env` — as
+mesmas do MCP. O alerta interno vai pro grupo GERAL via Z-API.
 
 | Robô | O que faz | Fonte | Dispara | launchd |
 |---|---|---|---|---|
