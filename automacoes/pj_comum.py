@@ -3,16 +3,14 @@
 PJ-AUTOMAÇÕES · biblioteca comum aos robôs (perícia, emendas, gatilhos)
 ======================================================================
 
-Tudo que os três robôs compartilham mora aqui, para você ajustar UMA vez:
-- os senders (WhatsApp cliente via ChatGuru + alerta interno via Z-API);
+Tudo que os robôs compartilham mora aqui, para você ajustar UMA vez:
+- os senders (cliente e grupo interno, TUDO via Z-API);
 - datas, dias úteis e feriados;
 - leitura/escrita da planilha "mãe" (openpyxl) + backup;
 - estado/dedupe em JSON.
 
->>> O sender do cliente já fala ChatGuru de verdade (contrato portado do
-    ericluciano/chatguru-mcp). Só falta você preencher as 4 credenciais no .env
-    (as MESMAS do MCP). O alerta interno usa Z-API; se preferir tudo no ChatGuru,
-    dá pra apontar o GERAL pra um chat_number também — é só pedir.
+>>> Um provedor só: a MESMA instância Z-API atende cliente e grupo GERAL. Só
+    falta você preencher ZAPI_ENDPOINT / ZAPI_TOKEN / ZAPI_GRUPO_GERAL no .env.
 """
 
 from __future__ import annotations
@@ -217,47 +215,23 @@ def carimbo_agora(hoje: dt.date) -> str:
 
 
 # ======================================================================
-# SAÍDA — senders
+# SAÍDA — senders (TUDO via Z-API: cliente e grupo interno no mesmo canal)
 # ======================================================================
-# WhatsApp ao cliente = ChatGuru. Contrato confirmado a partir do
-# ericluciano/chatguru-mcp (index.js): a URL é derivada do número do servidor
-# (s{SERVER}.expertintegrado.app/api/v1); key/account_id/phone_id/action vão na
-# QUERY, e chat_number/text no CORPO form-urlencoded. Use as MESMAS 4 credenciais
-# do MCP (ChatGuru > Configurações > Celulares) — um .env serve pros dois.
+# Um provedor só. A MESMA instância Z-API manda tanto pro cliente (número do
+# WhatsApp dele) quanto pro grupo GERAL (id do grupo). O endpoint /send-text já
+# embute instância e token na URL; o Client-Token vai no cabeçalho.
 # Credenciais só por variável de ambiente (nunca commitar segredo).
-CHATGURU_ENDPOINT = os.environ.get("CHATGURU_ENDPOINT", "")   # opcional: URL completa; sobrepõe SERVER
-CHATGURU_SERVER   = os.environ.get("CHATGURU_SERVER", "")     # nº do servidor (ex.: 15) → monta a URL
-CHATGURU_API_KEY  = os.environ.get("CHATGURU_API_KEY", os.environ.get("CHATGURU_TOKEN", ""))
-CHATGURU_ACCOUNT  = os.environ.get("CHATGURU_ACCOUNT_ID", "")
-CHATGURU_PHONE_ID = os.environ.get("CHATGURU_PHONE_ID", "")   # id do SEU celular na conta (fixo, não é o do cliente)
-
-ZAPI_ENDPOINT = os.environ.get("ZAPI_ENDPOINT", "")
-ZAPI_TOKEN    = os.environ.get("ZAPI_TOKEN", "")
-ZAPI_GRUPO    = os.environ.get("ZAPI_GRUPO_GERAL", "")
+ZAPI_ENDPOINT = os.environ.get("ZAPI_ENDPOINT", "")   # .../instances/ID/token/TOKEN/send-text
+ZAPI_TOKEN    = os.environ.get("ZAPI_TOKEN", "")      # Client-Token (Segurança da conta)
+ZAPI_GRUPO    = os.environ.get("ZAPI_GRUPO_GERAL", "")  # id do grupo, ex.: 120363...@g.us
 
 
 def normalizar_telefone_br(v) -> str:
-    """
-    Número no formato que o ChatGuru guarda (DDI+DDD+número, só dígitos).
-    Regra do 9º dígito (portada do chatguru-mcp): DDDs >= 31 são armazenados SEM
-    o 9 extra do celular. Ex.: 5531912345678 → 553112345678. DDDs 11-30 mantêm.
-    """
+    """Só dígitos, com DDI 55. Z-API quer o número cheio (mantém o 9 do celular)."""
     d = re.sub(r"\D", "", str(v or ""))
     if not d.startswith("55") and 10 <= len(d) <= 11:
         d = "55" + d
-    if d.startswith("55") and len(d) == 13:
-        ddd = int(d[2:4])
-        if ddd >= 31 and d[4] == "9":
-            d = d[:4] + d[5:]
     return d
-
-
-def _chatguru_url() -> str:
-    if CHATGURU_ENDPOINT:
-        return CHATGURU_ENDPOINT
-    if CHATGURU_SERVER:
-        return f"https://s{CHATGURU_SERVER}.expertintegrado.app/api/v1"
-    return ""
 
 
 # Seam de teste/ensaio: PJ_FAKE_SEND=1 finge um envio bem-sucedido (sem rede),
@@ -266,66 +240,51 @@ def _chatguru_url() -> str:
 _FAKE_SEND = os.environ.get("PJ_FAKE_SEND") == "1"
 
 
-def enviar_whatsapp_cliente(telefone: str, texto: str, dry: bool,
-                            send_date: str | None = None) -> tuple[bool, str]:
-    """
-    WhatsApp ao cliente via ChatGuru (action=message_send).
-    send_date opcional ('YYYY-MM-DD HH:MM') agenda o disparo na própria ChatGuru.
-    """
-    if dry:
-        return True, "DRY (não enviou)"
-    if _FAKE_SEND:
-        return True, "FAKE-OK"
-    base = _chatguru_url()
-    if not (base and CHATGURU_API_KEY and CHATGURU_ACCOUNT and CHATGURU_PHONE_ID):
-        return False, ("ChatGuru sem credencial "
-                       "(CHATGURU_SERVER/API_KEY/ACCOUNT_ID/PHONE_ID)")
+def _zapi_post(phone: str, message: str) -> tuple[bool, str]:
+    """POST /send-text da Z-API. phone = número do cliente OU id do grupo."""
+    if not (ZAPI_ENDPOINT and ZAPI_TOKEN):
+        return False, "Z-API sem credencial (ZAPI_ENDPOINT/TOKEN)"
     import urllib.request
-    import urllib.parse
-    numero = normalizar_telefone_br(telefone)
-    query = urllib.parse.urlencode({
-        "key": CHATGURU_API_KEY,
-        "account_id": CHATGURU_ACCOUNT,
-        "phone_id": CHATGURU_PHONE_ID,
-        "action": "message_send",
-    })
-    corpo = {"chat_number": numero, "text": texto}
-    if send_date:
-        corpo["send_date"] = send_date
-    body = urllib.parse.urlencode(corpo).encode()
+    import urllib.error
+    body = json.dumps({"phone": phone, "message": message}).encode()
+    req = urllib.request.Request(
+        ZAPI_ENDPOINT, data=body,
+        headers={"Content-Type": "application/json", "Client-Token": ZAPI_TOKEN})
     try:
-        req = urllib.request.Request(
-            f"{base}?{query}", data=body,
-            headers={"Content-Type": "application/x-www-form-urlencoded"})
         with urllib.request.urlopen(req, timeout=30) as r:
             raw = r.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        try:
+            detalhe = e.read().decode("utf-8", "replace")[:160]
+        except Exception:  # noqa: BLE001
+            detalhe = ""
+        return False, f"Z-API HTTP {e.code}: {detalhe}"
     except Exception as e:  # noqa: BLE001
-        return False, f"erro ChatGuru: {e}"
+        return False, f"erro Z-API: {e}"
     try:
         data = json.loads(raw)
     except ValueError:
         data = {}
-    if data.get("success") is False:
-        return False, f"ChatGuru recusou: {data.get('error') or data.get('message') or raw[:120]}"
-    return True, "ChatGuru OK"
+    if isinstance(data, dict) and data.get("error"):
+        return False, f"Z-API recusou: {data['error']}"
+    return True, "Z-API OK"
 
 
-def enviar_alerta_interno(texto: str, dry: bool) -> tuple[bool, str]:
-    """Alerta no grupo interno GERAL via Z-API."""
+def enviar_whatsapp_cliente(telefone: str, texto: str, dry: bool) -> tuple[bool, str]:
+    """WhatsApp ao cliente via Z-API (send-text para o número dele)."""
     if dry:
         return True, "DRY (não enviou)"
     if _FAKE_SEND:
         return True, "FAKE-OK"
-    if not (ZAPI_ENDPOINT and ZAPI_TOKEN and ZAPI_GRUPO):
-        return False, "Z-API sem credencial (ZAPI_ENDPOINT/TOKEN/GRUPO)"
-    import urllib.request
-    body = json.dumps({"phone": ZAPI_GRUPO, "message": texto}).encode()
-    try:
-        req = urllib.request.Request(
-            ZAPI_ENDPOINT, data=body,
-            headers={"Content-Type": "application/json", "Client-Token": ZAPI_TOKEN},
-        )
-        with urllib.request.urlopen(req, timeout=30) as r:
-            return (200 <= r.status < 300), f"HTTP {r.status}"
-    except Exception as e:  # noqa: BLE001
-        return False, f"erro Z-API: {e}"
+    return _zapi_post(normalizar_telefone_br(telefone), texto)
+
+
+def enviar_alerta_interno(texto: str, dry: bool) -> tuple[bool, str]:
+    """Alerta no grupo interno GERAL via Z-API (send-text para o id do grupo)."""
+    if dry:
+        return True, "DRY (não enviou)"
+    if _FAKE_SEND:
+        return True, "FAKE-OK"
+    if not ZAPI_GRUPO:
+        return False, "Z-API sem grupo (ZAPI_GRUPO_GERAL)"
+    return _zapi_post(ZAPI_GRUPO, texto)

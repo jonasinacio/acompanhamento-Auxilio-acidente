@@ -288,16 +288,16 @@ def test_painel(tmp):
     check("já foi enviado" in out2, "painel: 2º envio no mesmo dia devia ser bloqueado")
 
 
-def test_chatguru():
-    print("• chatguru (contrato do sender)")
+def test_zapi():
+    print("• z-api (contrato dos senders)")
     import urllib.request as U
     import pj_comum as pj
 
-    # regra do 9º dígito (portada do chatguru-mcp)
+    # número cheio com DDI (Z-API mantém o 9 do celular)
     check(pj.normalizar_telefone_br("11991095702") == "5511991095702",
-          "chatguru: DDD 11-30 mantém o 9 e ganha o 55")
-    check(pj.normalizar_telefone_br("+55 (31) 99123-4567") == "553191234567",
-          "chatguru: DDD 31+ perde o 9 extra")
+          "z-api: número ganha o 55 e mantém o 9")
+    check(pj.normalizar_telefone_br("+55 (31) 99123-4567") == "5531991234567",
+          "z-api: NÃO tira o 9 (número cheio)")
 
     captured = {}
 
@@ -312,33 +312,31 @@ def test_chatguru():
             return False
 
     real = U.urlopen
-    pj.CHATGURU_SERVER = "15"; pj.CHATGURU_API_KEY = "KEY"
-    pj.CHATGURU_ACCOUNT = "ACC"; pj.CHATGURU_PHONE_ID = "PH"
+    pj.ZAPI_ENDPOINT = "https://api.z-api.io/instances/ID/token/TK/send-text"
+    pj.ZAPI_TOKEN = "CLIENT-TOKEN"; pj.ZAPI_GRUPO = "12036@g.us"
     pj._FAKE_SEND = False
 
     def fake_ok(req, timeout=None):
         captured["url"] = req.full_url
         captured["body"] = req.data
-        return FakeResp(b'{"success":true}')
+        captured["ctoken"] = req.headers.get("Client-token")
+        return FakeResp(b'{"zaapId":"x","messageId":"y"}')
 
     U.urlopen = fake_ok
     try:
-        ok, info = pj.enviar_whatsapp_cliente("11991095702", "oi", dry=False)
+        okc, _ = pj.enviar_whatsapp_cliente("11991095702", "oi cliente", dry=False)
+        okg, _ = pj.enviar_alerta_interno("aviso equipe", dry=False)
+        body_grupo = captured.get("body", b"")
     finally:
         U.urlopen = real
-    check(ok, "chatguru: envio simulado devia dar OK")
-    check("s15.expertintegrado.app/api/v1" in captured.get("url", ""),
-          "chatguru: URL deriva do CHATGURU_SERVER")
-    check("action=message_send" in captured.get("url", "")
-          and "key=KEY" in captured.get("url", ""),
-          "chatguru: key/action vão na QUERY")
-    check(b"chat_number=5511991095702" in captured.get("body", b""),
-          "chatguru: número normalizado no CORPO")
-    check(b"phone_id" not in captured.get("body", b""),
-          "chatguru: phone_id é fixo (query), não vai no corpo")
+    check(okc, "z-api: envio ao cliente devia dar OK")
+    check("/send-text" in captured.get("url", ""), "z-api: usa o endpoint send-text")
+    check(captured.get("ctoken") == "CLIENT-TOKEN", "z-api: Client-Token no cabeçalho")
+    check(b'"phone": "12036@g.us"' in body_grupo,
+          "z-api: alerta interno vai pro id do GRUPO")
 
     def fake_fail(req, timeout=None):
-        return FakeResp(b'{"success":false,"error":"numero invalido"}')
+        return FakeResp(b'{"error":"phone nao encontrado"}')
 
     U.urlopen = fake_fail
     try:
@@ -346,13 +344,13 @@ def test_chatguru():
     finally:
         U.urlopen = real
     check(not ok2 and "recusou" in info2,
-          "chatguru: success:false devia virar falha (não confiar só no HTTP 200)")
+          "z-api: campo 'error' na resposta devia virar falha")
     pj._FAKE_SEND = True  # restaura p/ os testes de subprocess
 
 
 def main():
     sys.path.insert(0, BASE)  # p/ importar pj_comum em d_por_diautil
-    test_chatguru()
+    test_zapi()
     with tempfile.TemporaryDirectory() as tmp:
         test_pericia(tmp)
         test_emendas(tmp)

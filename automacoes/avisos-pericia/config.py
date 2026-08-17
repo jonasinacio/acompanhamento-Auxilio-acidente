@@ -173,8 +173,8 @@ CHECKLIST_ACIDENTARIA = [
 
 
 # ----------------------------------------------------------------------
-# 4 · SAÍDA — os senders (ChatGuru/Z-API) e credenciais moram em
-#     ../pj_comum.py, compartilhados pelos três robôs. Ajuste lá.
+# 4 · SAÍDA — os senders (Z-API) e credenciais moram em
+#     ../pj_comum.py, compartilhados por todos os robôs. Ajuste lá.
 # ----------------------------------------------------------------------
 
 

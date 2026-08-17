@@ -5,9 +5,9 @@ audiência) para o resto da operação do Manual v4.1. Todos seguem a mesma
 arquitetura — *mãe → motor → régua → estado → saída* — e compartilham uma única
 biblioteca (`pj_comum.py`), então você configura o envio **num lugar só**.
 
-O WhatsApp ao cliente já fala **ChatGuru** de verdade (contrato portado do
-`ericluciano/chatguru-mcp`): basta preencher as 4 credenciais no `.env` — as
-mesmas do MCP. O alerta interno vai pro grupo GERAL via Z-API.
+O envio é **tudo via Z-API** — uma instância só atende o cliente (número do
+WhatsApp dele) e o grupo interno GERAL (id do grupo). Basta preencher
+`ZAPI_ENDPOINT`, `ZAPI_TOKEN` e `ZAPI_GRUPO_GERAL` no `.env`.
 
 | Robô | O que faz | Fonte | Dispara | launchd |
 |---|---|---|---|---|
@@ -30,7 +30,7 @@ pip3 install -r avisos-pericia/requirements.txt   # openpyxl (serve p/ os três)
 
 # credenciais: copie o modelo e preencha o .env (fica FORA do git):
 cp .env.example .env
-$EDITOR .env        # preencha ADVBOX_TOKEN, ChatGuru e Z-API
+$EDITOR .env        # preencha ADVBOX_TOKEN e as credenciais Z-API
 ```
 
 O `pj_comum.py` carrega o `.env` sozinho. (Se preferir, exporte as mesmas
@@ -80,7 +80,7 @@ mais prazo do que existe — sempre confira o prazo fatal também no ADVBOX.
 
 ```
 pj-automacoes/
-├── pj_comum.py          ← senders (ChatGuru/Z-API), datas, dias úteis, estado, backup
+├── pj_comum.py          ← senders (Z-API), datas, dias úteis, estado, backup
 ├── feriados.txt         ← (opcional) feriados do foro, 1 por linha
 ├── avisos-pericia/
 ├── alarme-emendas/

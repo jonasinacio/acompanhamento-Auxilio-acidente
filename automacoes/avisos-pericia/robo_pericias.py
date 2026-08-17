@@ -7,7 +7,7 @@ ARAUTO-PERÍCIA · o disparador
 Irmão do robô de avisos de audiência (ARAUTO). Roda 1x/dia pelo launchd:
 lê a planilha "mãe", decide o marco de cada perícia pela régua fechada
 (D-15 / D-9 Pedro / D-7 / D-2 / D+1), dispara o WhatsApp certo ao cliente
-via ChatGuru — ou o alerta interno no grupo GERAL via Z-API — e CARIMBA a
+— ou o alerta interno no grupo GERAL — tudo via Z-API, e CARIMBA a
 mãe para nunca repetir o mesmo aviso.
 
 Uso:

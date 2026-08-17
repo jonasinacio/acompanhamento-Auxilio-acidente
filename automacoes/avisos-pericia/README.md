@@ -5,8 +5,8 @@ Irmão do **ARAUTO** (robô de avisos de audiência). Mesmo padrão —
 médica** (seção 8.2 do Manual Operacional v4.1), e não a da audiência.
 
 > **Às 09h05 o robô lê a planilha "mãe", decide o marco de cada perícia pela
-> régua fechada, dispara o WhatsApp certo ao cliente via ChatGuru — ou o alerta
-> interno no grupo GERAL — e carimba a mãe para nunca repetir.**
+> régua fechada, dispara o WhatsApp certo ao cliente — ou o alerta interno no
+> grupo GERAL, tudo via Z-API — e carimba a mãe para nunca repetir.**
 
 ---
 
@@ -104,24 +104,18 @@ O Drive/planilha oficial continua sendo a fonte; aqui é só a cópia que o rob�
 Nunca coloque token no código. Exporte antes de rodar (ou no seu `~/.zshrc`):
 
 ```bash
-# WhatsApp ao cliente (ChatGuru) — as MESMAS 4 credenciais do chatguru-mcp
-export CHATGURU_SERVER="15"        # nº do servidor → s15.expertintegrado.app
-export CHATGURU_API_KEY="..."
-export CHATGURU_ACCOUNT_ID="..."
-export CHATGURU_PHONE_ID="..."     # id do seu celular (não é o do cliente)
-
-# Alerta no grupo interno GERAL (Z-API)
+# WhatsApp: cliente E grupo interno, tudo via Z-API (uma instância só)
 export ZAPI_ENDPOINT="https://api.z-api.io/instances/SEU_ID/token/SEU_TOKEN/send-text"
-export ZAPI_TOKEN="..."          # Client-Token da conta
-export ZAPI_GRUPO="...@g.us"     # id do grupo GERAL
+export ZAPI_TOKEN="..."             # Client-Token (aba Segurança da conta Z-API)
+export ZAPI_GRUPO_GERAL="...@g.us"  # id do grupo GERAL
 ```
 
 Sem credencial o robô ainda roda em `--dry` normalmente (só não envia). Em
 `--send` sem credencial ele avisa no log e não carimba — nada se perde.
 
 > **Nota:** os senders (`enviar_whatsapp_cliente` / `enviar_alerta_interno`)
-> ficam em **`../pj_comum.py`**, compartilhados pelos três robôs. Seguem o
-> formato genérico do ChatGuru / Z-API — confira os nomes de campo com o que o
+> ficam em **`../pj_comum.py`**, compartilhados por todos os robôs. Ambos usam
+> a mesma instância Z-API (`/send-text`) — confira os nomes de campo com o que o
 > seu ARAUTO de audiência já usa em produção e ajuste 1:1 **num lugar só**.
 
 ---
