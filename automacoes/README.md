@@ -1,10 +1,10 @@
 # PJ-AUTOMAÇÕES — robôs do escritório (padrão ARAUTO)
 
-Seis robôs internos que estendem o padrão do **ARAUTO** (robô de avisos de
-audiência) para o resto da operação do Manual v4.1. Cinco rodam por horário
-(*mãe → motor → régua → estado → saída*); o sexto reage a um **evento** (webhook
-do ZapSign). Todos compartilham uma única biblioteca (`pj_comum.py`), então você
-configura o envio **num lugar só**.
+Sete robôs internos que estendem o padrão do **ARAUTO** (robô de avisos de
+audiência) para o resto da operação do Manual v4.1. A maioria roda por horário
+(*mãe → motor → régua → estado → saída*); um vigia uma **API** (DJEN/CNJ) e
+outro reage a um **evento** (webhook do ZapSign). Todos compartilham uma única
+biblioteca (`pj_comum.py`), então você configura o envio **num lugar só**.
 
 O envio é **tudo via uazapi** — uma instância só atende o cliente (número do
 WhatsApp dele) e o grupo interno GERAL (JID do grupo), por `POST /send/text`.
@@ -12,6 +12,7 @@ Basta preencher `UAZAPI_URL`, `UAZAPI_TOKEN` e `UAZAPI_GRUPO_GERAL` no `.env`.
 
 | Robô | O que faz | Fonte | Dispara | launchd |
 |---|---|---|---|---|
+| **vigia-djen** | vigia o boletim do DJEN (API CNJ) e joga novas publicações no grupo | API Comunica/DJEN | só grupo GERAL | 08h40 |
 | **painel-manha** | uma mensagem com as exceções do dia (perícias, emendas, SLA, docs) | lê todas as mães | só grupo GERAL | 08h45 |
 | **avisos-pericia** | avisa o cliente nos marcos da perícia (D-15/D-7/D-2/D+1) + cutuca Pedro e Bia | `OFICIAL_PERICIAS_2026.xlsx` | WhatsApp cliente + grupo GERAL | 09h05 |
 | **alarme-emendas** | vigia o prazo fatal das emendas, escalando até o Jonas | `OFICIAL_EMENDAS_2026.xlsx` | só grupo GERAL | 09h10 |

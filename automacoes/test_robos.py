@@ -352,6 +352,23 @@ def test_uazapi():
     pj._FAKE_SEND = True  # restaura p/ os testes de subprocess
 
 
+def test_djen(tmp):
+    print("• vigia-djen")
+    est = os.path.join(tmp, "djen_estado.json")
+    envp = {"DJEN_ESTADO": est, "DJEN_LOGS": tmp, "PJ_FAKE_SEND": "1"}
+    out = roda("vigia-djen", "robo_djen.py", ["--dry", "--mock", "--hoje", HOJE], envp)
+    check("1002345-67.2026.8.26.0100" in out, "djen: devia listar a intimação")
+    check("Sentença" in out, "djen: devia listar a sentença")
+    check("<b>" not in out and "<p>" not in out and "<div>" not in out,
+          "djen: HTML do teor devia ser limpo")
+    check("emendar a inicial" in out, "djen: trecho do teor no aviso")
+
+    roda("vigia-djen", "robo_djen.py", ["--send", "--mock", "--hoje", HOJE], envp)
+    out2 = roda("vigia-djen", "robo_djen.py", ["--send", "--mock", "--hoje", HOJE], envp)
+    check("novas=0" in out2 and "já vistas=2" in out2,
+          "djen: 2ª rodada não podia repetir (dedupe pelo id)")
+
+
 def test_zapsign():
     print("• zapsign-contrato (webhook)")
     import importlib.util
@@ -428,6 +445,7 @@ def main():
         test_gatilhos(tmp)
         test_documentos(tmp)
         test_painel(tmp)
+        test_djen(tmp)
         test_puxa(tmp)
     print("-" * 50)
     if _falhas:
