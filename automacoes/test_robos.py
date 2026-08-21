@@ -352,6 +352,34 @@ def test_uazapi():
     pj._FAKE_SEND = True  # restaura p/ os testes de subprocess
 
 
+def test_classificacao():
+    print("• classificacao (ato + dias úteis)")
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "clf", os.path.join(BASE, "vigia-djen", "classificacao.py"))
+    clf = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(clf)
+
+    check(clf.classificar({"texto": "intimado da CONTESTAÇÃO do INSS"})["dias"] == 15,
+          "clf: contestação → réplica 15")
+    check(clf.classificar({"tipoComunicacao": "Sentença",
+                           "texto": "JUIZADO ESPECIAL. Julgo procedente."})["dias"] == 10,
+          "clf: sentença no JEF → recurso 10")
+    check(clf.classificar({"tipoDocumento": "Acórdão",
+                           "texto": "Acordam em NEGAR PROVIMENTO AO RECURSO DO INSS"}).get("flag") == "favoravel",
+          "clf: acórdão que nega provimento ao INSS = favorável")
+    check(clf.classificar({"texto": "mero expediente"}).get("flag") == "conferir",
+          "clf: ato desconhecido → flag conferir (não chuta)")
+    check(clf.data_fatal_uteis(dt.date(2026, 7, 7), 15) == dt.date(2026, 7, 28),
+          "clf: 15 d.ú. a partir de 07/07/2026 = 28/07/2026")
+    check(not clf.dia_util(dt.date(2026, 12, 25)), "clf: 25/12 não é dia útil")
+    check(not clf.dia_util(dt.date(2027, 1, 5)), "clf: recesso forense (05/01) não é dia útil")
+    pub = {"tipoComunicacao": "Intimação",
+           "texto": "Intime-se. Dica de tramitação ágil: proposta de acordo, réplica..."}
+    check("réplica" not in clf.classificar(pub)["ato"].lower(),
+          "clf: rodapé 'Dica de tramitação' não vira réplica falsa")
+
+
 def test_djen(tmp):
     print("• vigia-djen")
     est = os.path.join(tmp, "djen_estado.json")
@@ -362,6 +390,8 @@ def test_djen(tmp):
     check("<b>" not in out and "<p>" not in out and "<div>" not in out,
           "djen: HTML do teor devia ser limpo")
     check("emendar a inicial" in out, "djen: trecho do teor no aviso")
+    check("Sentença → apelação" in out, "djen: classifica a sentença como apelação")
+    check("fatal" in out, "djen: mostra a data fatal estimada do prazo")
 
     roda("vigia-djen", "robo_djen.py", ["--send", "--mock", "--hoje", HOJE], envp)
     out2 = roda("vigia-djen", "robo_djen.py", ["--send", "--mock", "--hoje", HOJE], envp)
@@ -445,6 +475,7 @@ def main():
         test_gatilhos(tmp)
         test_documentos(tmp)
         test_painel(tmp)
+        test_classificacao()
         test_djen(tmp)
         test_puxa(tmp)
     print("-" * 50)

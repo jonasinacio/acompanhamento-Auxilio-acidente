@@ -9,16 +9,23 @@ Baseado no `buscar-djen.js` que o Jonas já tinha no Drive: **mesma API, mesmos
 campos, mesma limpeza de HTML e paginação** — agora conectado à estrutura dos
 robôs (envio uazapi + dedupe/backup do `pj_comum` + launchd).
 
+Cada aviso já vem **classificado** (ato + prazo estimado + data fatal), com a
+conta certa de dias úteis (feriados fixos e móveis + recesso forense) —
+`classificacao.py`, portado do seu `classificacao.js`. Quando não reconhece o
+ato com certeza, **não chuta**: marca "conferir".
+
 Exemplo do que cai no grupo:
 
 ```
 📰 DJEN — nova publicação (Jonas Inácio Andreza)
-Proc: 1002345-67.2026.8.26.0100
-TJSP · 3ª Vara Cível - Foro Central
-Tipo: Intimação · Procedimento Comum Cível
+Proc: 5009876-54.2026.4.03.6100
+TRF3 · 1ª Vara Federal Previdenciária
+Tipo: Sentença · Procedimento do Juizado Especial Cível
+🏷️ Sentença → apelação
+⏳ Prazo ~15 d.ú. → *fatal 28/07/2026* (conferir)
 🗓️ Disponibilizado em 2026-07-07
-“Fica a parte autora intimada para, no prazo de 15 dias, emendar a inicial.”
-⚠️ Conferir prazo e registrar (emenda/recurso se for o caso).
+“Julgo procedente o pedido de auxílio-acidente.”
+⚠️ Prazo é estimativa — conferir e registrar no AdvBox.
 ```
 
 ## Como funciona

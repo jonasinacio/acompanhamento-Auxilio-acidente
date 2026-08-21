@@ -40,10 +40,11 @@ TEMPLATE = (
     "Proc: {processo}\n"
     "{tribunal} · {orgao}\n"
     "Tipo: {tipo}{classe}\n"
+    "{classificacao}"
     "🗓️ Disponibilizado em {data}\n"
     "{trecho}"
     "{link}"
-    "\n⚠️ Conferir prazo e registrar (emenda/recurso se for o caso)."
+    "\n⚠️ Prazo é *estimativa* — conferir e registrar no AdvBox."
 )
 
 ALERTAS_JSON = os.environ.get(

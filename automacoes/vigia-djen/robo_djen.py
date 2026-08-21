@@ -34,8 +34,9 @@ import urllib.parse
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import pj_comum as pj  # noqa: E402
-import config as C     # noqa: E402
+import pj_comum as pj      # noqa: E402
+import config as C         # noqa: E402
+import classificacao as clf  # noqa: E402  (cérebro portado do classificacao.js)
 
 # Amostra p/ --mock, nos MESMOS campos que a API Comunica devolve.
 _MOCK = {
@@ -118,6 +119,30 @@ def id_publicacao(item: dict) -> str:
                 + campo(item, "datadisponibilizacao", "data_disponibilizacao")))
 
 
+def bloco_classificacao(item: dict) -> str:
+    """Ato + prazo estimado + data fatal (conta de dias úteis do classificacao.py)."""
+    # o classificador espera o texto JÁ LIMPO (no pipeline do Jonas, o buscar-djen
+    # limpa o HTML antes de classificar).
+    c = clf.classificar({
+        "tipoDocumento": campo(item, "tipoDocumento", "tipodocumento"),
+        "tipoComunicacao": campo(item, "tipoComunicacao", "tipo"),
+        "texto": limpar_html(campo(item, "texto", "teor")),
+    })
+    linha = f"🏷️ {c['ato']}\n"
+    dias = c.get("dias")
+    base = pj.parse_data(campo(item, "datadisponibilizacao", "data_disponibilizacao")[:10])
+    if dias and base:
+        fatal = clf.data_fatal_uteis(base, dias)
+        linha += f"⏳ Prazo ~{dias} d.ú. → *fatal {fatal.strftime('%d/%m/%Y')}* (conferir)\n"
+    elif c.get("flag"):
+        rotulo = {"favoravel": "✅ possível resultado favorável — conferir",
+                  "pericia": "🩺 perícia — anotar agenda",
+                  "homologacao": "🤝 acordo homologado — conferir cumprimento",
+                  "conferir": "❓ ato não reconhecido com certeza — humano confere"}
+        linha += f"{rotulo.get(c['flag'], '❓ conferir')}\n"
+    return linha
+
+
 def montar(item: dict, quem: str) -> str:
     trecho = limpar_html(campo(item, "texto", "teor"))
     if trecho:
@@ -132,6 +157,7 @@ def montar(item: dict, quem: str) -> str:
         orgao=campo(item, "nomeOrgao", "orgao") or "—",
         tipo=campo(item, "tipoComunicacao", "tipo") or "—",
         classe=(f" · {classe}" if classe else ""),
+        classificacao=bloco_classificacao(item),
         data=campo(item, "datadisponibilizacao", "data_disponibilizacao") or "—",
         trecho=trecho,
         link=(f"🔗 {link}\n" if link else ""),
