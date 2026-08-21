@@ -395,10 +395,33 @@ def test_zapsign():
         os.remove(tmpf)
 
 
+def test_zapsign_amostra():
+    print("• zapsign_amostra (máscara de privacidade)")
+    import importlib.util
+    import json
+    spec = importlib.util.spec_from_file_location(
+        "za", os.path.join(BASE, "zapsign_amostra.py"))
+    za = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(za)
+
+    amostra = {"name": "Contrato X", "status": "signed", "token": "abcd-1234-secret",
+               "signers": [{"name": "Maria", "email": "maria@x.com",
+                            "phone_number": "11991095702", "cpf": "12345678900"}]}
+    m = za.mascarar(amostra)
+    sig = m["signers"][0]
+    check("11991095702" not in json.dumps(m), "amostra: telefone NÃO pode vazar")
+    check("12345678900" not in json.dumps(m), "amostra: CPF NÃO pode vazar")
+    check("maria@x.com" not in json.dumps(m), "amostra: e-mail NÃO pode vazar")
+    check("secret" not in json.dumps(m), "amostra: token NÃO pode vazar")
+    check(m["status"] == "signed" and "phone_number" in sig and "cpf" in sig,
+          "amostra: nomes de campo e valores não-sensíveis continuam visíveis")
+
+
 def main():
     sys.path.insert(0, BASE)  # p/ importar pj_comum em d_por_diautil
     test_uazapi()
     test_zapsign()
+    test_zapsign_amostra()
     with tempfile.TemporaryDirectory() as tmp:
         test_pericia(tmp)
         test_emendas(tmp)
