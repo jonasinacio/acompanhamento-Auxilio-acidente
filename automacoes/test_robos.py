@@ -352,9 +352,53 @@ def test_uazapi():
     pj._FAKE_SEND = True  # restaura p/ os testes de subprocess
 
 
+def test_zapsign():
+    print("• zapsign-contrato (webhook)")
+    import importlib.util
+    import pj_comum as pj
+    pj._FAKE_SEND = True
+    caminho = os.path.join(BASE, "zapsign-contrato", "webhook_zapsign.py")
+    spec = importlib.util.spec_from_file_location("wz", caminho)
+    wz = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(wz)
+
+    tmpf = os.path.join(tempfile.gettempdir(), f"zs_estado_{os.getpid()}.json")
+    if os.path.exists(tmpf):
+        os.remove(tmpf)
+    wz.ESTADO_JSON = tmpf
+
+    payload = {"event_type": "doc_signed", "name": "Contrato Auxílio-Acidente",
+               "token": "tk1", "status": "signed",
+               "signers": [{"name": "Maria Souza", "phone_country": "55",
+                            "phone_number": "11991095702", "status": "signed"}]}
+
+    assinado, doc, pessoas = wz.extrair(payload)
+    check(assinado, "zapsign: doc_signed devia contar como assinado")
+    check(doc == "Contrato Auxílio-Acidente", "zapsign: pega o nome do documento")
+    check(bool(pessoas) and pessoas[0]["nome"] == "Maria Souza",
+          "zapsign: pega o nome do signatário")
+    check(pessoas[0]["telefone"] == "5511991095702",
+          "zapsign: telefone país+número normalizado")
+
+    n1, _ = wz.processar(payload)
+    check(n1 == 1, "zapsign: 1º evento devia anunciar")
+    n2, m2 = wz.processar(payload)
+    check(n2 == 0 and "dedupe" in m2, "zapsign: 2º evento (mesmo token) = dedupe")
+
+    n3, m3 = wz.processar({"event_type": "doc_created", "token": "tk2", "signers": []})
+    check(n3 == 0 and "ignorado" in m3, "zapsign: doc_created devia ser ignorado")
+
+    msg = wz.montar_mensagem(doc, pessoas)
+    check("Maria Souza" in msg and "5511991095702" in msg,
+          "zapsign: mensagem traz nome e telefone")
+    if os.path.exists(tmpf):
+        os.remove(tmpf)
+
+
 def main():
     sys.path.insert(0, BASE)  # p/ importar pj_comum em d_por_diautil
     test_uazapi()
+    test_zapsign()
     with tempfile.TemporaryDirectory() as tmp:
         test_pericia(tmp)
         test_emendas(tmp)

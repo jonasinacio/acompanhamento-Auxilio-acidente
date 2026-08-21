@@ -1,9 +1,10 @@
 # PJ-AUTOMAÇÕES — robôs do escritório (padrão ARAUTO)
 
-Cinco robôs internos que estendem o padrão do **ARAUTO** (robô de avisos de
-audiência) para o resto da operação do Manual v4.1. Todos seguem a mesma
-arquitetura — *mãe → motor → régua → estado → saída* — e compartilham uma única
-biblioteca (`pj_comum.py`), então você configura o envio **num lugar só**.
+Seis robôs internos que estendem o padrão do **ARAUTO** (robô de avisos de
+audiência) para o resto da operação do Manual v4.1. Cinco rodam por horário
+(*mãe → motor → régua → estado → saída*); o sexto reage a um **evento** (webhook
+do ZapSign). Todos compartilham uma única biblioteca (`pj_comum.py`), então você
+configura o envio **num lugar só**.
 
 O envio é **tudo via uazapi** — uma instância só atende o cliente (número do
 WhatsApp dele) e o grupo interno GERAL (JID do grupo), por `POST /send/text`.
@@ -16,9 +17,11 @@ Basta preencher `UAZAPI_URL`, `UAZAPI_TOKEN` e `UAZAPI_GRUPO_GERAL` no `.env`.
 | **alarme-emendas** | vigia o prazo fatal das emendas, escalando até o Jonas | `OFICIAL_EMENDAS_2026.xlsx` | só grupo GERAL | 09h10 |
 | **gatilhos-status** | mudança de status → tarefa obrigatória; atraso de SLA → painel | `OFICIAL_CASOS_2026.xlsx` | só grupo GERAL | 09h15 |
 | **cobra-documentos** | cobra o cliente (D+3/D+7/D+12) os documentos que faltam; escala Pedro | `OFICIAL_DOCUMENTOS_2026.xlsx` | WhatsApp cliente + grupo GERAL | 09h20 |
+| **zapsign-contrato** | cliente assinou no ZapSign → avisa no grupo com nome + telefone | webhook ZapSign | só grupo GERAL | evento (sempre no ar) |
 
 O **painel** abre o dia às 08h45; os demais rodam em cascata depois do ARAUTO
-(09h), cada um 5 min à frente, pra não competirem pela janela de envio.
+(09h), cada um 5 min à frente, pra não competirem pela janela de envio. O
+**zapsign-contrato** é o único que não é agendado: fica ouvindo o webhook.
 
 ## Instalação (Mac, ao lado do ARAUTO)
 
