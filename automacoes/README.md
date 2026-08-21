@@ -5,9 +5,9 @@ audiência) para o resto da operação do Manual v4.1. Todos seguem a mesma
 arquitetura — *mãe → motor → régua → estado → saída* — e compartilham uma única
 biblioteca (`pj_comum.py`), então você configura o envio **num lugar só**.
 
-O envio é **tudo via Z-API** — uma instância só atende o cliente (número do
-WhatsApp dele) e o grupo interno GERAL (id do grupo). Basta preencher
-`ZAPI_ENDPOINT`, `ZAPI_TOKEN` e `ZAPI_GRUPO_GERAL` no `.env`.
+O envio é **tudo via uazapi** — uma instância só atende o cliente (número do
+WhatsApp dele) e o grupo interno GERAL (JID do grupo), por `POST /send/text`.
+Basta preencher `UAZAPI_URL`, `UAZAPI_TOKEN` e `UAZAPI_GRUPO_GERAL` no `.env`.
 
 | Robô | O que faz | Fonte | Dispara | launchd |
 |---|---|---|---|---|
@@ -30,7 +30,7 @@ pip3 install -r avisos-pericia/requirements.txt   # openpyxl (serve p/ os três)
 
 # credenciais: copie o modelo e preencha o .env (fica FORA do git):
 cp .env.example .env
-$EDITOR .env        # preencha ADVBOX_TOKEN e as credenciais Z-API
+$EDITOR .env        # preencha ADVBOX_TOKEN e as credenciais uazapi
 ```
 
 O `pj_comum.py` carrega o `.env` sozinho. (Se preferir, exporte as mesmas
@@ -80,7 +80,7 @@ mais prazo do que existe — sempre confira o prazo fatal também no ADVBOX.
 
 ```
 pj-automacoes/
-├── pj_comum.py          ← senders (Z-API), datas, dias úteis, estado, backup
+├── pj_comum.py          ← senders (uazapi), datas, dias úteis, estado, backup
 ├── feriados.txt         ← (opcional) feriados do foro, 1 por linha
 ├── avisos-pericia/
 ├── alarme-emendas/

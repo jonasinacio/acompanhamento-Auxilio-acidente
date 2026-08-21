@@ -6,7 +6,7 @@ médica** (seção 8.2 do Manual Operacional v4.1), e não a da audiência.
 
 > **Às 09h05 o robô lê a planilha "mãe", decide o marco de cada perícia pela
 > régua fechada, dispara o WhatsApp certo ao cliente — ou o alerta interno no
-> grupo GERAL, tudo via Z-API — e carimba a mãe para nunca repetir.**
+> grupo GERAL, tudo via uazapi — e carimba a mãe para nunca repetir.**
 
 ---
 
@@ -104,10 +104,10 @@ O Drive/planilha oficial continua sendo a fonte; aqui é só a cópia que o rob�
 Nunca coloque token no código. Exporte antes de rodar (ou no seu `~/.zshrc`):
 
 ```bash
-# WhatsApp: cliente E grupo interno, tudo via Z-API (uma instância só)
-export ZAPI_ENDPOINT="https://api.z-api.io/instances/SEU_ID/token/SEU_TOKEN/send-text"
-export ZAPI_TOKEN="..."             # Client-Token (aba Segurança da conta Z-API)
-export ZAPI_GRUPO_GERAL="...@g.us"  # id do grupo GERAL
+# WhatsApp: cliente E grupo interno, tudo via uazapi (uma instância só)
+export UAZAPI_URL="https://jonasinacioadv.uazapi.com"   # sua instância, sem barra no fim
+export UAZAPI_TOKEN="..."             # token da instância (cabeçalho 'token')
+export UAZAPI_GRUPO_GERAL="...@g.us"  # JID do grupo GERAL
 ```
 
 Sem credencial o robô ainda roda em `--dry` normalmente (só não envia). Em
@@ -115,7 +115,7 @@ Sem credencial o robô ainda roda em `--dry` normalmente (só não envia). Em
 
 > **Nota:** os senders (`enviar_whatsapp_cliente` / `enviar_alerta_interno`)
 > ficam em **`../pj_comum.py`**, compartilhados por todos os robôs. Ambos usam
-> a mesma instância Z-API (`/send-text`) — confira os nomes de campo com o que o
+> a mesma instância uazapi (`/send/text`) — confira os nomes de campo com o que o
 > seu ARAUTO de audiência já usa em produção e ajuste 1:1 **num lugar só**.
 
 ---

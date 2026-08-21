@@ -288,16 +288,16 @@ def test_painel(tmp):
     check("já foi enviado" in out2, "painel: 2º envio no mesmo dia devia ser bloqueado")
 
 
-def test_zapi():
-    print("• z-api (contrato dos senders)")
+def test_uazapi():
+    print("• uazapi (contrato dos senders)")
     import urllib.request as U
     import pj_comum as pj
 
-    # número cheio com DDI (Z-API mantém o 9 do celular)
+    # número cheio com DDI (uazapi mantém o 9 do celular)
     check(pj.normalizar_telefone_br("11991095702") == "5511991095702",
-          "z-api: número ganha o 55 e mantém o 9")
+          "uazapi: número ganha o 55 e mantém o 9")
     check(pj.normalizar_telefone_br("+55 (31) 99123-4567") == "5531991234567",
-          "z-api: NÃO tira o 9 (número cheio)")
+          "uazapi: NÃO tira o 9 (número cheio)")
 
     captured = {}
 
@@ -312,31 +312,35 @@ def test_zapi():
             return False
 
     real = U.urlopen
-    pj.ZAPI_ENDPOINT = "https://api.z-api.io/instances/ID/token/TK/send-text"
-    pj.ZAPI_TOKEN = "CLIENT-TOKEN"; pj.ZAPI_GRUPO = "12036@g.us"
+    pj.UAZAPI_URL = "https://jonasinacioadv.uazapi.com"
+    pj.UAZAPI_TOKEN = "TOKEN-INSTANCIA"; pj.UAZAPI_GRUPO = "12036@g.us"
     pj._FAKE_SEND = False
 
     def fake_ok(req, timeout=None):
         captured["url"] = req.full_url
         captured["body"] = req.data
-        captured["ctoken"] = req.headers.get("Client-token")
-        return FakeResp(b'{"zaapId":"x","messageId":"y"}')
+        captured["token"] = req.headers.get("Token")
+        return FakeResp(b'{"id":"ABC","status":"sent"}')
 
     U.urlopen = fake_ok
     try:
         okc, _ = pj.enviar_whatsapp_cliente("11991095702", "oi cliente", dry=False)
+        body_cli = captured.get("body", b"")
         okg, _ = pj.enviar_alerta_interno("aviso equipe", dry=False)
         body_grupo = captured.get("body", b"")
     finally:
         U.urlopen = real
-    check(okc, "z-api: envio ao cliente devia dar OK")
-    check("/send-text" in captured.get("url", ""), "z-api: usa o endpoint send-text")
-    check(captured.get("ctoken") == "CLIENT-TOKEN", "z-api: Client-Token no cabeçalho")
-    check(b'"phone": "12036@g.us"' in body_grupo,
-          "z-api: alerta interno vai pro id do GRUPO")
+    check(okc, "uazapi: envio ao cliente devia dar OK")
+    check(captured.get("url", "").endswith("/send/text"),
+          "uazapi: usa o endpoint {URL}/send/text")
+    check(captured.get("token") == "TOKEN-INSTANCIA", "uazapi: token no cabeçalho")
+    check(b'"number": "5511991095702"' in body_cli and b'"text":' in body_cli,
+          "uazapi: corpo {number, text} com número normalizado")
+    check(b'"number": "12036@g.us"' in body_grupo,
+          "uazapi: alerta interno vai pro JID do GRUPO")
 
     def fake_fail(req, timeout=None):
-        return FakeResp(b'{"error":"phone nao encontrado"}')
+        return FakeResp(b'{"error":"number nao encontrado"}')
 
     U.urlopen = fake_fail
     try:
@@ -344,13 +348,13 @@ def test_zapi():
     finally:
         U.urlopen = real
     check(not ok2 and "recusou" in info2,
-          "z-api: campo 'error' na resposta devia virar falha")
+          "uazapi: campo 'error' na resposta devia virar falha")
     pj._FAKE_SEND = True  # restaura p/ os testes de subprocess
 
 
 def main():
     sys.path.insert(0, BASE)  # p/ importar pj_comum em d_por_diautil
-    test_zapi()
+    test_uazapi()
     with tempfile.TemporaryDirectory() as tmp:
         test_pericia(tmp)
         test_emendas(tmp)

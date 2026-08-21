@@ -66,5 +66,5 @@ launchctl load  ~/Library/LaunchAgents/com.pj.alarme-emendas.plist
 launchctl start com.pj.alarme-emendas
 ```
 
-Credenciais (Z-API do grupo GERAL) e senders: em `../pj_comum.py` — os mesmos
-dos três robôs. Este robô só usa o alerta interno (não manda WhatsApp a cliente).
+Credenciais (uazapi do grupo GERAL) e senders: em `../pj_comum.py` — os mesmos
+de todos os robôs. Este robô só usa o alerta interno (não manda WhatsApp a cliente).

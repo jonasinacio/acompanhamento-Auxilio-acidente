@@ -34,7 +34,7 @@ Bom trabalho! 💪
   **não precisa de config próprio de colunas**, reaproveita os deles.
 - Mãe que não existe → a seção dela some (sem erro).
 - Manda **1 painel por dia** (dedupe por data). Não escreve em mãe nenhuma.
-- Só usa o alerta interno (Z-API do GERAL) — nada vai pro cliente.
+- Só usa o alerta interno (uazapi, grupo GERAL) — nada vai pro cliente.
 
 Ajuste as janelas (próx. dias de perícia, dias úteis de emenda crítica, etc.)
 em `config.py`.

@@ -4,13 +4,13 @@ PJ-AUTOMAÇÕES · biblioteca comum aos robôs (perícia, emendas, gatilhos)
 ======================================================================
 
 Tudo que os robôs compartilham mora aqui, para você ajustar UMA vez:
-- os senders (cliente e grupo interno, TUDO via Z-API);
+- os senders (cliente e grupo interno, TUDO via uazapi);
 - datas, dias úteis e feriados;
 - leitura/escrita da planilha "mãe" (openpyxl) + backup;
 - estado/dedupe em JSON.
 
->>> Um provedor só: a MESMA instância Z-API atende cliente e grupo GERAL. Só
-    falta você preencher ZAPI_ENDPOINT / ZAPI_TOKEN / ZAPI_GRUPO_GERAL no .env.
+>>> Um provedor só: a MESMA instância uazapi atende cliente e grupo GERAL. Só
+    falta você preencher UAZAPI_URL / UAZAPI_TOKEN / UAZAPI_GRUPO_GERAL no .env.
 """
 
 from __future__ import annotations
@@ -215,19 +215,21 @@ def carimbo_agora(hoje: dt.date) -> str:
 
 
 # ======================================================================
-# SAÍDA — senders (TUDO via Z-API: cliente e grupo interno no mesmo canal)
+# SAÍDA — senders (TUDO via uazapi: cliente e grupo interno no mesmo canal)
 # ======================================================================
-# Um provedor só. A MESMA instância Z-API manda tanto pro cliente (número do
-# WhatsApp dele) quanto pro grupo GERAL (id do grupo). O endpoint /send-text já
-# embute instância e token na URL; o Client-Token vai no cabeçalho.
+# Um provedor só. A MESMA instância uazapi manda tanto pro cliente (número do
+# WhatsApp dele) quanto pro grupo GERAL (JID do grupo). Contrato:
+#   POST {UAZAPI_URL}/send/text
+#   cabeçalho:  token: <token da instância>
+#   corpo JSON: {"number": "<numero ou JID>", "text": "<mensagem>"}
 # Credenciais só por variável de ambiente (nunca commitar segredo).
-ZAPI_ENDPOINT = os.environ.get("ZAPI_ENDPOINT", "")   # .../instances/ID/token/TOKEN/send-text
-ZAPI_TOKEN    = os.environ.get("ZAPI_TOKEN", "")      # Client-Token (Segurança da conta)
-ZAPI_GRUPO    = os.environ.get("ZAPI_GRUPO_GERAL", "")  # id do grupo, ex.: 120363...@g.us
+UAZAPI_URL   = os.environ.get("UAZAPI_URL", "").rstrip("/")  # ex.: https://jonasinacioadv.uazapi.com
+UAZAPI_TOKEN = os.environ.get("UAZAPI_TOKEN", "")            # token da instância (cabeçalho 'token')
+UAZAPI_GRUPO = os.environ.get("UAZAPI_GRUPO_GERAL", "")      # JID do grupo, ex.: 120363...@g.us
 
 
 def normalizar_telefone_br(v) -> str:
-    """Só dígitos, com DDI 55. Z-API quer o número cheio (mantém o 9 do celular)."""
+    """Só dígitos, com DDI 55. uazapi quer o número cheio (mantém o 9 do celular)."""
     d = re.sub(r"\D", "", str(v or ""))
     if not d.startswith("55") and 10 <= len(d) <= 11:
         d = "55" + d
@@ -240,16 +242,16 @@ def normalizar_telefone_br(v) -> str:
 _FAKE_SEND = os.environ.get("PJ_FAKE_SEND") == "1"
 
 
-def _zapi_post(phone: str, message: str) -> tuple[bool, str]:
-    """POST /send-text da Z-API. phone = número do cliente OU id do grupo."""
-    if not (ZAPI_ENDPOINT and ZAPI_TOKEN):
-        return False, "Z-API sem credencial (ZAPI_ENDPOINT/TOKEN)"
+def _uazapi_post(number: str, text: str) -> tuple[bool, str]:
+    """POST /send/text da uazapi. number = telefone do cliente OU JID do grupo."""
+    if not (UAZAPI_URL and UAZAPI_TOKEN):
+        return False, "uazapi sem credencial (UAZAPI_URL/UAZAPI_TOKEN)"
     import urllib.request
     import urllib.error
-    body = json.dumps({"phone": phone, "message": message}).encode()
+    body = json.dumps({"number": number, "text": text}).encode()
     req = urllib.request.Request(
-        ZAPI_ENDPOINT, data=body,
-        headers={"Content-Type": "application/json", "Client-Token": ZAPI_TOKEN})
+        f"{UAZAPI_URL}/send/text", data=body,
+        headers={"Content-Type": "application/json", "token": UAZAPI_TOKEN})
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
             raw = r.read().decode("utf-8", "replace")
@@ -258,33 +260,33 @@ def _zapi_post(phone: str, message: str) -> tuple[bool, str]:
             detalhe = e.read().decode("utf-8", "replace")[:160]
         except Exception:  # noqa: BLE001
             detalhe = ""
-        return False, f"Z-API HTTP {e.code}: {detalhe}"
+        return False, f"uazapi HTTP {e.code}: {detalhe}"
     except Exception as e:  # noqa: BLE001
-        return False, f"erro Z-API: {e}"
+        return False, f"erro uazapi: {e}"
     try:
         data = json.loads(raw)
     except ValueError:
         data = {}
     if isinstance(data, dict) and data.get("error"):
-        return False, f"Z-API recusou: {data['error']}"
-    return True, "Z-API OK"
+        return False, f"uazapi recusou: {data['error']}"
+    return True, "uazapi OK"
 
 
 def enviar_whatsapp_cliente(telefone: str, texto: str, dry: bool) -> tuple[bool, str]:
-    """WhatsApp ao cliente via Z-API (send-text para o número dele)."""
+    """WhatsApp ao cliente via uazapi (/send/text para o número dele)."""
     if dry:
         return True, "DRY (não enviou)"
     if _FAKE_SEND:
         return True, "FAKE-OK"
-    return _zapi_post(normalizar_telefone_br(telefone), texto)
+    return _uazapi_post(normalizar_telefone_br(telefone), texto)
 
 
 def enviar_alerta_interno(texto: str, dry: bool) -> tuple[bool, str]:
-    """Alerta no grupo interno GERAL via Z-API (send-text para o id do grupo)."""
+    """Alerta no grupo interno GERAL via uazapi (/send/text para o JID do grupo)."""
     if dry:
         return True, "DRY (não enviou)"
     if _FAKE_SEND:
         return True, "FAKE-OK"
-    if not ZAPI_GRUPO:
-        return False, "Z-API sem grupo (ZAPI_GRUPO_GERAL)"
-    return _zapi_post(ZAPI_GRUPO, texto)
+    if not UAZAPI_GRUPO:
+        return False, "uazapi sem grupo (UAZAPI_GRUPO_GERAL)"
+    return _uazapi_post(UAZAPI_GRUPO, texto)

@@ -173,7 +173,7 @@ CHECKLIST_ACIDENTARIA = [
 
 
 # ----------------------------------------------------------------------
-# 4 · SAÍDA — os senders (Z-API) e credenciais moram em
+# 4 · SAÍDA — os senders (uazapi) e credenciais moram em
 #     ../pj_comum.py, compartilhados por todos os robôs. Ajuste lá.
 # ----------------------------------------------------------------------
 
