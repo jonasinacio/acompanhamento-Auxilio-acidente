@@ -66,12 +66,12 @@ puxar direto pela API do ADVBOX, igual ao `puxa_advbox.py` do ARAUTO.
 ## Uso
 
 ```bash
-cd ~/pj-automacoes/gatilhos-status
+cd ~/jonas-inacio-automacoes/gatilhos-status
 python3 criar_planilha_modelo.py
 python3 robo_status.py --dry --disparar-primeira   # vê todos os gatilhos + atrasos
 python3 robo_status.py --send                       # 1ª vez: cria linha de base
 
-cp com.pj.gatilhos-status.plist ~/Library/LaunchAgents/
-launchctl load  ~/Library/LaunchAgents/com.pj.gatilhos-status.plist   # roda 09h15
-launchctl start com.pj.gatilhos-status
+cp com.jonasinacio.gatilhos-status.plist ~/Library/LaunchAgents/
+launchctl load  ~/Library/LaunchAgents/com.jonasinacio.gatilhos-status.plist   # roda 09h15
+launchctl start com.jonasinacio.gatilhos-status
 ```

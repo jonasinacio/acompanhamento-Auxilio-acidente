@@ -31,7 +31,7 @@ Exemplo do que cai no grupo:
 ## Rodar
 
 ```bash
-cd ~/pj-automacoes/zapsign-contrato
+cd ~/jonas-inacio-automacoes/zapsign-contrato
 # no .env (da pasta automacoes): ZAPSIGN_SEGREDO="algo-bem-secreto"
 python3 webhook_zapsign.py            # sobe na porta ZAPSIGN_PORTA (8765)
 # healthcheck:  curl http://127.0.0.1:8765/
@@ -53,12 +53,12 @@ No ZapSign, cole a URL final + `/zapsign/<SEGREDO>` no campo de webhook
 
 ## Manter vivo no Mac (opcional)
 
-O `com.pj.zapsign-webhook.plist` sobe o servidor no boot e o reinicia se cair
+O `com.jonasinacio.zapsign-webhook.plist` sobe o servidor no boot e o reinicia se cair
 (`KeepAlive`). Ajuste os caminhos e:
 
 ```bash
-cp com.pj.zapsign-webhook.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.pj.zapsign-webhook.plist
+cp com.jonasinacio.zapsign-webhook.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.jonasinacio.zapsign-webhook.plist
 ```
 
 (Ainda assim você precisa de um túnel/host público pro ZapSign chegar até ele.)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-PJ-AUTOMAÇÕES · biblioteca comum aos robôs (perícia, emendas, gatilhos)
+Jonas Inácio Automações · biblioteca comum aos robôs (perícia, emendas, gatilhos)
 ======================================================================
 
 Tudo que os robôs compartilham mora aqui, para você ajustar UMA vez:

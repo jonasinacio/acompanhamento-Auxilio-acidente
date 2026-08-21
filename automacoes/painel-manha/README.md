@@ -42,10 +42,10 @@ em `config.py`.
 ## Uso
 
 ```bash
-cd ~/pj-automacoes/painel-manha
+cd ~/jonas-inacio-automacoes/painel-manha
 python3 robo_painel.py --dry        # monta e mostra o painel
-cp com.pj.painel-manha.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.pj.painel-manha.plist
+cp com.jonasinacio.painel-manha.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.jonasinacio.painel-manha.plist
 ```
 
 Se você ligar o `puxa_advbox`, descomente a linha dele no `run_diario.sh` para

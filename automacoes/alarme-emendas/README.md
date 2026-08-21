@@ -52,7 +52,7 @@ O alarme de "vencido" repete **todo dia** até você preencher `PROTOCOLADA_EM`.
 ## Uso
 
 ```bash
-cd ~/pj-automacoes/alarme-emendas
+cd ~/jonas-inacio-automacoes/alarme-emendas
 python3 criar_planilha_modelo.py            # cria a mãe com exemplos
 python3 robo_emendas.py --dry               # ensaia, mostra cada alarme
 python3 robo_emendas.py --dry --hoje 2026-08-01   # simula outro dia p/ ver a escada
@@ -61,9 +61,9 @@ python3 robo_emendas.py --dry --hoje 2026-08-01   # simula outro dia p/ ver a es
 Agendar (09h10, depois do ARAUTO e do perícia):
 
 ```bash
-cp com.pj.alarme-emendas.plist ~/Library/LaunchAgents/
-launchctl load  ~/Library/LaunchAgents/com.pj.alarme-emendas.plist
-launchctl start com.pj.alarme-emendas
+cp com.jonasinacio.alarme-emendas.plist ~/Library/LaunchAgents/
+launchctl load  ~/Library/LaunchAgents/com.jonasinacio.alarme-emendas.plist
+launchctl start com.jonasinacio.alarme-emendas
 ```
 
 Credenciais (uazapi do grupo GERAL) e senders: em `../pj_comum.py` — os mesmos

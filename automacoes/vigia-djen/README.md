@@ -51,12 +51,12 @@ Tem mais sócios? Acrescente dicts na lista. Um só, rápido, via ambiente:
 ## Uso
 
 ```bash
-cd ~/pj-automacoes/vigia-djen
+cd ~/jonas-inacio-automacoes/vigia-djen
 python3 robo_djen.py --dry --mock     # testa sem rede (dados de exemplo)
 python3 robo_djen.py --dry            # de verdade, mostra sem enviar (precisa de rede)
 python3 robo_djen.py --send           # envia e carimba
-cp com.pj.vigia-djen.plist ~/Library/LaunchAgents/   # roda 08h40
-launchctl load ~/Library/LaunchAgents/com.pj.vigia-djen.plist
+cp com.jonasinacio.vigia-djen.plist ~/Library/LaunchAgents/   # roda 08h40
+launchctl load ~/Library/LaunchAgents/com.jonasinacio.vigia-djen.plist
 ```
 
 > ⚠️ Do ambiente do Claude a API do DJEN não é alcançável — por isso os testes

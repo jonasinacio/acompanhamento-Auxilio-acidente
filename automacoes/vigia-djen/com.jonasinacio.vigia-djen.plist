@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  VIGIA-DJEN · launchd (08h40, antes do painel). Ajuste os caminhos antes.
+    cp com.jonasinacio.vigia-djen.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.jonasinacio.vigia-djen.plist
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>com.jonasinacio.vigia-djen</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/jonas/jonas-inacio-automacoes/vigia-djen/run_diario.sh</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/jonas/jonas-inacio-automacoes/vigia-djen</string>
+    <key>StartCalendarInterval</key>
+    <dict><key>Hour</key><integer>8</integer><key>Minute</key><integer>40</integer></dict>
+    <key>StandardOutPath</key>
+    <string>/Users/jonas/jonas-inacio-automacoes/vigia-djen/logs/launchd.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/jonas/jonas-inacio-automacoes/vigia-djen/logs/launchd.err.log</string>
+    <key>RunAtLoad</key><false/>
+</dict>
+</plist>

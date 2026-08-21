@@ -44,9 +44,9 @@ diferente, então disparam junto com o do cliente sem problema.
 ## Instalação (no Mac, ao lado do `avisos-audiencia`)
 
 ```bash
-# 1. copie a pasta automacoes/ inteira p/ ~/pj-automacoes  (os 3 robôs juntos,
+# 1. copie a pasta automacoes/ inteira p/ ~/jonas-inacio-automacoes  (os 3 robôs juntos,
 #    porque todos importam o ../pj_comum.py compartilhado)
-cd ~/pj-automacoes/avisos-pericia
+cd ~/jonas-inacio-automacoes/avisos-pericia
 
 # 2. dependência
 pip3 install -r requirements.txt
@@ -66,9 +66,9 @@ abaixo) e agende no launchd:
 
 ```bash
 # ajuste os caminhos dentro do plist (troque /Users/jonas/... pelo seu)
-cp com.pj.avisos-pericia.plist ~/Library/LaunchAgents/
-launchctl load  ~/Library/LaunchAgents/com.pj.avisos-pericia.plist
-launchctl start com.pj.avisos-pericia   # dispara já, p/ testar
+cp com.jonasinacio.avisos-pericia.plist ~/Library/LaunchAgents/
+launchctl load  ~/Library/LaunchAgents/com.jonasinacio.avisos-pericia.plist
+launchctl start com.jonasinacio.avisos-pericia   # dispara já, p/ testar
 ```
 
 Roda todo dia útil às **09h05** (5 min depois do ARAUTO das 09h). Mac desligado
@@ -132,14 +132,14 @@ carimbo), e descomente a linha dele no `run_diario.sh`.
 ## Arquivos
 
 ```
-pj-automacoes/
+jonas-inacio-automacoes/
 ├── pj_comum.py                 ← senders + datas + estado (compartilhado)
 └── avisos-pericia/
     ├── robo_pericias.py            ← o disparador (motor + régua)
     ├── config.py                   ← régua fechada e textos  (mexa aqui p/ ajustar)
     ├── criar_planilha_modelo.py    ← gera a mãe modelo
     ├── run_diario.sh               ← orquestrador (launchd chama este)
-    ├── com.pj.avisos-pericia.plist ← agendamento 09h05
+    ├── com.jonasinacio.avisos-pericia.plist ← agendamento 09h05
     ├── requirements.txt
     └── README.md
 ```

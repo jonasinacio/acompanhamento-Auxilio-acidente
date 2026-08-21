@@ -1,4 +1,4 @@
-# PJ-AUTOMAÇÕES — robôs do escritório (padrão ARAUTO)
+# Jonas Inácio Automações — robôs do escritório (padrão ARAUTO)
 
 Sete robôs internos que estendem o padrão do **ARAUTO** (robô de avisos de
 audiência) para o resto da operação do Manual v4.1. A maioria roda por horário
@@ -27,9 +27,9 @@ O **painel** abre o dia às 08h45; os demais rodam em cascata depois do ARAUTO
 ## Instalação (Mac, ao lado do ARAUTO)
 
 ```bash
-# copie a pasta automacoes/ inteira para ~/pj-automacoes
-cp -R automacoes ~/pj-automacoes
-cd ~/pj-automacoes
+# copie a pasta automacoes/ inteira para ~/jonas-inacio-automacoes
+cp -R automacoes ~/jonas-inacio-automacoes
+cd ~/jonas-inacio-automacoes
 pip3 install -r avisos-pericia/requirements.txt   # openpyxl (serve p/ os três)
 
 # credenciais: copie o modelo e preencha o .env (fica FORA do git):
@@ -83,7 +83,7 @@ mais prazo do que existe — sempre confira o prazo fatal também no ADVBOX.
 ## Estrutura
 
 ```
-pj-automacoes/
+jonas-inacio-automacoes/
 ├── pj_comum.py          ← senders (uazapi), datas, dias úteis, estado, backup
 ├── feriados.txt         ← (opcional) feriados do foro, 1 por linha
 ├── avisos-pericia/

@@ -6,25 +6,25 @@
 
   Instalar:
     1) Edite EXECPATH e WorkingDirectory abaixo p/ o caminho real no seu Mac.
-    2) cp com.pj.avisos-pericia.plist ~/Library/LaunchAgents/
-    3) launchctl load  ~/Library/LaunchAgents/com.pj.avisos-pericia.plist
-    4) (testar já)  launchctl start com.pj.avisos-pericia
+    2) cp com.jonasinacio.avisos-pericia.plist ~/Library/LaunchAgents/
+    3) launchctl load  ~/Library/LaunchAgents/com.jonasinacio.avisos-pericia.plist
+    4) (testar já)  launchctl start com.jonasinacio.avisos-pericia
 
   Mac desligado às 09h05? StartCalendarInterval faz catch-up nativo ao ligar.
 -->
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.pj.avisos-pericia</string>
+    <string>com.jonasinacio.avisos-pericia</string>
 
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
-        <string>/Users/jonas/pj-automacoes/avisos-pericia/run_diario.sh</string>
+        <string>/Users/jonas/jonas-inacio-automacoes/avisos-pericia/run_diario.sh</string>
     </array>
 
     <key>WorkingDirectory</key>
-    <string>/Users/jonas/pj-automacoes/avisos-pericia</string>
+    <string>/Users/jonas/jonas-inacio-automacoes/avisos-pericia</string>
 
     <key>StartCalendarInterval</key>
     <dict>
@@ -35,9 +35,9 @@
     </dict>
 
     <key>StandardOutPath</key>
-    <string>/Users/jonas/pj-automacoes/avisos-pericia/logs/launchd.out.log</string>
+    <string>/Users/jonas/jonas-inacio-automacoes/avisos-pericia/logs/launchd.out.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/jonas/pj-automacoes/avisos-pericia/logs/launchd.err.log</string>
+    <string>/Users/jonas/jonas-inacio-automacoes/avisos-pericia/logs/launchd.err.log</string>
 
     <key>RunAtLoad</key>
     <false/>

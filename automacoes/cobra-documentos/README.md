@@ -43,9 +43,9 @@ disparam no mesmo dia sem problema.
 ## Uso
 
 ```bash
-cd ~/pj-automacoes/cobra-documentos
+cd ~/jonas-inacio-automacoes/cobra-documentos
 python3 criar_planilha_modelo.py
 python3 robo_documentos.py --dry
-cp com.pj.cobra-documentos.plist ~/Library/LaunchAgents/   # roda 09h20
-launchctl load ~/Library/LaunchAgents/com.pj.cobra-documentos.plist
+cp com.jonasinacio.cobra-documentos.plist ~/Library/LaunchAgents/   # roda 09h20
+launchctl load ~/Library/LaunchAgents/com.jonasinacio.cobra-documentos.plist
 ```
