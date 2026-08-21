@@ -1,4 +1,8 @@
-# Jonas Inácio Automações — robôs do escritório (padrão ARAUTO)
+# SENTINELA — os robôs do escritório Jonas Inácio (padrão ARAUTO)
+
+> _O sentinela que vigia prazos, perícias, contratos e o boletim do DJEN, e
+> avisa a equipe no WhatsApp — sem ninguém precisar lembrar._
+
 
 Sete robôs internos que estendem o padrão do **ARAUTO** (robô de avisos de
 audiência) para o resto da operação do Manual v4.1. A maioria roda por horário

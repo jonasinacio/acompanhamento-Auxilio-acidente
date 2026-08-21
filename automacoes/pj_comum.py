@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Jonas Inácio Automações · biblioteca comum aos robôs (perícia, emendas, gatilhos)
+SENTINELA · biblioteca comum aos robôs (perícia, emendas, gatilhos, DJEN…)
 ======================================================================
 
 Tudo que os robôs compartilham mora aqui, para você ajustar UMA vez:
