@@ -2,11 +2,12 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { query } from "@/lib/db";
+import { authConfig } from "@/auth.config";
 
+// Instância COMPLETA (Node): herda a config leve e acrescenta o provider
+// pesado (Credentials + bcrypt + Postgres). É esta que o /api/auth usa.
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  session: { strategy: "jwt" },
-  trustHost: true, // atrás do Traefik
-  pages: { signIn: "/login" },
+  ...authConfig,
   providers: [
     Credentials({
       credentials: { email: {}, password: {} },
@@ -24,17 +25,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    authorized({ auth }) {
-      return !!auth?.user; // middleware: sem sessão → redireciona pro /login
-    },
-    async jwt({ token, user }) {
-      if (user) (token as any).papel = (user as any).papel;
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) (session.user as any).papel = (token as any).papel;
-      return session;
-    },
-  },
 });
