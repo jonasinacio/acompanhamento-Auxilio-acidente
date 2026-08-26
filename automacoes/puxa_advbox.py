@@ -48,6 +48,10 @@ except ImportError:
 
 ADVBOX_ENDPOINT = os.environ.get("ADVBOX_URL", "https://app.advbox.com.br/api/v1").rstrip("/")
 ADVBOX_TOKEN    = os.environ.get("ADVBOX_TOKEN", "")
+# O AdvBox (WAF) bloqueia requisições sem cara de navegador — mesmo UA dos
+# scripts do Jonas (buscar-advbox-*.js), senão devolve 403.
+ADVBOX_UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 
 
 def _get_json(path: str, params: dict | None = None):
@@ -56,7 +60,7 @@ def _get_json(path: str, params: dict | None = None):
         url += "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={
         "Authorization": f"Bearer {ADVBOX_TOKEN}", "Accept": "application/json",
-        "User-Agent": "puxa-advbox/1.0"})
+        "User-Agent": ADVBOX_UA})
     with urllib.request.urlopen(req, timeout=45) as r:
         return json.loads(r.read().decode("utf-8", "replace"))
 

@@ -57,7 +57,9 @@ ESCOPO = {
 ESTADO_JSON = os.environ.get(
     "PRAZOS_ESTADO", os.path.join(os.path.dirname(__file__), "prazos-tarefas-criadas.json"))
 
-UA = "sentinela-prazos/1.0"
+# O AdvBox (WAF) bloqueia sem cara de navegador — mesmo UA dos scripts do Jonas.
+UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+      "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 
 # ---- amostras p/ --mock (sem rede) ----
 _MOCK_DJEN = [
