@@ -1,0 +1,60 @@
+name: SENTINELA · vigia-djen (boletim do DJEN)
+
+# Roda o vigia do DJEN na nuvem (GitHub) — o Mac pode estar desligado.
+# Todo dia útil às 08h40 (America/Sao_Paulo = UTC-3 → 11h40 UTC) e também
+# no botão "Run workflow" (aba Actions) para testar quando quiser.
+
+on:
+  schedule:
+    - cron: "40 11 * * 1-5"   # 08h40 BRT, segunda a sexta
+  workflow_dispatch:
+    inputs:
+      dias:
+        description: "Quantos dias para trás olhar no DJEN"
+        default: "3"
+      modo:
+        description: "send (envia no grupo) ou dry (só mostra, não envia)"
+        default: "send"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sentinela-djen
+  cancel-in-progress: false
+
+jobs:
+  djen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependência
+        run: pip install --quiet openpyxl
+
+      # guarda o estado do dedupe entre execuções (o .json é gitignorado)
+      - name: Restaurar estado (dedupe)
+        uses: actions/cache@v4
+        with:
+          path: automacoes/vigia-djen/alertas_enviados.json
+          key: djen-estado-${{ github.run_id }}
+          restore-keys: djen-estado-
+
+      - name: Rodar o vigia-djen
+        working-directory: automacoes/vigia-djen
+        env:
+          UAZAPI_URL: ${{ secrets.UAZAPI_URL }}
+          UAZAPI_TOKEN: ${{ secrets.UAZAPI_TOKEN }}
+          UAZAPI_GRUPO_GERAL: ${{ secrets.UAZAPI_GRUPO_GERAL }}
+          DJEN_DIAS: ${{ github.event.inputs.dias || '3' }}
+        run: |
+          if [ "${{ github.event.inputs.modo }}" = "dry" ]; then
+            echo "modo DRY — não envia"
+            python3 robo_djen.py --dry
+          else
+            python3 robo_djen.py --send
+          fi
