@@ -356,7 +356,7 @@ def test_classificacao():
     print("• classificacao (ato + dias úteis)")
     import importlib.util
     spec = importlib.util.spec_from_file_location(
-        "clf", os.path.join(BASE, "vigia-djen", "classificacao.py"))
+        "clf", os.path.join(BASE, "classificacao.py"))
     clf = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(clf)
 
@@ -397,6 +397,27 @@ def test_djen(tmp):
     out2 = roda("vigia-djen", "robo_djen.py", ["--send", "--mock", "--hoje", HOJE], envp)
     check("novas=0" in out2 and "já vistas=2" in out2,
           "djen: 2ª rodada não podia repetir (dedupe pelo id)")
+
+
+def test_sentinela_prazos(tmp):
+    print("• sentinela-prazos")
+    est = os.path.join(tmp, "prazos_estado.json")
+    envp = {"PRAZOS_ESTADO": est, "PJ_FAKE_SEND": "1"}
+    out = roda("sentinela-prazos", "sentinela_prazos.py",
+               ["--dry", "--mock", "--hoje", HOJE], envp)
+    check("candidatas no escopo=2" in out,
+          "sentinela: 2 candidatas no escopo (contestação + sentença JEF)")
+    check("RÉPLICA/IMPUGNAÇÃO" in out, "sentinela: contestação → tarefa de réplica")
+    check("venc 2026-07-24" in out and "fatal 2026-07-28" in out,
+          "sentinela: vencimento a D-2 (24/07) do fatal (28/07)")
+    check("criadas=0" in out, "sentinela: --dry não cria nada (criadas=0)")
+
+    o1 = roda("sentinela-prazos", "sentinela_prazos.py",
+              ["--send", "--mock", "--hoje", HOJE], envp)
+    check("criadas=2" in o1, "sentinela: 1ª rodada cria 2 tarefas")
+    o2 = roda("sentinela-prazos", "sentinela_prazos.py",
+              ["--send", "--mock", "--hoje", HOJE], envp)
+    check("nada a criar" in o2, "sentinela: 2ª rodada não recria (idempotente)")
 
 
 def test_zapsign():
@@ -491,6 +512,7 @@ def main():
         test_painel(tmp)
         test_classificacao()
         test_djen(tmp)
+        test_sentinela_prazos(tmp)
         test_puxa(tmp)
     print("-" * 50)
     if _falhas:
