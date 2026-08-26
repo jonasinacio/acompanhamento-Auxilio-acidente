@@ -38,6 +38,7 @@ import urllib.request
 BASE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE)
 import pj_comum as pj  # noqa: E402
+import db              # noqa: E402  (grava no Postgres do QG, se configurado)
 
 try:
     import openpyxl
@@ -123,11 +124,40 @@ def registros_pericia(mock: bool) -> list[dict]:
                 "processo": lw.get("process_number"),
                 "cliente": ", ".join(c.get("name") for c in (lw.get("customers") or [])
                                      if c.get("name")),
+                "advbox_post_id": p.get("id"),   # id do AdvBox → dedupe no banco
             }
             reg.update(extrair_detalhes_pericia(p.get("notes") or ""))
             if reg.get("processo"):
                 regs.append(reg)
     return regs
+
+
+def _data_iso(br: str | None) -> str | None:
+    """'dd/mm/aaaa' → 'aaaa-mm-dd' (o que o Postgres aceita numa coluna DATE)."""
+    if not br:
+        return None
+    m = re.match(r"(\d{1,2})/(\d{1,2})/(\d{4})", str(br).strip())
+    return f"{m.group(3)}-{int(m.group(2)):02d}-{int(m.group(1)):02d}" if m else None
+
+
+def gravar_pericias_no_banco(regs: list[dict]) -> None:
+    """Espelha as perícias no Postgres do QG (opcional; nunca quebra o merge)."""
+    comp = [r for r in regs if r.get("advbox_post_id")]
+    if not (comp and db.habilitado()):
+        return
+    try:
+        with db.cursor() as cur:
+            for r in comp:
+                db.upsert_pericia(cur, {
+                    "numero_cnj": r.get("processo"),
+                    "data": _data_iso(r.get("data")),
+                    "hora": r.get("hora"),
+                    "local": r.get("local"),
+                    "advbox_post_id": r.get("advbox_post_id"),
+                })
+        pj.log(f"  🗄️  {len(comp)} perícia(s) espelhada(s) no banco do QG")
+    except Exception as e:  # noqa: BLE001
+        pj.log(f"  ⚠️  falha ao gravar perícias no banco (planilha não afetada): {e}")
 
 
 def registros_emenda(mock: bool) -> list[dict]:
@@ -243,6 +273,8 @@ def main() -> int:
             pj.log(f"[{d}] ❌ erro no AdvBox → {e}"); continue
         n, c = merge_mae(cfg, regs, dry)
         pj.log(f"[{d}] novos={n} · completados={c}")
+        if d == "pericia" and not dry:
+            gravar_pericias_no_banco(regs)
 
     pj.log("fim" + ("  (DRY — nada gravado)" if dry else ""))
     return 0

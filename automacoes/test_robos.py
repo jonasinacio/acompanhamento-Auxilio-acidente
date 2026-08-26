@@ -523,6 +523,23 @@ def test_db():
     check(any("INSERT INTO contratos" in c[0] and "ON CONFLICT (zapsign_token)" in c[0]
               for c in cur3.calls), "db: contrato é upsert idempotente (zapsign_token)")
 
+    # perícia: conversão da data BR → ISO que o Postgres aceita
+    import puxa_advbox as px
+    check(px._data_iso("22/07/2026") == "2026-07-22", "puxa: data BR → ISO p/ o banco")
+    check(px._data_iso("") is None and px._data_iso("sem data") is None,
+          "puxa: data ausente/ilegível vira None (não quebra o insert)")
+    check(px.registros_pericia(mock=True)[0].get("advbox_post_id") == 9001,
+          "puxa: perícia carrega o advbox_post_id (dedupe no banco)")
+
+    # contrato: mesmo sem DATABASE_URL, o webhook não quebra ao espelhar
+    import importlib.util
+    caminho = os.path.join(BASE, "zapsign-contrato", "webhook_zapsign.py")
+    spec = importlib.util.spec_from_file_location("webhook_zapsign", caminho)
+    wh = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(wh)
+    wh._gravar_contrato_no_banco({"token": "tk9"}, "Contrato X")  # no-op seguro (sem banco)
+    check(True, "zapsign: espelho no banco é no-op seguro sem DATABASE_URL")
+
 
 def test_dotenv():
     print("• .env parser (aspas e comentários)")

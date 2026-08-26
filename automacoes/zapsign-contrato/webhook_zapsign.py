@@ -29,6 +29,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pj_comum as pj  # noqa: E402  (traz uazapi + .env + estado/dedupe)
+import db              # noqa: E402  (grava contrato no Postgres do QG, se configurado)
 
 # ----------------------------------------------------------------------
 # Config (tudo por variável de ambiente; nada de segredo no código)
@@ -116,7 +117,29 @@ def processar(payload: dict) -> tuple[int, str]:
         return 0, f"falha no envio ({info})"
     estado[chave] = dt.datetime.now().isoformat(timespec="minutes")
     pj.salvar_estado(ESTADO_JSON, estado)
+    _gravar_contrato_no_banco(payload, doc)
     return 1, f"anunciado ({info})"
+
+
+def _gravar_contrato_no_banco(payload: dict, doc: str) -> None:
+    """Espelha o contrato assinado no Postgres do QG (opcional; nunca quebra o aviso)."""
+    if not db.habilitado():
+        return
+    token = str(payload.get("token") or payload.get("doc_token")
+                or payload.get("external_id") or "").strip()
+    if not token:
+        return
+    try:
+        with db.cursor() as cur:
+            db.upsert_contrato(cur, {
+                "zapsign_token": token,
+                "nome": doc or None,
+                "status": "signed",
+                "assinado_em": dt.datetime.now().isoformat(timespec="seconds"),
+            })
+        pj.log("  🗄️  contrato gravado no banco do QG")
+    except Exception as e:  # noqa: BLE001
+        pj.log(f"  ⚠️  falha ao gravar contrato no banco (aviso não afetado): {e}")
 
 
 def _grava_cru(raw: bytes) -> None:
