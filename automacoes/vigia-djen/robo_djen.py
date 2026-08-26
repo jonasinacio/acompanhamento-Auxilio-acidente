@@ -37,6 +37,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pj_comum as pj      # noqa: E402
 import config as C         # noqa: E402
 import classificacao as clf  # noqa: E402  (cérebro portado do classificacao.js)
+import db                  # noqa: E402  (grava no Postgres do QG, se configurado)
 
 # Amostra p/ --mock, nos MESMOS campos que a API Comunica devolve.
 _MOCK = {
@@ -164,6 +165,29 @@ def montar(item: dict, quem: str) -> str:
     )
 
 
+def registro_db(item: dict) -> dict:
+    """Publicação no formato das colunas de `publicacoes` (banco do QG)."""
+    c = clf.classificar({
+        "tipoDocumento": campo(item, "tipoDocumento", "tipodocumento"),
+        "tipoComunicacao": campo(item, "tipoComunicacao", "tipo"),
+        "texto": limpar_html(campo(item, "texto", "teor")),
+    })
+    base = pj.parse_data(campo(item, "datadisponibilizacao", "data_disponibilizacao")[:10])
+    fatal = clf.data_fatal_uteis(base, c["dias"]) if (c.get("dias") and base) else None
+    return {
+        "djen_id": id_publicacao(item),
+        "numero_cnj": campo(item, "numeroprocessocommascara", "numero_processo") or None,
+        "tribunal": campo(item, "siglaTribunal", "tribunal") or None,
+        "orgao": campo(item, "nomeOrgao", "orgao") or None,
+        "tipo": campo(item, "tipoComunicacao", "tipo") or None,
+        "ato": c["ato"],
+        "prazo_dias": c.get("dias"),
+        "data_fatal": fatal,
+        "data_disp": base,
+        "texto": limpar_html(campo(item, "texto", "teor")) or None,
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="VIGIA-DJEN · vigia do boletim do DJEN")
     ap.add_argument("--send", action="store_true")
@@ -186,6 +210,7 @@ def main() -> int:
 
     estado = pj.carregar_estado(C.ALERTAS_JSON)
     novas = repetidas = 0
+    para_db: list[dict] = []
 
     for oab in C.OABS:
         quem = oab.get("quem") or f"OAB {oab.get('oab')}/{oab.get('uf')}"
@@ -214,10 +239,19 @@ def main() -> int:
             if ok:
                 if not dry:
                     estado[chave] = pj.fmt_data(hoje)
+                    para_db.append(registro_db(item))
                 novas += 1
 
     if not dry:
         pj.salvar_estado(C.ALERTAS_JSON, estado)
+        if para_db and db.habilitado():
+            try:
+                with db.cursor() as cur:
+                    for reg in para_db:
+                        db.upsert_publicacao(cur, reg)
+                pj.log(f"  🗄️  {len(para_db)} publicação(ões) gravada(s) no banco do QG")
+            except Exception as e:  # noqa: BLE001
+                pj.log(f"  ⚠️  falha ao gravar no banco (WhatsApp não afetado): {e}")
 
     pj.log(f"fim · novas={novas} · já vistas={repetidas}" + ("  (DRY)" if dry else ""))
     return 0

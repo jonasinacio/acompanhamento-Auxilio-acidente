@@ -24,11 +24,11 @@ timedatectl set-timezone "$TZ_ALVO" 2>/dev/null || echo "   (não consegui mudar
 echo "==> 2/6 pacotes (python3, git, openpyxl)"
 if command -v apt-get >/dev/null 2>&1; then
   apt-get update -y
-  apt-get install -y python3 python3-pip git python3-openpyxl \
-    || { apt-get install -y python3 python3-pip git; pip3 install --break-system-packages openpyxl; }
+  apt-get install -y python3 python3-pip git python3-openpyxl python3-psycopg2 \
+    || { apt-get install -y python3 python3-pip git; pip3 install --break-system-packages openpyxl psycopg2-binary; }
 elif command -v dnf >/dev/null 2>&1; then
-  dnf install -y python3 python3-pip git python3-openpyxl \
-    || { dnf install -y python3 python3-pip git; pip3 install openpyxl; }
+  dnf install -y python3 python3-pip git python3-openpyxl python3-psycopg2 \
+    || { dnf install -y python3 python3-pip git; pip3 install openpyxl psycopg2-binary; }
 else
   echo "❌ gerenciador de pacotes não reconhecido (nem apt nem dnf)."; exit 1
 fi

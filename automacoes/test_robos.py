@@ -485,6 +485,45 @@ def test_zapsign_amostra():
           "amostra: nomes de campo e valores não-sensíveis continuam visíveis")
 
 
+def test_db():
+    print("• db (ingestão Postgres)")
+    import db
+
+    class FakeCur:
+        def __init__(self):
+            self.calls = []
+        def execute(self, sql, params=None):
+            self.calls.append((sql, params))
+        def fetchone(self):
+            return (1,)
+
+    check(not db.habilitado(),
+          "db: sem DATABASE_URL a ingestão fica desligada (robô roda igual)")
+
+    cur = FakeCur()
+    db.upsert_publicacao(cur, {
+        "djen_id": "111", "numero_cnj": "1002345-67.2026.8.26.0100", "tribunal": "TJSP",
+        "ato": "Sentença → apelação", "prazo_dias": 15, "data_fatal": dt.date(2026, 7, 28)})
+    sqls = " ".join(c[0] for c in cur.calls)
+    check("INSERT INTO processos" in sqls, "db: acha/cria o processo pelo CNJ")
+    check("INSERT INTO publicacoes" in sqls and "ON CONFLICT (djen_id)" in sqls,
+          "db: publicação é upsert idempotente (djen_id)")
+    pub = [c for c in cur.calls if "publicacoes" in c[0]][0][1]
+    check("Sentença → apelação" in pub and dt.date(2026, 7, 28) in pub,
+          "db: grava o ato e a data fatal")
+
+    cur2 = FakeCur()
+    db.upsert_pericia(cur2, {"advbox_post_id": "9001", "numero_cnj": "X",
+                             "data": dt.date(2026, 7, 22), "hora": "09:30", "local": "L"})
+    check(any("INSERT INTO pericias" in c[0] and "ON CONFLICT (advbox_post_id)" in c[0]
+              for c in cur2.calls), "db: perícia é upsert idempotente (advbox_post_id)")
+
+    cur3 = FakeCur()
+    db.upsert_contrato(cur3, {"zapsign_token": "tk", "nome": "Maria", "status": "signed"})
+    check(any("INSERT INTO contratos" in c[0] and "ON CONFLICT (zapsign_token)" in c[0]
+              for c in cur3.calls), "db: contrato é upsert idempotente (zapsign_token)")
+
+
 def test_dotenv():
     print("• .env parser (aspas e comentários)")
     import pj_comum as pj
@@ -500,6 +539,7 @@ def test_dotenv():
 
 def main():
     sys.path.insert(0, BASE)  # p/ importar pj_comum em d_por_diautil
+    test_db()
     test_dotenv()
     test_uazapi()
     test_zapsign()
