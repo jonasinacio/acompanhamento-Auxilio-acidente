@@ -4,26 +4,24 @@
 PUXA-ADVBOX · a boca (fase 2)
 =============================
 
-Irmão do `puxa_advbox.py` do ARAUTO. Puxa do AdvBox e ACRESCENTA nas "mães" o
-que ainda não existe — para as planilhas se preencherem sozinhas, em vez de na
-mão. Regra de ouro do ARAUTO: **casa pelo nº do processo e só acrescenta o que
-não existe; NUNCA sobrescreve célula preenchida nem toca em carimbo.**
+Puxa do AdvBox e ACRESCENTA nas "mães" o que ainda não existe — para as
+planilhas se preencherem sozinhas, em vez de à mão. Regra de ouro do ARAUTO:
+**casa pelo nº do processo e só acrescenta o que não existe; NUNCA sobrescreve
+célula preenchida nem toca em carimbo.**
 
-Fontes (API AdvBox — base https://api.softwareadvbox.com.br, Bearer token):
-  • /posts     (tarefas)   → roteadas por TIPO para a mãe de perícia ou emenda
-  • /lawsuits  (processos) → alimentam a mãe de casos (status/fase)
+Contrato real do AdvBox (dos scripts do Jonas no Drive):
+  base https://app.advbox.com.br/api/v1 · Authorization: Bearer <token>
+  • PERÍCIAS  (PRONTO): GET /settings -> tarefas cujo nome contém "PERICIA";
+    GET /posts?task_id=<id> -> tarefas; data/hora/local saem do texto livre
+    `notes` (mesmo parser do buscar-advbox-pericias.js).
+  • EMENDAS e CASOS (mapeamento PENDENTE): o de-para do AdvBox pra essas mães
+    ainda não foi definido — hoje só rodam em --mock. Quando você me disser (ou
+    eu ler) de qual tarefa/status vêm, eu ligo igual à perícia.
 
 Uso:
-    python3 puxa_advbox.py --dry               # mostra o que acrescentaria (padrão)
-    python3 puxa_advbox.py --write             # grava nas mães (com backup)
-    python3 puxa_advbox.py --dry --mock        # usa dados de exemplo, sem token
-    python3 puxa_advbox.py --write --destino pericia   # só uma mãe
-
-⚠️  DOIS pontos dependem da sua conta AdvBox — e são o ÚNICO trabalho que falta
-    pra ligar isto de verdade. Estão marcados com «AJUSTE» mais abaixo:
-      1) buscar_posts() / buscar_lawsuits() — o formato exato do JSON;
-      2) os mapas MAPA_* — quais chaves do AdvBox caem em quais colunas da mãe.
-    Compare com o `puxa_advbox.py` que o seu ARAUTO já usa e acerte 1:1.
+    python3 puxa_advbox.py --dry                       # mostra o que faria (padrão)
+    python3 puxa_advbox.py --write --destino pericia    # grava só as perícias
+    python3 puxa_advbox.py --dry --mock                 # exemplos, sem token
 """
 from __future__ import annotations
 
@@ -31,7 +29,11 @@ import argparse
 import importlib.util
 import json
 import os
+import re
 import sys
+import urllib.error
+import urllib.parse
+import urllib.request
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE)
@@ -44,91 +46,104 @@ except ImportError:
     sys.exit(2)
 
 
-# ----------------------------------------------------------------------
-# AdvBox — credenciais (só por env) e cliente HTTP
-# ----------------------------------------------------------------------
-ADVBOX_ENDPOINT = os.environ.get("ADVBOX_ENDPOINT", "https://api.softwareadvbox.com.br")
+ADVBOX_ENDPOINT = os.environ.get("ADVBOX_URL", "https://app.advbox.com.br/api/v1").rstrip("/")
 ADVBOX_TOKEN    = os.environ.get("ADVBOX_TOKEN", "")
 
 
-def _get(path: str, params: dict | None = None) -> list[dict]:
-    """GET paginado no AdvBox com Bearer token. Retorna lista de itens."""
-    import urllib.request
-    import urllib.parse
-    itens, page = [], 1
-    while True:
-        q = dict(params or {})
-        q["page"] = page
-        url = f"{ADVBOX_ENDPOINT.rstrip('/')}/{path.lstrip('/')}?" + urllib.parse.urlencode(q)
-        req = urllib.request.Request(url, headers={
-            "Authorization": f"Bearer {ADVBOX_TOKEN}",
-            "Accept": "application/json",
-        })
-        with urllib.request.urlopen(req, timeout=45) as r:
-            data = json.loads(r.read().decode())
-        # «AJUSTE» — o AdvBox pode devolver {"data":[...]} ou lista direta.
-        lote = data.get("data", data) if isinstance(data, dict) else data
-        if not lote:
-            break
-        itens.extend(lote)
-        if len(lote) < 50:   # última página (ajuste ao page-size real)
-            break
-        page += 1
-    return itens
+def _get_json(path: str, params: dict | None = None):
+    url = f"{ADVBOX_ENDPOINT}/{path.lstrip('/')}"
+    if params:
+        url += "?" + urllib.parse.urlencode(params)
+    req = urllib.request.Request(url, headers={
+        "Authorization": f"Bearer {ADVBOX_TOKEN}", "Accept": "application/json",
+        "User-Agent": "puxa-advbox/1.0"})
+    with urllib.request.urlopen(req, timeout=45) as r:
+        return json.loads(r.read().decode("utf-8", "replace"))
 
 
-# «AJUSTE 1» — troque o corpo destas duas funções pelo fetch real do seu ARAUTO.
-def buscar_posts(mock: bool) -> list[dict]:
+# ----------------------------------------------------------------------
+# PERÍCIAS — parser do texto livre (porta do buscar-advbox-pericias.js)
+# ----------------------------------------------------------------------
+MESES = {"janeiro": 1, "fevereiro": 2, "marco": 3, "abril": 4, "maio": 5,
+         "junho": 6, "julho": 7, "agosto": 8, "setembro": 9, "outubro": 10,
+         "novembro": 11, "dezembro": 12}
+
+
+def extrair_detalhes_pericia(texto: str) -> dict:
+    """Data (dd/mm/aaaa ou 'dd de mês de aaaa'), hora (HH:MM/HHhMM) e local."""
+    out = {}
+    if not texto:
+        return out
+    m = (re.search(r"Data:\s*(\d{1,2})/(\d{1,2})/(\d{4})", texto, re.I)
+         or re.search(r"\b(\d{1,2})/(\d{1,2})/(\d{4})\b", texto))
+    if m:
+        out["data"] = f"{int(m.group(1)):02d}/{int(m.group(2)):02d}/{m.group(3)}"
+    else:
+        m2 = re.search(r"(\d{1,2})\s+de\s+([A-Za-zçãéô]+)\s+de\s+(\d{4})", texto, re.I)
+        if m2:
+            mes = MESES.get(pj.norm(m2.group(2)).lower())
+            if mes:
+                out["data"] = f"{int(m2.group(1)):02d}/{mes:02d}/{m2.group(3)}"
+    mh = re.search(r"(?:às|as)\s*(\d{1,2})[:h](\d{2})", texto, re.I)
+    if mh:
+        out["hora"] = f"{int(mh.group(1)):02d}:{mh.group(2)}"
+    ml = re.search(r"Local:\s*([^\n]+)", texto, re.I)
+    if ml and ml.group(1).strip():
+        out["local"] = ml.group(1).strip()
+    return out
+
+
+def registros_pericia(mock: bool) -> list[dict]:
     if mock:
-        return _MOCK_POSTS
-    if not ADVBOX_TOKEN:
+        settings = _MOCK_SETTINGS
+    elif not ADVBOX_TOKEN:
         pj.log("⚠️  ADVBOX_TOKEN vazio — use --mock ou exporte o token.")
         return []
-    return _get("/posts")
+    else:
+        settings = _get_json("/settings")
 
-
-def buscar_lawsuits(mock: bool) -> list[dict]:
-    if mock:
-        return _MOCK_LAWSUITS
-    if not ADVBOX_TOKEN:
+    tarefas = [t for t in (settings.get("tasks") or []) if "PERICIA" in pj.norm(t.get("task"))]
+    if not tarefas:
+        pj.log("  (nenhum tipo de tarefa com 'perícia' no nome em /settings)")
         return []
-    return _get("/lawsuits")
+
+    regs = []
+    for t in tarefas:
+        if mock:
+            data = _MOCK_POSTS_PERICIA.get(t["id"], {})
+        else:
+            data = _get_json("/posts", {"task_id": t["id"], "limit": 100})
+        for p in (data.get("data") or []):
+            lw = p.get("lawsuit") or {}
+            reg = {
+                "processo": lw.get("process_number"),
+                "cliente": ", ".join(c.get("name") for c in (lw.get("customers") or [])
+                                     if c.get("name")),
+            }
+            reg.update(extrair_detalhes_pericia(p.get("notes") or ""))
+            if reg.get("processo"):
+                regs.append(reg)
+    return regs
+
+
+def registros_emenda(mock: bool) -> list[dict]:
+    # «PENDENTE» — de-para real do AdvBox p/ emendas ainda não definido.
+    if not mock:
+        pj.log("  ⚠️  emendas: mapeamento do AdvBox ainda não definido — só --mock por ora.")
+        return []
+    return list(_MOCK_EMENDAS)
+
+
+def registros_casos(mock: bool) -> list[dict]:
+    # «PENDENTE» — de-para real do AdvBox p/ casos (status/fase) ainda não definido.
+    if not mock:
+        pj.log("  ⚠️  casos: mapeamento do AdvBox ainda não definido — só --mock por ora.")
+        return []
+    return list(_MOCK_CASOS)
 
 
 # ----------------------------------------------------------------------
-# «AJUSTE 2» — mapas: chave do AdvBox  ->  chave lógica da coluna na mãe
-# (as chaves lógicas são as de C.COL de cada robô). Só as que o AdvBox fornece;
-# o resto (carimbos, campos manuais) fica em branco e o robô/pessoa preenche.
-# ----------------------------------------------------------------------
-# Tipos de tarefa (campo "task"/"tasks_id") que roteiam pra cada mãe.
-TIPOS_PERICIA = {"perícia", "pericia", "perícia médica", "pericia medica"}
-TIPOS_EMENDA  = {"emenda", "emenda judicial", "intimação de emenda", "intimacao de emenda"}
-
-MAPA_PERICIA = {
-    "lawsuit":  "processo",     # nº do processo
-    "customer": "cliente",
-    "phone":    "telefone",
-    "date":     "data",         # data da perícia
-    "hour":     "hora",
-    "local":    "local",
-    "type":     "tipo",
-}
-MAPA_EMENDA = {
-    "lawsuit":   "processo",
-    "customer":  "cliente",
-    "date":      "intimacao",   # data da intimação
-    "deadline":  "prazo_fatal", # prazo fatal (AdvBox: prazo da tarefa)
-}
-MAPA_CASOS = {
-    "lawsuit":   "processo",
-    "customer":  "cliente",
-    "status":    "status",
-    "status_at": "status_desde",
-}
-
-
-# ----------------------------------------------------------------------
-# carrega os config dos robôs (cada um numa subpasta)
+# infra: carrega config de cada robô, casa por processo, self-heal
 # ----------------------------------------------------------------------
 def _carrega_config(subpasta: str):
     caminho = os.path.join(BASE, subpasta, "config.py")
@@ -139,9 +154,9 @@ def _carrega_config(subpasta: str):
 
 
 DESTINOS = {
-    "pericia": {"sub": "avisos-pericia", "mapa": MAPA_PERICIA},
-    "emenda":  {"sub": "alarme-emendas", "mapa": MAPA_EMENDA},
-    "casos":   {"sub": "gatilhos-status", "mapa": MAPA_CASOS},
+    "pericia": {"sub": "avisos-pericia", "fonte": registros_pericia},
+    "emenda":  {"sub": "alarme-emendas", "fonte": registros_emenda},
+    "casos":   {"sub": "gatilhos-status", "fonte": registros_casos},
 }
 
 
@@ -149,26 +164,11 @@ def norm_proc(v) -> str:
     return "".join(ch for ch in str(v or "") if ch.isalnum())
 
 
-def traduz(item: dict, mapa: dict) -> dict:
-    """AdvBox dict -> {chave_logica: valor} conforme o mapa."""
-    out = {}
-    for k_adv, k_col in mapa.items():
-        if item.get(k_adv) not in (None, ""):
-            out[k_col] = item[k_adv]
-    return out
-
-
-# ----------------------------------------------------------------------
-# merge numa mãe: casa por processo; só acrescenta o que falta
-# ----------------------------------------------------------------------
 def merge_mae(cfg, registros: list[dict], dry: bool) -> tuple[int, int]:
     xlsx, aba, COL = cfg.MAE_XLSX, cfg.ABA, cfg.COL
 
     if not os.path.exists(xlsx):
-        # bootstrap: cria só o cabeçalho (o robô/pessoa preenche o resto)
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.title = aba
+        wb = openpyxl.Workbook(); ws = wb.active; ws.title = aba
         ws.append(list(COL.values()))
         wb.save(xlsx)
         pj.log(f"  (criei a mãe vazia com cabeçalho: {os.path.basename(xlsx)})")
@@ -176,7 +176,6 @@ def merge_mae(cfg, registros: list[dict], dry: bool) -> tuple[int, int]:
     wb, ws = pj.abrir_mae(xlsx, aba)
     idx = pj.mapear_colunas(ws, COL)
 
-    # índice processo -> linha
     col_proc = idx["processo"]
     linha_de = {}
     for i in range(2, ws.max_row + 1):
@@ -190,7 +189,6 @@ def merge_mae(cfg, registros: list[dict], dry: bool) -> tuple[int, int]:
         if not p:
             continue
         if p not in linha_de:
-            # linha nova
             i = ws.max_row + 1
             for chave, valor in reg.items():
                 if chave in idx and idx[chave]:
@@ -199,7 +197,6 @@ def merge_mae(cfg, registros: list[dict], dry: bool) -> tuple[int, int]:
             novos += 1
             pj.log(f"  + novo: {reg.get('processo')} · {reg.get('cliente','')}")
         else:
-            # existe: preenche só célula VAZIA (self-heal), nunca sobrescreve
             i = linha_de[p]
             faltou = []
             for chave, valor in reg.items():
@@ -219,21 +216,6 @@ def merge_mae(cfg, registros: list[dict], dry: bool) -> tuple[int, int]:
     return novos, preenchidos
 
 
-# ----------------------------------------------------------------------
-# roteia posts por tipo
-# ----------------------------------------------------------------------
-def rotear_posts(posts: list[dict]) -> dict[str, list[dict]]:
-    saida = {"pericia": [], "emenda": []}
-    for post in posts:
-        tipo = pj.norm(post.get("task") or post.get("type") or "")
-        tipo_l = tipo.lower()
-        if any(t in tipo_l for t in TIPOS_PERICIA):
-            saida["pericia"].append(traduz(post, MAPA_PERICIA))
-        elif any(t in tipo_l for t in TIPOS_EMENDA):
-            saida["emenda"].append(traduz(post, MAPA_EMENDA))
-    return saida
-
-
 def main() -> int:
     ap = argparse.ArgumentParser(description="PUXA-ADVBOX · preenche as mães a partir do AdvBox")
     ap.add_argument("--write", action="store_true", help="grava nas mães (padrão: --dry)")
@@ -247,47 +229,46 @@ def main() -> int:
            f"{' · MOCK' if args.mock else ''} · destino={args.destino}")
 
     alvos = ["pericia", "emenda", "casos"] if args.destino == "todos" else [args.destino]
-
-    # posts -> pericia/emenda
-    if {"pericia", "emenda"} & set(alvos):
-        roteado = rotear_posts(buscar_posts(args.mock))
-        for d in ("pericia", "emenda"):
-            if d in alvos:
-                cfg = _carrega_config(DESTINOS[d]["sub"])
-                pj.log(f"[{d}] {len(roteado[d])} tarefa(s) do AdvBox")
-                n, c = merge_mae(cfg, roteado[d], dry)
-                pj.log(f"[{d}] novos={n} · completados={c}")
-
-    # lawsuits -> casos
-    if "casos" in alvos:
-        cfg = _carrega_config(DESTINOS["casos"]["sub"])
-        regs = [traduz(x, MAPA_CASOS) for x in buscar_lawsuits(args.mock)]
-        pj.log(f"[casos] {len(regs)} processo(s) do AdvBox")
+    for d in alvos:
+        cfg = _carrega_config(DESTINOS[d]["sub"])
+        try:
+            regs = DESTINOS[d]["fonte"](args.mock)
+        except urllib.error.HTTPError as e:
+            pj.log(f"[{d}] ❌ HTTP {e.code} no AdvBox"); continue
+        except Exception as e:  # noqa: BLE001
+            pj.log(f"[{d}] ❌ erro no AdvBox → {e}"); continue
         n, c = merge_mae(cfg, regs, dry)
-        pj.log(f"[casos] novos={n} · completados={c}")
+        pj.log(f"[{d}] novos={n} · completados={c}")
 
     pj.log("fim" + ("  (DRY — nada gravado)" if dry else ""))
     return 0
 
 
 # ----------------------------------------------------------------------
-# dados de exemplo p/ --mock (o shape é o que buscar_*() deve devolver)
+# dados de exemplo p/ --mock (no formato REAL que a API do AdvBox devolve)
 # ----------------------------------------------------------------------
-_MOCK_POSTS = [
-    {"task": "Perícia médica", "lawsuit": "0000123-45.2026.4.03.6300",
-     "customer": "Maria Aparecida de Souza", "phone": "5511999990001",
-     "date": "22/07/2026", "hour": "09:30",
-     "local": "Av. Paulista, 1000 - Perito Dr. Silva - São Paulo/SP", "type": "Judicial"},
-    {"task": "Emenda judicial", "lawsuit": "0000987-65.2026.4.03.6300",
-     "customer": "João Carlos Ferreira", "date": "05/07/2026", "deadline": "17/07/2026"},
-    {"task": "Audiência de instrução", "lawsuit": "0000555-55.2026.4.03.6300",
-     "customer": "Fulano (ignorado — não é perícia nem emenda)"},
+_MOCK_SETTINGS = {"tasks": [
+    {"id": 700, "task": "PERÍCIA MÉDICA"},
+    {"id": 701, "task": "AUDIÊNCIA DE INSTRUÇÃO"},
+]}
+_MOCK_POSTS_PERICIA = {
+    700: {"data": [
+        {"id": 9001, "date": "2026-07-07",
+         "notes": "Perícia designada. Data: 22/07/2026 às 09:30. "
+                  "Local: Av. Paulista, 1000 - Perito Dr. Silva - São Paulo/SP",
+         "lawsuit": {"process_number": "0000123-45.2026.4.03.6300",
+                     "customers": [{"name": "Maria Aparecida de Souza"}]}},
+    ]},
+}
+_MOCK_EMENDAS = [
+    {"processo": "0000987-65.2026.4.03.6300", "cliente": "João Carlos Ferreira",
+     "intimacao": "05/07/2026", "prazo_fatal": "17/07/2026"},
 ]
-_MOCK_LAWSUITS = [
-    {"lawsuit": "0000123-45.2026.4.03.6300", "customer": "Maria Aparecida de Souza",
-     "status": "PERICIA DESIGNADA", "status_at": "07/07/2026"},
-    {"lawsuit": "0000987-65.2026.4.03.6300", "customer": "João Carlos Ferreira",
-     "status": "EMENDA PENDENTE", "status_at": "05/07/2026"},
+_MOCK_CASOS = [
+    {"processo": "0000123-45.2026.4.03.6300", "cliente": "Maria Aparecida de Souza",
+     "status": "PERICIA DESIGNADA", "status_desde": "07/07/2026"},
+    {"processo": "0000987-65.2026.4.03.6300", "cliente": "João Carlos Ferreira",
+     "status": "EMENDA PENDENTE", "status_desde": "05/07/2026"},
 ]
 
 
