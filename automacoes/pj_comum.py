@@ -35,6 +35,17 @@ except ImportError:
 # Assim você guarda os segredos num arquivo local em vez do ~/.zshrc.
 # Não sobrescreve variável já definida no ambiente.
 # ----------------------------------------------------------------------
+def _parse_valor_dotenv(valor: str) -> str:
+    """Valor de uma linha do .env: tira aspas e comentário inline (fora de aspas).
+    Preserva '#' dentro de aspas (ex.: um token que contenha #)."""
+    valor = valor.strip()
+    if valor[:1] in ("\"", "'"):
+        q = valor[0]
+        fim = valor.find(q, 1)
+        return valor[1:fim] if fim != -1 else valor[1:]
+    return valor.split(" #", 1)[0].split("\t#", 1)[0].strip()
+
+
 def _carregar_dotenv():
     caminho = os.path.join(os.path.dirname(__file__), ".env")
     if not os.path.exists(caminho):
@@ -45,9 +56,7 @@ def _carregar_dotenv():
             if not linha or linha.startswith("#") or "=" not in linha:
                 continue
             chave, _, valor = linha.partition("=")
-            chave = chave.strip()
-            valor = valor.strip().strip('"').strip("'")
-            os.environ.setdefault(chave, valor)
+            os.environ.setdefault(chave.strip(), _parse_valor_dotenv(valor))
 
 
 _carregar_dotenv()

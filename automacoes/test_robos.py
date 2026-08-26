@@ -464,8 +464,22 @@ def test_zapsign_amostra():
           "amostra: nomes de campo e valores não-sensíveis continuam visíveis")
 
 
+def test_dotenv():
+    print("• .env parser (aspas e comentários)")
+    import pj_comum as pj
+    check(pj._parse_valor_dotenv('"https://x.uazapi.com"   # comentário') == "https://x.uazapi.com",
+          "dotenv: aspas + comentário inline")
+    check(pj._parse_valor_dotenv("12036@g.us") == "12036@g.us",
+          "dotenv: valor simples sem aspas")
+    check(pj._parse_valor_dotenv("abc123   # nota") == "abc123",
+          "dotenv: comentário inline sem aspas")
+    check(pj._parse_valor_dotenv('"tok#en"') == "tok#en",
+          "dotenv: # dentro de aspas é preservado")
+
+
 def main():
     sys.path.insert(0, BASE)  # p/ importar pj_comum em d_por_diautil
+    test_dotenv()
     test_uazapi()
     test_zapsign()
     test_zapsign_amostra()

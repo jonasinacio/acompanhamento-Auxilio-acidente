@@ -1,0 +1,16 @@
+[Unit]
+Description=SENTINELA - webhook ZapSign (contrato assinado -> grupo)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__USER__
+WorkingDirectory=__APP_DIR__/automacoes/zapsign-contrato
+ExecStart=/usr/bin/env python3 __APP_DIR__/automacoes/zapsign-contrato/webhook_zapsign.py
+Restart=always
+RestartSec=5
+# As credenciais vêm do automacoes/.env, que o próprio pj_comum carrega.
+
+[Install]
+WantedBy=multi-user.target

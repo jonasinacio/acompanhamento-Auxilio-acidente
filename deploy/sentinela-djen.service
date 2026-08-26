@@ -1,0 +1,10 @@
+[Unit]
+Description=SENTINELA - vigia-djen (puxa o boletim do DJEN e joga no grupo)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=__USER__
+WorkingDirectory=__APP_DIR__/automacoes/vigia-djen
+ExecStart=/usr/bin/env python3 __APP_DIR__/automacoes/vigia-djen/robo_djen.py --send
