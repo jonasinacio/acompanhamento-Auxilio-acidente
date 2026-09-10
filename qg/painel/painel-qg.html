@@ -1,0 +1,683 @@
+<title>QG do Escritório</title>
+<meta name="description" content="Painel do escritório: leads do dia pelo ChatGuru e perícias agrupadas, tudo num lugar só.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#EAEEF2; --surface:#FFFFFF; --surface-2:#F5F8FA; --ink:#16222E; --muted:#5D6B79;
+  --line:#DBE3EA; --line-2:#EAF0F4; --accent:#12556E; --accent-ink:#0C3C4F; --accent-soft:#E2EEF2;
+  --ok:#2E7D5B; --ok-soft:#E3F1EA; --warn:#9C6412; --warn-soft:#F6ECD9; --crit:#B23B34; --crit-soft:#F6E3E1;
+  --info:#3A6EA5; --info-soft:#E4EDF6;
+  --shadow:0 1px 2px rgba(16,40,56,.06),0 6px 20px rgba(16,40,56,.06);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D151E; --surface:#152230; --surface-2:#1A2A39; --ink:#E7EDF3; --muted:#94A3B3;
+    --line:#26384A; --line-2:#1E2E3E; --accent:#57ABCB; --accent-ink:#BFE1EC; --accent-soft:#15303C;
+    --ok:#5FBE92; --ok-soft:#16332A; --warn:#D6A253; --warn-soft:#332916; --crit:#E27C72; --crit-soft:#331E1C;
+    --info:#79A6D8; --info-soft:#182A3D;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.28);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D151E; --surface:#152230; --surface-2:#1A2A39; --ink:#E7EDF3; --muted:#94A3B3;
+  --line:#26384A; --line-2:#1E2E3E; --accent:#57ABCB; --accent-ink:#BFE1EC; --accent-soft:#15303C;
+  --ok:#5FBE92; --ok-soft:#16332A; --warn:#D6A253; --warn-soft:#332916; --crit:#E27C72; --crit-soft:#331E1C;
+  --info:#79A6D8; --info-soft:#182A3D;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:"Spectral",Georgia,serif; text-wrap:balance; margin:0}
+.tnum{font-variant-numeric:tabular-nums}
+.wrap{max-width:1080px; margin:0 auto; padding-inline:20px; padding-block:0 64px}
+
+header{position:sticky; top:0; z-index:5; background:color-mix(in srgb,var(--bg) 90%, transparent); backdrop-filter:blur(8px); border-bottom:1px solid var(--line)}
+.hd{max-width:1080px; margin:0 auto; padding:14px 20px 0; }
+.hd-top{display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap}
+.brand{display:flex; align-items:baseline; gap:10px}
+.brand .mark{font-size:20px}
+.brand b{font-family:"Spectral",serif; font-weight:700; font-size:19px; letter-spacing:.2px}
+.brand .sub{color:var(--muted); font-size:13px}
+.asof{color:var(--muted); font-size:12.5px}
+.tabs{display:flex; gap:4px; margin-top:12px}
+.tab{appearance:none; border:0; background:none; font:inherit; cursor:pointer; color:var(--muted);
+  padding:10px 15px; font-weight:600; font-size:14.5px; border-bottom:2.5px solid transparent; margin-bottom:-1px; border-radius:8px 8px 0 0}
+.tab:hover{color:var(--ink); background:var(--surface-2)}
+.tab[aria-selected="true"]{color:var(--accent-ink); border-bottom-color:var(--accent)}
+.tab .badge{font-size:11.5px; color:var(--muted); font-weight:600; margin-left:6px; background:var(--surface-2); border:1px solid var(--line-2); border-radius:20px; padding:0 7px}
+.tab[aria-selected="true"] .badge{color:var(--accent-ink); background:var(--accent-soft); border-color:transparent}
+.tab:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+.intro{padding-block:26px 4px}
+.eyebrow{font-size:12px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--accent)}
+.intro h1{font-size:clamp(25px,3.6vw,34px); font-weight:700; margin-top:6px; line-height:1.08}
+.intro p{color:var(--muted); max-width:62ch; margin:9px 0 0}
+
+.kpis{display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-top:22px}
+.kpis.k4{grid-template-columns:repeat(4,1fr)}
+.kpi{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:15px 15px 13px; box-shadow:var(--shadow)}
+.kpi .n{font-family:"Spectral",serif; font-weight:700; font-size:30px; line-height:1; letter-spacing:-.01em}
+.kpi .l{color:var(--muted); font-size:12.5px; margin-top:7px}
+.kpi .sub{font-size:11.5px; margin-top:3px; font-weight:600}
+.kpi.accent{background:linear-gradient(180deg,var(--accent-soft),var(--surface)); border-color:color-mix(in srgb,var(--accent) 30%,var(--line))}
+.kpi.accent .n{color:var(--accent-ink)}
+.up{color:var(--ok)} .down{color:var(--crit)}
+
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); margin-top:20px; overflow:hidden}
+.panel-h{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:15px 18px; border-bottom:1px solid var(--line-2)}
+.panel-h h2{font-size:17px; font-weight:600; display:flex; align-items:center; gap:9px}
+.panel-h .count{color:var(--muted); font-size:13px; font-weight:500}
+.panel-b{padding:8px 18px 18px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.info{background:var(--info)}
+
+.cols{display:grid; grid-template-columns:1.15fr .85fr; gap:20px; align-items:start; margin-top:20px}
+
+/* funnel */
+.funnel{display:flex; flex-direction:column; gap:8px; margin:14px 0 4px}
+.fstep{display:grid; grid-template-columns:150px 1fr 40px; align-items:center; gap:12px}
+.fstep .fl{font-size:13.5px; color:var(--muted); font-weight:500}
+.fstep .ftrack{height:26px; background:var(--surface-2); border-radius:7px; overflow:hidden; border:1px solid var(--line-2)}
+.fstep .ffill{height:100%; border-radius:7px; background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 65%,var(--ok)))}
+.fstep .fv{text-align:right; font-weight:700; font-variant-numeric:tabular-nums}
+
+/* lead rows */
+.lead{display:grid; grid-template-columns:52px 1fr auto; gap:12px; align-items:center; padding:10px 2px; border-bottom:1px solid var(--line-2)}
+.lead:last-child{border-bottom:0}
+.lead .hr{font-variant-numeric:tabular-nums; color:var(--muted); font-size:13px; font-weight:600}
+.lead .who{min-width:0}
+.lead .nm{font-weight:600; font-size:14px}
+.lead .as{color:var(--muted); font-size:12.5px; display:flex; align-items:center; gap:7px; flex-wrap:wrap}
+.src{font-size:11px; font-weight:600; letter-spacing:.02em; padding:1px 7px; border-radius:5px; background:var(--surface-2); border:1px solid var(--line-2); color:var(--muted)}
+.src.wa{color:var(--ok); background:var(--ok-soft); border-color:transparent}
+.src.ig{color:#B5457B; background:color-mix(in srgb,#B5457B 12%,transparent); border-color:transparent}
+.st{font-size:11.5px; font-weight:700; letter-spacing:.02em; padding:3px 10px; border-radius:20px; white-space:nowrap}
+.st.novo{color:var(--info); background:var(--info-soft)}
+.st.atend{color:var(--warn); background:var(--warn-soft)}
+.st.prop{color:var(--accent-ink); background:var(--accent-soft)}
+.st.fech{color:var(--ok); background:var(--ok-soft)}
+.st.perd{color:var(--crit); background:var(--crit-soft)}
+
+/* prazos */
+.prow{display:grid; grid-template-columns:4px 1fr auto; gap:0 13px; align-items:center; padding:10px 2px 10px 0; border-bottom:1px solid var(--line-2)}
+.prow:last-child{border-bottom:0}
+.prow .stripe{align-self:stretch; border-radius:3px; background:var(--info)}
+.prow.hoje .stripe{background:var(--crit)} .prow.amanha .stripe{background:var(--warn)}
+.prow .ato{font-size:11px; font-weight:700; letter-spacing:.02em; padding:1px 7px; border-radius:5px; background:var(--accent-soft); color:var(--accent-ink); border:0}
+.prow .sub2{color:var(--muted); font-size:12.5px; margin-top:3px}
+.prow .fatal{font-variant-numeric:tabular-nums; font-weight:700; font-size:13.5px}
+.du{font-size:11px; font-weight:700; padding:2px 9px; border-radius:20px; white-space:nowrap; display:inline-block; margin-top:3px}
+.du.hoje{color:var(--crit); background:var(--crit-soft)} .du.amanha{color:var(--warn); background:var(--warn-soft)} .du.semana{color:var(--info); background:var(--info-soft)}
+.grp-day{font-family:"Spectral",serif; font-weight:600; font-size:13px; letter-spacing:.02em; text-transform:uppercase; color:var(--muted); padding:14px 2px 4px; display:flex; align-items:center; gap:8px}
+.grp-day .n{color:var(--crit)}
+
+/* IA do Manual (chat) */
+.chat{display:flex; flex-direction:column; gap:12px; min-height:220px}
+.msg{max-width:82%; padding:11px 15px; border-radius:15px; line-height:1.55; font-size:14.5px; white-space:pre-wrap; word-wrap:break-word}
+.msg.u{align-self:flex-end; background:var(--accent); color:#fff; border-bottom-right-radius:5px}
+.msg.a{align-self:flex-start; background:var(--surface-2); border:1px solid var(--line-2); border-bottom-left-radius:5px}
+.msg.a.think{color:var(--muted); font-style:italic}
+.msg.a.err{color:var(--crit); background:var(--crit-soft); border-color:transparent}
+.chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
+.chip-q{appearance:none; cursor:pointer; font:inherit; font-size:13px; color:var(--accent-ink); background:var(--accent-soft); border:1px solid color-mix(in srgb,var(--accent) 20%,var(--line)); padding:7px 12px; border-radius:20px; text-align:left}
+.chip-q:hover{background:color-mix(in srgb,var(--accent-soft) 70%,var(--accent) 12%)}
+.chip-q:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.chatbar{display:flex; gap:8px; margin-top:16px}
+.chatbar input{flex:1; font:inherit; font-size:14.5px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:11px 14px}
+.chatbar input:focus-visible{outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent)}
+.ia-send,.ia-stop{appearance:none; cursor:pointer; font:inherit; font-weight:600; font-size:14.5px; border:0; border-radius:11px; padding:0 18px}
+.ia-send{background:var(--accent); color:#fff}
+.ia-send:disabled{opacity:.5; cursor:default}
+.ia-stop{background:var(--crit-soft); color:var(--crit)}
+.ia-note{color:var(--muted); font-size:12.5px; margin-top:10px; min-height:1em}
+
+/* perícias */
+.split{display:flex; gap:10px; margin:14px 0 6px}
+.split .seg{flex:1; padding:12px 14px; border-radius:11px; border:1px solid var(--line)}
+.split .seg .t{font-size:12.5px; color:var(--muted)}
+.split .seg .v{font-family:"Spectral",serif; font-weight:700; font-size:22px; margin-top:2px}
+.split .seg.fed{background:var(--accent-soft); border-color:color-mix(in srgb,var(--accent) 25%,var(--line))}
+.split .seg.est{background:var(--surface-2)}
+.bars{display:flex; flex-direction:column; gap:9px; margin-top:6px}
+.bar{display:grid; grid-template-columns:60px 1fr 34px; align-items:center; gap:10px; font-size:13px}
+.bar .lbl{color:var(--muted); font-weight:500}
+.bar .track{height:9px; background:var(--surface-2); border-radius:6px; overflow:hidden; border:1px solid var(--line-2)}
+.bar .fill{height:100%; background:var(--accent); border-radius:6px}
+.bar .val{text-align:right; color:var(--muted); font-weight:600}
+.group{margin-top:14px}
+.group:first-child{margin-top:2px}
+.group-h{display:flex; align-items:center; gap:10px; padding:9px 2px}
+.group-h .gt{font-family:"Spectral",serif; font-weight:600; font-size:14.5px}
+.group-h .gc{font-size:12px; color:var(--muted); background:var(--surface-2); border:1px solid var(--line-2); padding:1px 8px; border-radius:20px; font-weight:600}
+.group-h .rule{flex:1; height:1px; background:var(--line-2)}
+.row{display:grid; grid-template-columns:1fr auto; gap:8px 12px; align-items:center; padding:9px 2px; border-bottom:1px solid var(--line-2)}
+.row:last-child{border-bottom:0}
+.who2{display:flex; flex-direction:column; gap:2px; min-width:0}
+.who2 .nm{font-weight:600; font-size:14px}
+.who2 .ob{color:var(--muted); font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:50ch}
+.meta{display:flex; align-items:center; gap:8px; white-space:nowrap}
+.chip{font-size:11.5px; font-weight:600; letter-spacing:.02em; padding:2px 8px; border-radius:6px; border:1px solid var(--line); color:var(--muted); background:var(--surface-2)}
+.chip.fed{color:var(--accent-ink); background:var(--accent-soft); border-color:color-mix(in srgb,var(--accent) 25%,var(--line))}
+.when{font-variant-numeric:tabular-nums; font-weight:600; font-size:13.5px}
+.when .hh{color:var(--muted); font-weight:500; font-size:12px; margin-left:5px}
+
+.note{margin-top:22px; background:var(--surface-2); border:1px dashed var(--line); border-radius:12px; padding:13px 16px; color:var(--muted); font-size:13.5px; display:flex; gap:11px; align-items:flex-start}
+.note b{color:var(--ink)} .note .ic{color:var(--accent); flex:none}
+.soon{display:flex; gap:10px; flex-wrap:wrap; margin-top:20px}
+.soon .card{flex:1; min-width:150px; background:var(--surface); border:1px solid var(--line); border-radius:13px; padding:15px; box-shadow:var(--shadow); opacity:.72}
+.soon .card .ic{font-size:18px} .soon .card .t{font-weight:600; margin-top:6px} .soon .card .d{color:var(--muted); font-size:12.5px; margin-top:3px}
+.soon .card .tag{font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-top:8px; display:inline-block}
+footer{color:var(--muted); font-size:12.5px; text-align:center; margin-top:30px}
+[hidden]{display:none!important}
+
+@media (max-width:860px){ .kpis,.kpis.k4{grid-template-columns:repeat(2,1fr)} .cols{grid-template-columns:1fr} }
+@media (max-width:420px){ .fstep{grid-template-columns:110px 1fr 34px} .who2 .ob{max-width:24ch} .row{grid-template-columns:1fr} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header>
+  <div class="hd">
+    <div class="hd-top">
+      <div class="brand"><span class="mark">⚖️</span><b>QG do Escritório</b><span class="sub">Jonas Inácio · Previdenciário</span></div>
+      <div class="asof" id="asof"></div>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-com" aria-controls="p-com" aria-selected="true">Comercial <span class="badge" id="b-com"></span></button>
+      <button class="tab" role="tab" id="tab-fin" aria-controls="p-fin" aria-selected="false">Financeiro <span class="badge" id="b-fin"></span></button>
+      <button class="tab" role="tab" id="tab-prz" aria-controls="p-prz" aria-selected="false">Prazos <span class="badge" id="b-prz"></span></button>
+      <button class="tab" role="tab" id="tab-per" aria-controls="p-per" aria-selected="false">Perícias <span class="badge" id="b-per"></span></button>
+      <button class="tab" role="tab" id="tab-ia" aria-controls="p-ia" aria-selected="false">IA do Manual</button>
+      <button class="tab" role="tab" id="tab-mais" aria-controls="p-mais" aria-selected="false">Mais</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- ================= COMERCIAL ================= -->
+  <section id="p-com" role="tabpanel" aria-labelledby="tab-com">
+    <div class="intro">
+      <div class="eyebrow">Comercial · Hoje</div>
+      <h1>Leads de hoje</h1>
+      <p>Quem chegou pelo WhatsApp/Instagram (via ChatGuru), em que pé está cada um e quantos fecharam — atualizado ao longo do dia.</p>
+      <div class="kpis" id="com-kpis"></div>
+    </div>
+    <div class="cols">
+      <div class="panel">
+        <div class="panel-h"><h2>Atendimentos de hoje</h2><span class="count"><span id="com-cnt"></span> leads</span></div>
+        <div class="panel-b" id="com-list"></div>
+      </div>
+      <div>
+        <div class="panel">
+          <div class="panel-h"><h2>Funil do dia</h2></div>
+          <div class="panel-b"><div class="funnel" id="com-funnel"></div></div>
+        </div>
+        <div class="note"><span class="ic">◆</span><div>A aba Comercial está com <b>dados de exemplo</b>. Quando a gente ligar o <b>ChatGuru</b>, ela enche sozinha com os atendimentos reais da Ana.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FINANCEIRO ================= -->
+  <section id="p-fin" role="tabpanel" aria-labelledby="tab-fin" hidden>
+    <div class="intro">
+      <div class="eyebrow">Financeiro · RPVs & Precatórios</div>
+      <h1>Dinheiro a receber</h1>
+      <p>Todos os RPVs do escritório — o que já entrou, o que está a caminho por mês e o que está atrasado. Dados reais da sua planilha de RPVs.</p>
+      <div class="kpis" id="fin-kpis"></div>
+    </div>
+    <div class="cols">
+      <div>
+        <div class="panel">
+          <div class="panel-h"><h2>A receber por mês</h2><span class="count">valores previstos</span></div>
+          <div class="panel-b"><div class="bars" id="fin-meses"></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><h2><span class="dot ok"></span> Maiores recebíveis a caminho</h2><span class="count">top 15</span></div>
+          <div class="panel-b" id="fin-top"></div>
+        </div>
+      </div>
+      <div>
+        <div class="panel">
+          <div class="panel-h"><h2><span class="dot warn"></span> Atrasados</h2><span class="count" id="fin-atr-c"></span></div>
+          <div class="panel-b" id="fin-atrasados"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><h2>Meta · Auxílio-Acidente</h2></div>
+          <div class="panel-b">
+            <div style="display:flex; align-items:baseline; gap:8px; margin:6px 2px 10px">
+              <span style="font-family:Spectral,serif; font-weight:700; font-size:28px" id="meta-pct"></span>
+              <span style="color:var(--muted); font-size:13px" id="meta-txt"></span>
+            </div>
+            <div class="ftrack" style="height:14px; border-radius:8px"><div class="ffill" id="meta-bar" style="border-radius:8px"></div></div>
+          </div>
+        </div>
+        <div class="note"><span class="ic">◆</span><div><b>Dados reais</b> da sua planilha de RPVs (Drive), snapshot de 06/07/2026. No QG, atualiza sozinho e cruza com a <b>Cora</b>.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PRAZOS ================= -->
+  <section id="p-prz" role="tabpanel" aria-labelledby="tab-prz" hidden>
+    <div class="intro">
+      <div class="eyebrow">Judicial · Prazos</div>
+      <h1>Prazos dos próximos 7 dias</h1>
+      <p>Tudo que vence esta semana, do mais urgente pro menos — com o ato, o processo e a data fatal em dias úteis. Alimentado pelo DJEN + a classificação automática.</p>
+      <div class="kpis k4" id="prz-kpis"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><h2>Agenda de prazos</h2><span class="count"><span id="prz-cnt"></span> prazos ≤ 7 dias</span></div>
+      <div class="panel-b" id="prz-list"></div>
+    </div>
+    <div class="note"><span class="ic">◆</span><div>A aba Prazos está com <b>dados de exemplo</b>. Quando o <b>DJEN</b> for ligado (pelo Mac, por causa do bloqueio de IP), ela enche sozinha — cada publicação vira um prazo já classificado e com a data fatal calculada.</div></div>
+  </section>
+
+  <!-- ================= PERÍCIAS ================= -->
+  <section id="p-per" role="tabpanel" aria-labelledby="tab-per" hidden>
+    <div class="intro">
+      <div class="eyebrow">Judicial · Perícias</div>
+      <h1>Suas perícias, tudo agrupado</h1>
+      <p>Todos os casos em fase de perícia, organizados por situação, mês e tribunal — dados reais da sua planilha do Drive.</p>
+      <div class="kpis k4" id="per-kpis"></div>
+    </div>
+    <div class="cols">
+      <div>
+        <div class="panel">
+          <div class="panel-h"><h2><span class="dot ok"></span> Perícia marcada</h2><span class="count"><span id="cnt-marc"></span> com data · por mês</span></div>
+          <div class="panel-b" id="marcadas"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><h2><span class="dot warn"></span> Aguardando perícia</h2><span class="count"><span id="cnt-ag"></span> casos · por situação</span></div>
+          <div class="panel-b" id="aguardando"></div>
+        </div>
+      </div>
+      <div>
+        <div class="panel">
+          <div class="panel-h"><h2>Por instância</h2></div>
+          <div class="panel-b"><div class="split" id="split"></div><p style="color:var(--muted);font-size:12.5px;margin:6px 2px 0">Justiça Federal (TRF) × Estadual (TJ).</p></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><h2>Principais tribunais</h2><span class="count" id="cnt-trib"></span></div>
+          <div class="panel-b"><div class="bars" id="bars"></div></div>
+        </div>
+        <div class="note"><span class="ic">◆</span><div><b>Dados reais</b> da sua planilha de perícias. No QG completo, atualiza sozinho pelo <b>AdvBox</b>.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= IA DO MANUAL ================= -->
+  <section id="p-ia" role="tabpanel" aria-labelledby="tab-ia" hidden>
+    <div class="intro">
+      <div class="eyebrow">IA do Manual</div>
+      <h1>Pergunte ao manual do escritório</h1>
+      <p>Tire dúvidas do dia a dia do escritório na hora — quem faz o quê, prazos, SLAs, status, perícia, emendas e financeiro. A equipe pergunta, a IA responde pelo Manual Operacional.</p>
+    </div>
+    <div class="panel">
+      <div class="panel-b" style="padding:16px 18px">
+        <div class="chat" id="ia-chat"></div>
+        <div class="chips" id="ia-chips"></div>
+        <form class="chatbar" id="ia-form">
+          <input id="ia-input" type="text" autocomplete="off" placeholder="Ex.: Quais os requisitos do auxílio-acidente?" aria-label="Sua pergunta">
+          <button class="ia-send" id="ia-send" type="submit">Perguntar</button>
+          <button class="ia-stop" id="ia-stop" type="button" hidden>Parar</button>
+        </form>
+        <div class="ia-note" id="ia-note"></div>
+      </div>
+    </div>
+    <div class="note"><span class="ic">◆</span><div>✅ A IA já está carregada com o seu <b>Manual Operacional v4.0</b> — responde pelos seus fluxos, responsáveis e SLAs. No QG completo, o manual vira busca por embeddings (mais preciso em documentos grandes).</div></div>
+  </section>
+
+  <!-- ================= MAIS ================= -->
+  <section id="p-mais" role="tabpanel" aria-labelledby="tab-mais" hidden>
+    <div class="intro">
+      <div class="eyebrow">Próximas abas</div>
+      <h1>Tudo mais o que couber</h1>
+      <p>O QG cresce por partes. Estas são as próximas visões que entram no painel, cada uma alimentada por uma fonte que você já usa.</p>
+    </div>
+    <div class="soon" id="soon"></div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const el=(t,c,h)=>{const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;};
+const isFed=t=>/^TRF/i.test(t);
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+$("#asof").textContent="Atualizado em "+new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"});
+
+/* ---------- tabs ---------- */
+const TABS=[["tab-com","p-com"],["tab-fin","p-fin"],["tab-prz","p-prz"],["tab-per","p-per"],["tab-ia","p-ia"],["tab-mais","p-mais"]];
+function select(id){
+  TABS.forEach(([t,p])=>{
+    const on=t===id;
+    $("#"+t).setAttribute("aria-selected",on);
+    $("#"+p).hidden=!on;
+  });
+  window.scrollTo({top:0,behavior:"instant"});
+}
+TABS.forEach(([t,p])=>$("#"+t).addEventListener("click",()=>select(t)));
+
+/* ================= COMERCIAL (exemplo até ligar o ChatGuru) ================= */
+const LEADS=[
+ ["08:12","Márcia Fernandes","auxílio-acidente","wa","WhatsApp","fech","Fechado"],
+ ["08:40","Roberto Alves","aposentadoria por invalidez","wa","WhatsApp","atend","Em atendimento"],
+ ["09:05","Cláudia Souza","BPC / LOAS","ig","Instagram","novo","Novo"],
+ ["09:20","Anderson Lima","auxílio-doença","wa","WhatsApp","prop","Proposta"],
+ ["09:55","Patrícia Gomes","auxílio-acidente","ind","Indicação","fech","Fechado"],
+ ["10:15","Fernando Dias","revisão da vida toda","wa","WhatsApp","novo","Novo"],
+ ["10:42","Juliana Castro","aposentadoria por idade","ig","Instagram","atend","Em atendimento"],
+ ["11:03","Marcos Vieira","auxílio-acidente","wa","WhatsApp","perd","Perdido"],
+ ["11:30","Sandra Oliveira","BPC / LOAS","gg","Google","prop","Proposta"],
+ ["13:10","Paulo Henrique","auxílio-doença","wa","WhatsApp","atend","Em atendimento"],
+ ["14:05","Rita Nogueira","aposentadoria por invalidez","ind","Indicação","fech","Fechado"],
+ ["14:38","Diego Ramos","auxílio-acidente","wa","WhatsApp","perd","Perdido"],
+];
+const cont={novo:0,atend:0,prop:0,fech:0,perd:0};
+LEADS.forEach(l=>cont[l[5]]++);
+const chegaram=LEADS.length, fechados=cont.fech, conv=Math.round(fechados/chegaram*100);
+$("#b-com").textContent=chegaram; $("#com-cnt").textContent=chegaram;
+const comKpis=[
+ {n:chegaram,l:"Chegaram hoje",accent:true},
+ {n:cont.atend,l:"Em atendimento"},
+ {n:cont.prop,l:"Propostas"},
+ {n:fechados,l:"Fechados hoje",sub:'<span class="up">▲ 2 vs ontem</span>'},
+ {n:conv+"%",l:"Conversão"},
+];
+comKpis.forEach(k=>{const c=el("div","kpi"+(k.accent?" accent":"")); c.appendChild(el("div","n tnum",k.n)); c.appendChild(el("div","l",k.l)); if(k.sub)c.appendChild(el("div","sub",k.sub)); $("#com-kpis").appendChild(c);});
+LEADS.forEach(l=>{
+  const r=el("div","lead");
+  r.appendChild(el("div","hr",l[0]));
+  const who=el("div","who");
+  who.appendChild(el("div","nm",l[1]));
+  const as=el("div","as"); as.appendChild(el("span","src "+l[3],l[4])); as.appendChild(el("span",null,l[2])); who.appendChild(as);
+  r.appendChild(who);
+  r.appendChild(el("div","st "+l[5],l[6]));
+  $("#com-list").appendChild(r);
+});
+const qualif=cont.atend+cont.prop+cont.fech; // atendidos de fato
+const propTot=cont.prop+cont.fech;
+const FUN=[["Chegaram",chegaram],["Atendidos",qualif],["Proposta enviada",propTot],["Fechados",fechados]];
+FUN.forEach(([l,v])=>{
+  const s=el("div","fstep");
+  s.appendChild(el("div","fl",l));
+  const tr=el("div","ftrack"); const f=el("div","ffill"); f.style.width=(v/chegaram*100)+"%"; tr.appendChild(f); s.appendChild(tr);
+  s.appendChild(el("div","fv tnum",v));
+  $("#com-funnel").appendChild(s);
+});
+
+/* ================= PERÍCIAS (dados reais) ================= */
+const MARCADAS=[
+ ["Antônio Paiva Rocha Sobrinho","TRF1","11/05/2026",""],["Paulo Ávila Apolinário Júnior","TRF2-ES","11/05/2026",""],
+ ["Gilberto Rogério de Paula Filho","TJMG","12/05/2026",""],["Giovani Bressan","TRF4-PR","12/05/2026",""],
+ ["Genildo Tavares de Paulo","TJES","13/05/2026","13:30"],["Lázaro Victor de Lima","TRF1","14/05/2026",""],
+ ["Nailson Machado Dias","TRF2-ES","15/05/2026",""],["Gersiel Garcia de Souza Junior","TRF6","18/05/2026",""],
+ ["Bruno Cavalheiro de Quadros","TJMT","19/05/2026",""],["Thiago Passini Rodrigues de Deus","TRF6","19/05/2026",""],
+ ["Pedro Rafael Moreira Junior","TRF6","20/05/2026",""],["Rafael Vitor da Silveira Moreira","TJMG","20/05/2026",""],
+ ["Túlio Andreli de Oliveira Aperibense","TRF6","20/05/2026",""],["Jander Ribeiro dos Santos","TRF6","21/05/2026",""],
+ ["Valdir Marques de Oliveira","TJMG","21/05/2026","07:20"],["Keven Gustavo Ribeiro Oliveira","TRF6","22/05/2026",""],
+ ["Marco Marcelo Borges Rodrigues","TJMG","22/05/2026",""],["Paula Barros André dos Santos","TRF2-RJ","22/05/2026",""],
+ ["Wenderson Madureira de Oliveira","TRF2-RJ","22/05/2026",""],["Túlio Max Marcelino Resende Amaro","TRF6","25/05/2026",""],
+ ["Felipe Gonçalves da Silva","TRF2-RJ","28/05/2026",""],["Diogenis Justino Honorio da Silva","TJPB","29/05/2026","13:30"],
+ ["Giovane Carlos de Queiroz Dantas","TRF3","29/05/2026",""],["Dorvalino de Oliveira Ribeiro","TRF1","08/06/2026","10:36"],
+ ["Robson Ryan Ramos da Silva","TRF1","08/06/2026",""],["Warlen Santos de Paulo","TRF2-RJ","08/06/2026",""],
+ ["Erison Gomes da Silva","TRF3","09/06/2026",""],["Jameson da Silva","TRF6","09/06/2026",""],
+ ["Richardison Vitor Gonçalves","TRF6","09/06/2026",""],["Rômulo Cesar Vieira","TRF6","09/06/2026",""],
+ ["Luiz Fernando Mota de Oliveira","TRF6","10/06/2026",""],["Rondineli Fernando Perucio Siqueira","TRF6","10/06/2026",""],
+ ["Wilson Cláudio Pereira","TJMG","10/06/2026","09:15"],["Eric Zawadski Diniz","TRF4-PR","16/06/2026",""],
+ ["Djalma Junio Gonçalves Felizardo","TRF1","26/06/2026",""],["Pedro Henrique Vicente Mendes","TRF2-RJ","26/06/2026",""],
+ ["Thiago Vicente dos Santos","TRF2-RJ","01/07/2026",""],["Wilson Felix Rodrigues","TRF3","01/07/2026",""],
+ ["Rogisley Noleto Silva","TJSP","03/07/2026","09:30"],["Pedro Henrique Bezerra","TJPE","17/08/2026","12:30"],
+];
+const AGUARDANDO=[
+ ["Allan de Souza Soares","TRF6","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Alex Eduardo Marchi de Souza","TJAC","emendamos a inicial - aguardando designação da perícia"],
+ ["Anderson Oliveira Schneider","TJRS","emendamos pedindo prosseguimento do feito"],
+ ["André Mendes Gonçalves","TJSC","não foi à perícia 2x (mandado em aberto) - peticionar remarcação"],
+ ["Antonio Amaral da Silva","TJSP","perito nomeado em 31/03/26, aguardando designação da data"],
+ ["Arthur Antunes Silva de Oliveira","TJGO","autos conclusos - aguardando designação da perícia"],
+ ["Breno Felipe Nascimento","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Bruno Canhestro de Lima","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Bruno Cesar Santana da Silva","TJMT","perito aceitou, aguardando a marcação da perícia"],
+ ["Bruno da Silva Teixeira","TRF4-RS","perito pediu o reagendamento da perícia, aguardando"],
+ ["Bruno William Vitória","TJMG","aguardando designação da perícia"],
+ ["Carlos Alberto da Silva","TJRJ","aguardando designação da perícia - emendamos a inicial"],
+ ["Carlos Gabriel Andrade Ferreira","TJRO","aguardando designação - ficar atento (conf. 07/04/2026)"],
+ ["Clemente Xavier da Silva","TRF3","aposentadoria - emendamos a inicial - aguardando prosseguimento"],
+ ["Cristina / Erick Henrique Cantuario Silva","TRF6","perícia realizada 14/07/2025 - intimação confirmada"],
+ ["Danilo Emanuel de Carvalho Andrade","TRF6","emendamos com endereço - aguardando perícia social"],
+ ["Domingos Wellington da Silva","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Eder Soares Gomes","TJMG","aguardando designação - perito negou a nomeação"],
+ ["Éder Wilson Siqueira","TRF6","aguardando designação da perícia"],
+ ["Elísio Batista de Lima","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Evandro Nascimento Alves","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Fabio Junio Neves","TRF6","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Gabriel Fernandes de Sousa","TRF6","perícia realizada 09/02/2026 - citação confirmada"],
+ ["Gilson Gonçalves de Lima","TRF3","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Isaac dos Santos Araujo","TRF6","perícia realizada 22/01/2026 - intimação confirmada"],
+ ["Jardesson José Corrêa Lima","TRF1","aguardando prosseguimento do feito"],
+ ["Jhonatan Moreira Vaz","TJMG","perito aguardando pagamento pra marcar a perícia"],
+ ["João Francisco Reis Soares","TJMG","aguardando designação da perícia"],
+ ["José Carlos Gomes de Lima","TRF3","emendar a inicial até 13/05"],
+ ["Kael Costa Pinto de Freitas","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Kenory Alexandre de Matos Porfírio","TJPR","conclusos para decisão inicial desde 27/03"],
+ ["Leandro Gomes Pereira","TRF1","pedido de remarcação feito"],
+ ["Lucas Leal Santos","TJMG","aguardando designação da perícia"],
+ ["Lucca Nunes Rosa","TRF6","BPC - aguardando designação da perícia social"],
+ ["Luis Henrique Barbosa Borges","TRF3","emendamos a inicial pedindo dilação de prazo"],
+ ["Manoa Roseno dos Santos","TRF1","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Marcos Aurélio de Sousa","TJRJ","contestação do INSS sem laudo - aguardando perícia"],
+ ["Marcos Vinicius Antônio Pinto","TJMG","aguardando designação - indicamos quesitos"],
+ ["Mateus de Oliveira da Costa","TJRS","emendamos pedindo prosseguimento do feito"],
+ ["Matheus Lucas Borges da Silva","TRF2-ES","aguardando designação da perícia"],
+ ["Patrick Junio Ferreira da Silva","TRF6","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Paulo Sérgio Lima","TJPI","perito nomeado, aguardando"],
+ ["Rhyan Padilha Dias","TJPR","juiz redesignou pra outra vara, sem andamento"],
+ ["Rilson de Figueiredo Pinto","TJAM","redistribuído a outra vara - aguardando designação"],
+ ["Roberto Carlos Correia da Silva","TJMA","emendamos a inicial - aguardando designação da perícia"],
+ ["Rodrigo Nunes","TJSC","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Rogério Lobato Pires","TJGO","pedimos designação novamente - ficar de olho"],
+ ["Rogério Loures Pires","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Ronie Oliveira de Sá Barbosa","TRF3","emendamos a inicial em 04/06"],
+ ["Ryan Gustavo Espinosa Silva","TJMT","pedi remarcação - trocou de número e voltou pro antigo"],
+ ["Samuel Lucas dos Santos","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Thiago de Jesus Pontes","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Uendson de Almeida Alves","TJSP","peticionamos pedindo o prosseguimento do feito"],
+ ["Vander de Jesus da Silva","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Vinicius Amorim dos Santos","TRF3-SP","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Vitor Valentino Almeida de Albuquerque","TRF5","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Wallison Rodrigues Araujo","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Wesley José Griloni","TJSP","emendamos fora do prazo - aguardando designação da perícia"],
+ ["Weyder Fabiano de Souza Bessa","TJGO","autos conclusos - aguardando designação da perícia"],
+ ["Wiris Fonseca Junior","TRF6","aguardando designação da perícia - emendamos a inicial"],
+];
+const TOTAL_MARC=85, TOTAL_AG=61;
+
+$("#b-per").textContent=TOTAL_MARC+TOTAL_AG;
+const tribSet=new Set([...MARCADAS,...AGUARDANDO].map(r=>r[1].split("-")[0].trim()));
+[{n:TOTAL_MARC+TOTAL_AG,l:"Casos em perícia",accent:true},{n:TOTAL_MARC,l:"Perícia marcada"},{n:TOTAL_AG,l:"Aguardando perícia"},{n:tribSet.size,l:"Tribunais"}]
+ .forEach(k=>{const c=el("div","kpi"+(k.accent?" accent":"")); c.appendChild(el("div","n tnum",k.n)); c.appendChild(el("div","l",k.l)); $("#per-kpis").appendChild(c);});
+
+const MES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+const byMonth={}; MARCADAS.forEach(r=>{const [d,m,y]=r[2].split("/"); (byMonth[y+"-"+m]=byMonth[y+"-"+m]||[]).push(r);});
+$("#cnt-marc").textContent=MARCADAS.length;
+Object.keys(byMonth).sort().forEach(key=>{
+  const [y,m]=key.split("-"); const rows=byMonth[key].sort((a,b)=>+a[2].slice(0,2)-+b[2].slice(0,2));
+  const g=el("div","group"); const gh=el("div","group-h");
+  gh.appendChild(el("span","gt",cap(MES[+m-1])+" de "+y)); gh.appendChild(el("span","gc",rows.length)); gh.appendChild(el("span","rule")); g.appendChild(gh);
+  rows.forEach(r=>{
+    const row=el("div","row"); const who=el("div","who2");
+    who.appendChild(el("span","nm",r[0])); who.appendChild(el("span","ob","Perícia médica designada")); row.appendChild(who);
+    const meta=el("div","meta"); meta.appendChild(el("span","chip"+(isFed(r[1])?" fed":""),r[1]));
+    meta.appendChild(el("span","when tnum",r[2].slice(0,5)+(r[3]?'<span class="hh">'+r[3]+"</span>":""))); row.appendChild(meta); g.appendChild(row);
+  });
+  $("#marcadas").appendChild(g);
+});
+function bucket(s){s=s.toLowerCase();
+  if(s.includes("realizada"))return "Perícia realizada — aguardando andamento";
+  if(s.includes("remarca")||s.includes("reagend")||s.includes("não foi"))return "Remarcação / reagendamento";
+  if(s.includes("perito"))return "Perito nomeado — aguardando data";
+  if(s.includes("designa"))return "Aguardando designação da perícia";
+  if(s.includes("emenda")||s.includes("prosseguimento")||s.includes("conclus"))return "Emenda feita — aguardando prosseguimento";
+  return "Outros andamentos";}
+const ORDER=["Emenda feita — aguardando prosseguimento","Aguardando designação da perícia","Perito nomeado — aguardando data","Remarcação / reagendamento","Perícia realizada — aguardando andamento","Outros andamentos"];
+const bySit={}; AGUARDANDO.forEach(r=>{const b=bucket(r[2]); (bySit[b]=bySit[b]||[]).push(r);});
+$("#cnt-ag").textContent=AGUARDANDO.length;
+ORDER.filter(b=>bySit[b]).forEach(b=>{
+  const rows=bySit[b]; const g=el("div","group"); const gh=el("div","group-h");
+  gh.appendChild(el("span","gt",b)); gh.appendChild(el("span","gc",rows.length)); gh.appendChild(el("span","rule")); g.appendChild(gh);
+  rows.forEach(r=>{
+    const row=el("div","row"); const who=el("div","who2");
+    who.appendChild(el("span","nm",r[0])); who.appendChild(el("span","ob",r[2])); row.appendChild(who);
+    const meta=el("div","meta"); meta.appendChild(el("span","chip"+(isFed(r[1])?" fed":""),r[1])); row.appendChild(meta); g.appendChild(row);
+  });
+  $("#aguardando").appendChild(g);
+});
+const allP=[...MARCADAS,...AGUARDANDO]; const fed=allP.filter(r=>isFed(r[1])).length, est=allP.length-fed;
+const sp=$("#split");
+sp.appendChild((()=>{const s=el("div","seg fed"); s.appendChild(el("div","t","Justiça Federal")); s.appendChild(el("div","v tnum",fed)); return s;})());
+sp.appendChild((()=>{const s=el("div","seg est"); s.appendChild(el("div","t","Justiça Estadual")); s.appendChild(el("div","v tnum",est)); return s;})());
+const tally={}; allP.forEach(r=>{const k=r[1].split("-")[0].trim().toUpperCase(); tally[k]=(tally[k]||0)+1;});
+const top=Object.entries(tally).sort((a,b)=>b[1]-a[1]).slice(0,7); const max=top[0][1];
+$("#cnt-trib").textContent=Object.keys(tally).length+" no total";
+top.forEach(([k,v])=>{const b=el("div","bar"); b.appendChild(el("span","lbl",k)); const tr=el("div","track"); const f=el("div","fill"); f.style.width=(v/max*100)+"%"; tr.appendChild(f); b.appendChild(tr); b.appendChild(el("span","val tnum",v)); $("#bars").appendChild(b);});
+
+/* ================= FINANCEIRO (dados reais · RPVs) ================= */
+const brl=v=>"R$ "+v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const brlC=v=>v>=1e6?"R$ "+(v/1e6).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})+" mi":"R$ "+Math.round(v/1e3)+" mil";
+const FIN={ aberto:2124787.27, recebido:525286.64, atrasoTot:49277.37, atrasoN:5, total:163, pagos:34, prox3:1086775.32 };
+$("#b-fin").textContent=brlC(FIN.aberto);
+[{n:brlC(FIN.aberto),l:"A receber (em aberto)",accent:true},
+ {n:brlC(FIN.recebido),l:"Já recebido",sub:'<span class="up">20% do total</span>'},
+ {n:brlC(FIN.atrasoTot),l:"Atrasado ("+FIN.atrasoN+" casos)",sub:'<span class="down">precisa cobrar</span>'},
+ {n:brlC(FIN.prox3),l:"Próximos 3 meses"},
+ {n:FIN.total,l:"RPVs · "+FIN.pagos+" pagos"}]
+ .forEach(k=>{const c=el("div","kpi"+(k.accent?" accent":"")); c.appendChild(el("div","n tnum",k.n)); c.appendChild(el("div","l",k.l)); if(k.sub)c.appendChild(el("div","sub",k.sub)); $("#fin-kpis").appendChild(c);});
+
+const MESES=[["Ago/2026",163991.22],["Set/2026",889619.31],["Out/2026 +",1038012.14]];
+const mMax=Math.max(...MESES.map(m=>m[1]));
+MESES.forEach(([l,v])=>{const b=el("div","bar"); b.style.gridTemplateColumns="82px 1fr 78px";
+  b.appendChild(el("span","lbl",l)); const tr=el("div","track"); const f=el("div","fill"); f.style.width=(v/mMax*100)+"%"; tr.appendChild(f); b.appendChild(tr);
+  b.appendChild(el("span","val tnum",brlC(v))); $("#fin-meses").appendChild(b);});
+
+const ATRASADOS=[
+ ["Kenedy Herick Moreira dos Santos","BPC LOAS",4315.12,"venc. 01/02"],
+ ["Edmar Luciano Luz Ferraz","BPC LOAS",25046.52,"venc. 15/07"],
+ ["Tayllon Vany Almeida dos Santos","BPC LOAS",8118.27,"venc. 15/07"],
+ ["Larissa Vitoria Alvino de Lima","BPC LOAS",8828.40,"venc. 01/06"],
+ ["Pedro Henrique de Jesus Gomes","BPC LOAS",2969.06,"venc. 01/06"],
+];
+$("#fin-atr-c").textContent=brlC(FIN.atrasoTot);
+ATRASADOS.forEach(a=>{
+  const r=el("div","row"); const who=el("div","who2");
+  who.appendChild(el("span","nm",a[0])); who.appendChild(el("span","ob",a[1]+" · "+a[3])); r.appendChild(who);
+  const meta=el("div","meta"); meta.appendChild(el("span","when",brl(a[2]).replace("R$ ","R$ "))); r.appendChild(meta);
+  $("#fin-atrasados").appendChild(r);
+});
+
+const TOP=[
+ ["Janderson Matos Silva",38026.87],["André Luiz Valentim de Carvalho",37032.46],["Marcio Tadeu Silva Machado",32840.35],
+ ["Marcelo Felipe Ribeiro",32178.60],["Wesley Henrique Felipe da Silva",31948.00],["Jean Nascimento da Silva",31824.00],
+ ["Marcio Lima Neres",31824.00],["Wellington de Souza Bayma",31686.84],["Alex Raoni Fonseca Damasceno",30900.00],
+ ["Ailton Fernando da Silva",30900.00],["Everton de Miranda Moreira",30688.22],["Fábio de Jesus Lima Lopes",30094.00],
+ ["Douglas Damasceno de Oliveira",29978.14],["Rogério José da Silva",29724.00],["Wiris Fonseca Junior",28343.70],
+];
+TOP.forEach(t=>{
+  const r=el("div","row"); const who=el("div","who2");
+  who.appendChild(el("span","nm",t[0])); who.appendChild(el("span","ob","Auxílio-acidente · a vencer")); r.appendChild(who);
+  const meta=el("div","meta"); meta.appendChild(el("span","when tnum",brl(t[1]))); r.appendChild(meta);
+  $("#fin-top").appendChild(r);
+});
+
+const metaReal=119, metaObj=200, metaPct=Math.round(metaReal/metaObj*100);
+$("#meta-pct").textContent=metaPct+"%";
+$("#meta-txt").textContent=metaReal+" de "+metaObj+" casos ativos · faltam "+(metaObj-metaReal);
+$("#meta-bar").style.width=metaPct+"%";
+
+/* ================= PRAZOS (exemplo até ligar o DJEN) ================= */
+// [cliente, ato, processo, tribunal, dataFatal, diasUteis, bucket]
+const PRAZOS=[
+ ["João Bosco Neves da Rocha Jr.","Réplica","5011879-41.2025.4.03.6201","TRF3","10/09",0,"hoje"],
+ ["Gilberto Rogério de Paula","Emenda à inicial","5006808-70.2025.8.13.0567","TJMG","10/09",0,"hoje"],
+ ["Roberto Alves de Souza","Recurso inominado","5009115-14.2025.4.02.5101","TRF2",  "11/09",1,"amanha"],
+ ["Cláudia Regina Souza","Contrarrazões","6003278-41.2025.4.06.3800","TRF6",       "11/09",1,"amanha"],
+ ["Anderson Oliveira","Manifestação sobre laudo","5033719-98.2025.4.03.6301","TRF3","12/09",2,"semana"],
+ ["Patrícia Gomes Lima","Impugnação à contestação","5001621-41.2025.4.02.5120","TRF2","15/09",3,"semana"],
+ ["Fernando Dias Costa","Embargos de declaração","6002916-93.2024.4.06.3803","TRF6", "16/09",4,"semana"],
+ ["Juliana Castro Nunes","Cumprimento de sentença","1003020-26.2024.4.01.3508","TRF1","17/09",5,"semana"],
+];
+const VENCIDOS=1; // sem baixa (exemplo)
+const nHoje=PRAZOS.filter(p=>p[6]==="hoje").length, nAmanha=PRAZOS.filter(p=>p[6]==="amanha").length;
+$("#b-prz").textContent=PRAZOS.length;
+$("#prz-cnt").textContent=PRAZOS.length;
+[{n:nHoje,l:"Vence hoje",accent:true},{n:nAmanha,l:"Vence amanhã"},{n:PRAZOS.length,l:"Nos próximos 7 dias"},{n:VENCIDOS,l:"Vencidos sem baixa"}]
+ .forEach(k=>{const c=el("div","kpi"+(k.accent?" accent":"")); c.appendChild(el("div","n tnum",k.n)); c.appendChild(el("div","l",k.l)); $("#prz-kpis").appendChild(c);});
+const GRP=[["hoje","Vence hoje"],["amanha","Vence amanhã"],["semana","Ainda esta semana"]];
+const duTxt=d=>d===0?"vence hoje":(d===1?"falta 1 dia útil":"faltam "+d+" dias úteis");
+GRP.forEach(([b,label])=>{
+  const rows=PRAZOS.filter(p=>p[6]===b); if(!rows.length)return;
+  const gh=el("div","grp-day"); gh.appendChild(el("span",null,label)); gh.appendChild(el("span",(b==="hoje"?"n":""),"· "+rows.length)); $("#prz-list").appendChild(gh);
+  rows.forEach(p=>{
+    const r=el("div","prow "+b);
+    r.appendChild(el("div","stripe"));
+    const who=el("div","who2");
+    const top=el("div",null); top.style.display="flex"; top.style.alignItems="center"; top.style.gap="8px"; top.style.flexWrap="wrap";
+    top.appendChild(el("span","ato",p[1])); top.appendChild(el("span","nm",p[0]));
+    who.appendChild(top);
+    who.appendChild(el("div","sub2","Proc. "+p[2]+" · "+p[3]));
+    r.appendChild(who);
+    const meta=el("div","meta"); meta.style.flexDirection="column"; meta.style.alignItems="flex-end"; meta.style.gap="0";
+    meta.appendChild(el("span","fatal","fatal "+p[4]));
+    meta.appendChild(el("span","du "+b,duTxt(p[5])));
+    r.appendChild(meta);
+    $("#prz-list").appendChild(r);
+  });
+});
+
+/* ================= IA DO MANUAL (chat ao vivo via sample) ================= */
+const MANUAL="__MANUAL_PLACEHOLDER__";  // injetado no build (manual confidencial — fora do git)
+const RULES="Você é a IA do Manual Operacional do escritório de advocacia previdenciária do Jonas Inácio. Responda às dúvidas da equipe (Bia, Pedro, Natália, Jonas) SEMPRE com base no MANUAL abaixo — seguindo os fluxos, responsáveis, alçadas, SLAs, status, gatilhos e checklists definidos nele. Quando a pergunta for operacional, diga QUEM é o responsável e o SLA/prazo conforme o manual, e cite a seção quando útil. Se algo não estiver no manual, diga que o manual não cobre e então complemente com conhecimento geral de Direito Previdenciário, deixando claro que é complemento. NÃO invente regras, prazos, responsáveis, números de processo, valores nem jurisprudência. Seja objetivo e prático (poucas frases ou uma lista curta). Português do Brasil.\n\n===== MANUAL OPERACIONAL DO ESCRITÓRIO (v4.0) =====\n"+MANUAL;
+const iaChat=$("#ia-chat"), iaForm=$("#ia-form"), iaInput=$("#ia-input"), iaSend=$("#ia-send"), iaStop=$("#ia-stop"), iaNote=$("#ia-note"), iaChips=$("#ia-chips");
+const iaTurns=[];
+function iaBubble(cls,txt){const b=el("div","msg "+cls); b.textContent=txt; iaChat.appendChild(b); iaChat.scrollTop=iaChat.scrollHeight; return b;}
+iaBubble("a","Oi! Sou a IA do Manual do escritório. Pergunte sobre os fluxos, responsáveis, SLAs, status, perícia, emendas, financeiro — respondo pelo Manual Operacional v4.0.");
+["Qual o SLA do primeiro contato com o lead?","Quem cuida das emendas e como funciona o fluxo?","Como preparar o cliente pra perícia (D-15, D-7, D-2)?","Quais os documentos obrigatórios da pasta?"]
+ .forEach(q=>{const c=el("button","chip-q",q); c.type="button"; c.onclick=()=>{iaInput.value=q; askIA();}; iaChips.appendChild(c);});
+
+const samplePromise=(window.claude&&window.claude.use)?claude.use("sample"):Promise.resolve(null);
+let iaCtl=null, iaBusy=false;
+const ERR={not_granted:"Pra usar a IA, é só permitir quando o Claude pedir (roda na sua conta).",rate_limited:"Muitas perguntas de uma vez — espere um instante e tente de novo.",refused:"Não consegui responder essa — tente reformular.",prompt_too_large:"Pergunta muito longa — encurte um pouco.",session_expired:"Sua sessão expirou — recarregue a página.",empty_completion:"Não veio resposta — tente reformular."};
+async function askIA(){
+  const q=iaInput.value.trim(); if(!q||iaBusy)return;
+  const sample=await samplePromise;
+  if(!sample){ iaNote.textContent="A IA ao vivo funciona abrindo este painel pelo claude.ai (na sua conta Claude)."; return; }
+  iaBusy=true; iaInput.value=""; iaNote.textContent=""; iaSend.disabled=true; iaStop.hidden=false;
+  iaBubble("u",q); iaTurns.push({role:"user",content:q});
+  const ans=iaBubble("a think","Pensando…");
+  iaCtl=new AbortController();
+  try{
+    const {text}=await sample([{role:"user",content:RULES},...iaTurns.slice(-4)],
+      {cache:false, signal:iaCtl.signal, onText:({text})=>{ans.classList.remove("think"); ans.textContent=text; iaChat.scrollTop=iaChat.scrollHeight;}});
+    ans.classList.remove("think"); ans.textContent=text; iaTurns.push({role:"assistant",content:text});
+  }catch(e){
+    const code=e&&e.code;
+    if(code==="cancelled"){ if(e.text){ans.classList.remove("think"); ans.textContent=e.text; iaTurns.push({role:"assistant",content:e.text});} else {ans.remove(); iaTurns.pop();} }
+    else { ans.className="msg a err"; ans.textContent=(ERR[code])||(e&&e.text)||"Deu um problema aqui — tente de novo."; iaTurns.pop(); }
+  }finally{ iaBusy=false; iaSend.disabled=false; iaStop.hidden=true; iaCtl=null; }
+}
+iaForm.addEventListener("submit",e=>{e.preventDefault(); askIA();});
+iaStop.addEventListener("click",()=>{ if(iaCtl)iaCtl.abort(); });
+
+/* ================= MAIS ================= */
+const SOON=[
+ ["✍️","Contratos","Assinaturas do dia e pendências.","Fonte: ZapSign"],
+ ["⚖️","Processos","Andamentos e fase de cada caso.","Fonte: AdvBox"],
+ ["📄","Documentos pendentes","O que falta o cliente enviar.","Fonte: planilha"],
+ ["💵","Fluxo de caixa","Entradas e saídas do escritório.","Fonte: Cora"],
+];
+SOON.forEach(([i,t,d,f])=>{const c=el("div","card"); c.appendChild(el("div","ic",i)); c.appendChild(el("div","t",t)); c.appendChild(el("div","d",d)); c.appendChild(el("span","tag",f)); $("#soon").appendChild(c);});
+
+$("#foot").textContent="QG do Escritório · Comercial (exemplo) + Perícias (dados reais do Drive) · "+new Date().getFullYear();
+</script>
