@@ -92,9 +92,18 @@ def buscar(oab: dict, ini: dt.date, fim: dt.date, mock: bool) -> list[dict]:
             "numeroOab": pj.so_digitos(oab["oab"]),
             "ufOab": (oab.get("uf") or "").upper(),
         })
+        # A API Comunica (WAF) devolve 403 pra quem não parece navegador — mesmo
+        # truque do AdvBox: mandar cara de navegador (senão HTTP 403).
         req = urllib.request.Request(
             f"{C.API_BASE}?{qs}",
-            headers={"Accept": "application/json", "User-Agent": "vigia-djen/1.0"})
+            headers={
+                "Accept": "application/json, text/plain, */*",
+                "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+                "Referer": "https://comunica.pje.jus.br/",
+                "User-Agent": ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                               "AppleWebKit/537.36 (KHTML, like Gecko) "
+                               "Chrome/124.0.0.0 Safari/537.36"),
+            })
         with urllib.request.urlopen(req, timeout=40) as r:
             data = json.loads(r.read().decode("utf-8", "replace"))
         if total is None:
