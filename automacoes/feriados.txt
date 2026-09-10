@@ -1,0 +1,27 @@
+# Feriados p/ a contagem de dias úteis (robôs de prazo: emendas e SLA).
+# Uma data por linha (dd/mm/aaaa). Linhas com # são ignoradas.
+#
+# ⚠️  ESTA LISTA É UM PONTO DE PARTIDA — só feriados NACIONAIS de 2026.
+#     COMPLETE com os feriados ESTADUAIS e MUNICIPAIS do seu foro e com o
+#     RECESSO FORENSE (em geral 20/12 a 06/01) da sua Justiça. Feriado a menos
+#     faz o alarme achar que há mais prazo do que existe — sempre confira o
+#     prazo fatal também no ADVBOX. Este robô é apoio, não substitui o controle
+#     de prazos do escritório.
+
+# --- Nacionais 2026 ---
+01/01/2026   # Confraternização Universal
+16/02/2026   # Carnaval (segunda) — facultativo/forense
+17/02/2026   # Carnaval (terça)
+18/02/2026   # Quarta-feira de Cinzas (até 14h em muitos foros) — confira
+03/04/2026   # Sexta-feira Santa
+21/04/2026   # Tiradentes
+01/05/2026   # Dia do Trabalho
+04/06/2026   # Corpus Christi — facultativo/forense
+07/09/2026   # Independência
+12/10/2026   # Nossa Senhora Aparecida
+02/11/2026   # Finados
+15/11/2026   # Proclamação da República
+20/11/2026   # Consciência Negra (feriado nacional desde 2024)
+25/12/2026   # Natal
+
+# --- adicione abaixo os do seu foro (estaduais/municipais) e o recesso forense ---

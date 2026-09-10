@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<title>QG do Escritório</title>
+<meta name="description" content="Painel do escritório: leads do dia pelo ChatGuru e perícias agrupadas, tudo num lugar só.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#EAEEF2; --surface:#FFFFFF; --surface-2:#F5F8FA; --ink:#16222E; --muted:#5D6B79;
+  --line:#DBE3EA; --line-2:#EAF0F4; --accent:#12556E; --accent-ink:#0C3C4F; --accent-soft:#E2EEF2;
+  --ok:#2E7D5B; --ok-soft:#E3F1EA; --warn:#9C6412; --warn-soft:#F6ECD9; --crit:#B23B34; --crit-soft:#F6E3E1;
+  --info:#3A6EA5; --info-soft:#E4EDF6;
+  --shadow:0 1px 2px rgba(16,40,56,.06),0 6px 20px rgba(16,40,56,.06);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D151E; --surface:#152230; --surface-2:#1A2A39; --ink:#E7EDF3; --muted:#94A3B3;
+    --line:#26384A; --line-2:#1E2E3E; --accent:#57ABCB; --accent-ink:#BFE1EC; --accent-soft:#15303C;
+    --ok:#5FBE92; --ok-soft:#16332A; --warn:#D6A253; --warn-soft:#332916; --crit:#E27C72; --crit-soft:#331E1C;
+    --info:#79A6D8; --info-soft:#182A3D;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.28);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D151E; --surface:#152230; --surface-2:#1A2A39; --ink:#E7EDF3; --muted:#94A3B3;
+  --line:#26384A; --line-2:#1E2E3E; --accent:#57ABCB; --accent-ink:#BFE1EC; --accent-soft:#15303C;
+  --ok:#5FBE92; --ok-soft:#16332A; --warn:#D6A253; --warn-soft:#332916; --crit:#E27C72; --crit-soft:#331E1C;
+  --info:#79A6D8; --info-soft:#182A3D;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:"Spectral",Georgia,serif; text-wrap:balance; margin:0}
+.tnum{font-variant-numeric:tabular-nums}
+.wrap{max-width:1080px; margin:0 auto; padding-inline:20px; padding-block:0 64px}
+
+header{position:sticky; top:0; z-index:5; background:color-mix(in srgb,var(--bg) 90%, transparent); backdrop-filter:blur(8px); border-bottom:1px solid var(--line)}
+.hd{max-width:1080px; margin:0 auto; padding:14px 20px 0; }
+.hd-top{display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap}
+.brand{display:flex; align-items:baseline; gap:10px}
+.brand .mark{font-size:20px}
+.brand b{font-family:"Spectral",serif; font-weight:700; font-size:19px; letter-spacing:.2px}
+.brand .sub{color:var(--muted); font-size:13px}
+.asof{color:var(--muted); font-size:12.5px}
+.tabs{display:flex; gap:4px; margin-top:12px}
+.tab{appearance:none; border:0; background:none; font:inherit; cursor:pointer; color:var(--muted);
+  padding:10px 15px; font-weight:600; font-size:14.5px; border-bottom:2.5px solid transparent; margin-bottom:-1px; border-radius:8px 8px 0 0}
+.tab:hover{color:var(--ink); background:var(--surface-2)}
+.tab[aria-selected="true"]{color:var(--accent-ink); border-bottom-color:var(--accent)}
+.tab .badge{font-size:11.5px; color:var(--muted); font-weight:600; margin-left:6px; background:var(--surface-2); border:1px solid var(--line-2); border-radius:20px; padding:0 7px}
+.tab[aria-selected="true"] .badge{color:var(--accent-ink); background:var(--accent-soft); border-color:transparent}
+.tab:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+.intro{padding-block:26px 4px}
+.eyebrow{font-size:12px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--accent)}
+.intro h1{font-size:clamp(25px,3.6vw,34px); font-weight:700; margin-top:6px; line-height:1.08}
+.intro p{color:var(--muted); max-width:62ch; margin:9px 0 0}
+
+.kpis{display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-top:22px}
+.kpis.k4{grid-template-columns:repeat(4,1fr)}
+.kpi{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:15px 15px 13px; box-shadow:var(--shadow)}
+.kpi .n{font-family:"Spectral",serif; font-weight:700; font-size:30px; line-height:1; letter-spacing:-.01em}
+.kpi .l{color:var(--muted); font-size:12.5px; margin-top:7px}
+.kpi .sub{font-size:11.5px; margin-top:3px; font-weight:600}
+.kpi.accent{background:linear-gradient(180deg,var(--accent-soft),var(--surface)); border-color:color-mix(in srgb,var(--accent) 30%,var(--line))}
+.kpi.accent .n{color:var(--accent-ink)}
+.up{color:var(--ok)} .down{color:var(--crit)}
+
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); margin-top:20px; overflow:hidden}
+.panel-h{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:15px 18px; border-bottom:1px solid var(--line-2)}
+.panel-h h2{font-size:17px; font-weight:600; display:flex; align-items:center; gap:9px}
+.panel-h .count{color:var(--muted); font-size:13px; font-weight:500}
+.panel-b{padding:8px 18px 18px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.info{background:var(--info)}
+
+.cols{display:grid; grid-template-columns:1.15fr .85fr; gap:20px; align-items:start; margin-top:20px}
+
+/* funnel */
+.funnel{display:flex; flex-direction:column; gap:8px; margin:14px 0 4px}
+.fstep{display:grid; grid-template-columns:150px 1fr 40px; align-items:center; gap:12px}
+.fstep .fl{font-size:13.5px; color:var(--muted); font-weight:500}
+.fstep .ftrack{height:26px; background:var(--surface-2); border-radius:7px; overflow:hidden; border:1px solid var(--line-2)}
+.fstep .ffill{height:100%; border-radius:7px; background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 65%,var(--ok)))}
+.fstep .fv{text-align:right; font-weight:700; font-variant-numeric:tabular-nums}
+
+/* lead rows */
+.lead{display:grid; grid-template-columns:52px 1fr auto; gap:12px; align-items:center; padding:10px 2px; border-bottom:1px solid var(--line-2)}
+.lead:last-child{border-bottom:0}
+.lead .hr{font-variant-numeric:tabular-nums; color:var(--muted); font-size:13px; font-weight:600}
+.lead .who{min-width:0}
+.lead .nm{font-weight:600; font-size:14px}
+.lead .as{color:var(--muted); font-size:12.5px; display:flex; align-items:center; gap:7px; flex-wrap:wrap}
+.src{font-size:11px; font-weight:600; letter-spacing:.02em; padding:1px 7px; border-radius:5px; background:var(--surface-2); border:1px solid var(--line-2); color:var(--muted)}
+.src.wa{color:var(--ok); background:var(--ok-soft); border-color:transparent}
+.src.ig{color:#B5457B; background:color-mix(in srgb,#B5457B 12%,transparent); border-color:transparent}
+.st{font-size:11.5px; font-weight:700; letter-spacing:.02em; padding:3px 10px; border-radius:20px; white-space:nowrap}
+.st.novo{color:var(--info); background:var(--info-soft)}
+.st.atend{color:var(--warn); background:var(--warn-soft)}
+.st.prop{color:var(--accent-ink); background:var(--accent-soft)}
+.st.fech{color:var(--ok); background:var(--ok-soft)}
+.st.perd{color:var(--crit); background:var(--crit-soft)}
+
+/* prazos */
+.prow{display:grid; grid-template-columns:4px 1fr auto; gap:0 13px; align-items:center; padding:10px 2px 10px 0; border-bottom:1px solid var(--line-2)}
+.prow:last-child{border-bottom:0}
+.prow .stripe{align-self:stretch; border-radius:3px; background:var(--info)}
+.prow.hoje .stripe{background:var(--crit)} .prow.amanha .stripe{background:var(--warn)}
+.prow .ato{font-size:11px; font-weight:700; letter-spacing:.02em; padding:1px 7px; border-radius:5px; background:var(--accent-soft); color:var(--accent-ink); border:0}
+.prow .sub2{color:var(--muted); font-size:12.5px; margin-top:3px}
+.prow .fatal{font-variant-numeric:tabular-nums; font-weight:700; font-size:13.5px}
+.du{font-size:11px; font-weight:700; padding:2px 9px; border-radius:20px; white-space:nowrap; display:inline-block; margin-top:3px}
+.du.hoje{color:var(--crit); background:var(--crit-soft)} .du.amanha{color:var(--warn); background:var(--warn-soft)} .du.semana{color:var(--info); background:var(--info-soft)}
+.grp-day{font-family:"Spectral",serif; font-weight:600; font-size:13px; letter-spacing:.02em; text-transform:uppercase; color:var(--muted); padding:14px 2px 4px; display:flex; align-items:center; gap:8px}
+.grp-day .n{color:var(--crit)}
+.btn-cumprido{appearance:none; cursor:pointer; font:inherit; font-size:11.5px; font-weight:600; color:var(--ok); background:var(--ok-soft); border:1px solid transparent; border-radius:20px; padding:4px 10px; white-space:nowrap}
+.btn-cumprido:hover{background:color-mix(in srgb,var(--ok-soft) 70%, var(--ok) 12%)}
+.btn-cumprido:focus-visible{outline:2px solid var(--ok); outline-offset:2px}
+.prz-vazio{color:var(--muted); text-align:center; padding:28px 8px; font-size:14px}
+
+/* IA do Manual (chat) */
+.chat{display:flex; flex-direction:column; gap:12px; min-height:220px}
+.msg{max-width:82%; padding:11px 15px; border-radius:15px; line-height:1.55; font-size:14.5px; white-space:pre-wrap; word-wrap:break-word}
+.msg.u{align-self:flex-end; background:var(--accent); color:#fff; border-bottom-right-radius:5px}
+.msg.a{align-self:flex-start; background:var(--surface-2); border:1px solid var(--line-2); border-bottom-left-radius:5px}
+.msg.a.think{color:var(--muted); font-style:italic}
+.msg.a.err{color:var(--crit); background:var(--crit-soft); border-color:transparent}
+.chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
+.chip-q{appearance:none; cursor:pointer; font:inherit; font-size:13px; color:var(--accent-ink); background:var(--accent-soft); border:1px solid color-mix(in srgb,var(--accent) 20%,var(--line)); padding:7px 12px; border-radius:20px; text-align:left}
+.chip-q:hover{background:color-mix(in srgb,var(--accent-soft) 70%,var(--accent) 12%)}
+.chip-q:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.chatbar{display:flex; gap:8px; margin-top:16px}
+.chatbar input{flex:1; font:inherit; font-size:14.5px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:11px 14px}
+.chatbar input:focus-visible{outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent)}
+.ia-send,.ia-stop{appearance:none; cursor:pointer; font:inherit; font-weight:600; font-size:14.5px; border:0; border-radius:11px; padding:0 18px}
+.ia-send{background:var(--accent); color:#fff}
+.ia-send:disabled{opacity:.5; cursor:default}
+.ia-stop{background:var(--crit-soft); color:var(--crit)}
+.ia-note{color:var(--muted); font-size:12.5px; margin-top:10px; min-height:1em}
+
+/* perícias */
+.split{display:flex; gap:10px; margin:14px 0 6px}
+.split .seg{flex:1; padding:12px 14px; border-radius:11px; border:1px solid var(--line)}
+.split .seg .t{font-size:12.5px; color:var(--muted)}
+.split .seg .v{font-family:"Spectral",serif; font-weight:700; font-size:22px; margin-top:2px}
+.split .seg.fed{background:var(--accent-soft); border-color:color-mix(in srgb,var(--accent) 25%,var(--line))}
+.split .seg.est{background:var(--surface-2)}
+.bars{display:flex; flex-direction:column; gap:9px; margin-top:6px}
+.bar{display:grid; grid-template-columns:60px 1fr 34px; align-items:center; gap:10px; font-size:13px}
+.bar .lbl{color:var(--muted); font-weight:500}
+.bar .track{height:9px; background:var(--surface-2); border-radius:6px; overflow:hidden; border:1px solid var(--line-2)}
+.bar .fill{height:100%; background:var(--accent); border-radius:6px}
+.bar .val{text-align:right; color:var(--muted); font-weight:600}
+.group{margin-top:14px}
+.group:first-child{margin-top:2px}
+.group-h{display:flex; align-items:center; gap:10px; padding:9px 2px}
+.group-h .gt{font-family:"Spectral",serif; font-weight:600; font-size:14.5px}
+.group-h .gc{font-size:12px; color:var(--muted); background:var(--surface-2); border:1px solid var(--line-2); padding:1px 8px; border-radius:20px; font-weight:600}
+.group-h .rule{flex:1; height:1px; background:var(--line-2)}
+.row{display:grid; grid-template-columns:1fr auto; gap:8px 12px; align-items:center; padding:9px 2px; border-bottom:1px solid var(--line-2)}
+.row:last-child{border-bottom:0}
+.who2{display:flex; flex-direction:column; gap:2px; min-width:0}
+.who2 .nm{font-weight:600; font-size:14px}
+.who2 .ob{color:var(--muted); font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:50ch}
+.meta{display:flex; align-items:center; gap:8px; white-space:nowrap}
+.chip{font-size:11.5px; font-weight:600; letter-spacing:.02em; padding:2px 8px; border-radius:6px; border:1px solid var(--line); color:var(--muted); background:var(--surface-2)}
+.chip.fed{color:var(--accent-ink); background:var(--accent-soft); border-color:color-mix(in srgb,var(--accent) 25%,var(--line))}
+.when{font-variant-numeric:tabular-nums; font-weight:600; font-size:13.5px}
+.when .hh{color:var(--muted); font-weight:500; font-size:12px; margin-left:5px}
+
+.note{margin-top:22px; background:var(--surface-2); border:1px dashed var(--line); border-radius:12px; padding:13px 16px; color:var(--muted); font-size:13.5px; display:flex; gap:11px; align-items:flex-start}
+.note b{color:var(--ink)} .note .ic{color:var(--accent); flex:none}
+.soon{display:flex; gap:10px; flex-wrap:wrap; margin-top:20px}
+.soon .card{flex:1; min-width:150px; background:var(--surface); border:1px solid var(--line); border-radius:13px; padding:15px; box-shadow:var(--shadow); opacity:.72}
+.soon .card .ic{font-size:18px} .soon .card .t{font-weight:600; margin-top:6px} .soon .card .d{color:var(--muted); font-size:12.5px; margin-top:3px}
+.soon .card .tag{font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-top:8px; display:inline-block}
+footer{color:var(--muted); font-size:12.5px; text-align:center; margin-top:30px}
+[hidden]{display:none!important}
+
+@media (max-width:860px){ .kpis,.kpis.k4{grid-template-columns:repeat(2,1fr)} .cols{grid-template-columns:1fr} }
+@media (max-width:420px){ .fstep{grid-template-columns:110px 1fr 34px} .who2 .ob{max-width:24ch} .row{grid-template-columns:1fr} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header>
+  <div class="hd">
+    <div class="hd-top">
+      <div class="brand"><span class="mark">⚖️</span><b>QG do Escritório</b><span class="sub">Jonas Inácio · Previdenciário</span></div>
+      <div class="asof" id="asof"></div>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-com" aria-controls="p-com" aria-selected="true">Comercial <span class="badge" id="b-com"></span></button>
+      <button class="tab" role="tab" id="tab-fin" aria-controls="p-fin" aria-selected="false">Financeiro <span class="badge" id="b-fin"></span></button>
+      <button class="tab" role="tab" id="tab-prz" aria-controls="p-prz" aria-selected="false">Prazos <span class="badge" id="b-prz"></span></button>
+      <button class="tab" role="tab" id="tab-per" aria-controls="p-per" aria-selected="false">Perícias <span class="badge" id="b-per"></span></button>
+      <button class="tab" role="tab" id="tab-ia" aria-controls="p-ia" aria-selected="false">IA do Manual</button>
+      <button class="tab" role="tab" id="tab-mais" aria-controls="p-mais" aria-selected="false">Mais</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- ================= COMERCIAL ================= -->
+  <section id="p-com" role="tabpanel" aria-labelledby="tab-com">
+    <div class="intro">
+      <div class="eyebrow">Comercial · Hoje</div>
+      <h1>Leads de hoje</h1>
+      <p>Quem chegou pelo WhatsApp/Instagram (via ChatGuru), em que pé está cada um e quantos fecharam — atualizado ao longo do dia.</p>
+      <div class="kpis" id="com-kpis"></div>
+    </div>
+    <div class="cols">
+      <div class="panel">
+        <div class="panel-h"><h2>Atendimentos de hoje</h2><span class="count"><span id="com-cnt"></span> leads</span></div>
+        <div class="panel-b" id="com-list"></div>
+      </div>
+      <div>
+        <div class="panel">
+          <div class="panel-h"><h2>Funil do dia</h2></div>
+          <div class="panel-b"><div class="funnel" id="com-funnel"></div></div>
+        </div>
+        <div class="note"><span class="ic">◆</span><div>A aba Comercial está com <b>dados de exemplo</b>. Quando a gente ligar o <b>ChatGuru</b>, ela enche sozinha com os atendimentos reais da Ana.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FINANCEIRO ================= -->
+  <section id="p-fin" role="tabpanel" aria-labelledby="tab-fin" hidden>
+    <div class="intro">
+      <div class="eyebrow">Financeiro · RPVs & Precatórios</div>
+      <h1>Dinheiro a receber</h1>
+      <p>Todos os RPVs do escritório — o que já entrou, o que está a caminho por mês e o que está atrasado. Dados reais da sua planilha de RPVs.</p>
+      <div class="kpis" id="fin-kpis"></div>
+    </div>
+    <div class="cols">
+      <div>
+        <div class="panel">
+          <div class="panel-h"><h2>A receber por mês</h2><span class="count">valores previstos</span></div>
+          <div class="panel-b"><div class="bars" id="fin-meses"></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><h2><span class="dot ok"></span> Maiores recebíveis a caminho</h2><span class="count">top 15</span></div>
+          <div class="panel-b" id="fin-top"></div>
+        </div>
+      </div>
+      <div>
+        <div class="panel">
+          <div class="panel-h"><h2><span class="dot warn"></span> Atrasados</h2><span class="count" id="fin-atr-c"></span></div>
+          <div class="panel-b" id="fin-atrasados"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><h2>Meta · Auxílio-Acidente</h2></div>
+          <div class="panel-b">
+            <div style="display:flex; align-items:baseline; gap:8px; margin:6px 2px 10px">
+              <span style="font-family:Spectral,serif; font-weight:700; font-size:28px" id="meta-pct"></span>
+              <span style="color:var(--muted); font-size:13px" id="meta-txt"></span>
+            </div>
+            <div class="ftrack" style="height:14px; border-radius:8px"><div class="ffill" id="meta-bar" style="border-radius:8px"></div></div>
+          </div>
+        </div>
+        <div class="note"><span class="ic">◆</span><div><b>Dados reais</b> da sua planilha de RPVs (Drive), snapshot de 06/07/2026. No QG, atualiza sozinho e cruza com a <b>Cora</b>.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PRAZOS ================= -->
+  <section id="p-prz" role="tabpanel" aria-labelledby="tab-prz" hidden>
+    <div class="intro">
+      <div class="eyebrow">Judicial · Prazos</div>
+      <h1>Prazos dos próximos 7 dias</h1>
+      <p>Tudo que vence esta semana, do mais urgente pro menos — com o ato, o processo e a data fatal em dias úteis. Alimentado pelo DJEN + a classificação automática.</p>
+      <div class="kpis k4" id="prz-kpis"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><h2>Agenda de prazos</h2><span class="count"><span id="prz-cnt"></span> prazos ≤ 7 dias</span></div>
+      <div class="panel-b" id="prz-list"></div>
+    </div>
+    <div class="note"><span class="ic">◆</span><div>A aba Prazos está com <b>dados de exemplo</b>. Quando o <b>DJEN</b> for ligado (pelo Mac, por causa do bloqueio de IP), ela enche sozinha — cada publicação vira um prazo já classificado e com a data fatal calculada.</div></div>
+  </section>
+
+  <!-- ================= PERÍCIAS ================= -->
+  <section id="p-per" role="tabpanel" aria-labelledby="tab-per" hidden>
+    <div class="intro">
+      <div class="eyebrow">Judicial · Perícias</div>
+      <h1>Suas perícias, tudo agrupado</h1>
+      <p>Todos os casos em fase de perícia, organizados por situação, mês e tribunal — dados reais da sua planilha do Drive.</p>
+      <div class="kpis k4" id="per-kpis"></div>
+    </div>
+    <div class="cols">
+      <div>
+        <div class="panel">
+          <div class="panel-h"><h2><span class="dot ok"></span> Perícia marcada</h2><span class="count"><span id="cnt-marc"></span> com data · por mês</span></div>
+          <div class="panel-b" id="marcadas"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><h2><span class="dot warn"></span> Aguardando perícia</h2><span class="count"><span id="cnt-ag"></span> casos · por situação</span></div>
+          <div class="panel-b" id="aguardando"></div>
+        </div>
+      </div>
+      <div>
+        <div class="panel">
+          <div class="panel-h"><h2>Por instância</h2></div>
+          <div class="panel-b"><div class="split" id="split"></div><p style="color:var(--muted);font-size:12.5px;margin:6px 2px 0">Justiça Federal (TRF) × Estadual (TJ).</p></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><h2>Principais tribunais</h2><span class="count" id="cnt-trib"></span></div>
+          <div class="panel-b"><div class="bars" id="bars"></div></div>
+        </div>
+        <div class="note"><span class="ic">◆</span><div><b>Dados reais</b> da sua planilha de perícias. No QG completo, atualiza sozinho pelo <b>AdvBox</b>.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= IA DO MANUAL ================= -->
+  <section id="p-ia" role="tabpanel" aria-labelledby="tab-ia" hidden>
+    <div class="intro">
+      <div class="eyebrow">IA do Manual</div>
+      <h1>Pergunte ao manual do escritório</h1>
+      <p>Tire dúvidas do dia a dia do escritório na hora — quem faz o quê, prazos, SLAs, status, perícia, emendas e financeiro. A equipe pergunta, a IA responde pelo Manual Operacional.</p>
+    </div>
+    <div class="panel">
+      <div class="panel-b" style="padding:16px 18px">
+        <div class="chat" id="ia-chat"></div>
+        <div class="chips" id="ia-chips"></div>
+        <form class="chatbar" id="ia-form">
+          <input id="ia-input" type="text" autocomplete="off" placeholder="Ex.: Quais os requisitos do auxílio-acidente?" aria-label="Sua pergunta">
+          <button class="ia-send" id="ia-send" type="submit">Perguntar</button>
+          <button class="ia-stop" id="ia-stop" type="button" hidden>Parar</button>
+        </form>
+        <div class="ia-note" id="ia-note"></div>
+      </div>
+    </div>
+    <div class="note"><span class="ic">◆</span><div>✅ A IA já está carregada com o seu <b>Manual Operacional v4.0</b> — responde pelos seus fluxos, responsáveis e SLAs. No QG completo, o manual vira busca por embeddings (mais preciso em documentos grandes).</div></div>
+  </section>
+
+  <!-- ================= MAIS ================= -->
+  <section id="p-mais" role="tabpanel" aria-labelledby="tab-mais" hidden>
+    <div class="intro">
+      <div class="eyebrow">Próximas abas</div>
+      <h1>Tudo mais o que couber</h1>
+      <p>O QG cresce por partes. Estas são as próximas visões que entram no painel, cada uma alimentada por uma fonte que você já usa.</p>
+    </div>
+    <div class="soon" id="soon"></div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const el=(t,c,h)=>{const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;};
+const isFed=t=>/^TRF/i.test(t);
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+$("#asof").textContent="Atualizado em "+new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"});
+
+/* ---------- tabs ---------- */
+const TABS=[["tab-com","p-com"],["tab-fin","p-fin"],["tab-prz","p-prz"],["tab-per","p-per"],["tab-ia","p-ia"],["tab-mais","p-mais"]];
+function select(id){
+  TABS.forEach(([t,p])=>{
+    const on=t===id;
+    $("#"+t).setAttribute("aria-selected",on);
+    $("#"+p).hidden=!on;
+  });
+  window.scrollTo({top:0,behavior:"instant"});
+}
+TABS.forEach(([t,p])=>$("#"+t).addEventListener("click",()=>select(t)));
+
+/* ================= COMERCIAL (exemplo até ligar o ChatGuru) ================= */
+const LEADS=[
+ ["08:12","Márcia Fernandes","auxílio-acidente","wa","WhatsApp","fech","Fechado"],
+ ["08:40","Roberto Alves","aposentadoria por invalidez","wa","WhatsApp","atend","Em atendimento"],
+ ["09:05","Cláudia Souza","BPC / LOAS","ig","Instagram","novo","Novo"],
+ ["09:20","Anderson Lima","auxílio-doença","wa","WhatsApp","prop","Proposta"],
+ ["09:55","Patrícia Gomes","auxílio-acidente","ind","Indicação","fech","Fechado"],
+ ["10:15","Fernando Dias","revisão da vida toda","wa","WhatsApp","novo","Novo"],
+ ["10:42","Juliana Castro","aposentadoria por idade","ig","Instagram","atend","Em atendimento"],
+ ["11:03","Marcos Vieira","auxílio-acidente","wa","WhatsApp","perd","Perdido"],
+ ["11:30","Sandra Oliveira","BPC / LOAS","gg","Google","prop","Proposta"],
+ ["13:10","Paulo Henrique","auxílio-doença","wa","WhatsApp","atend","Em atendimento"],
+ ["14:05","Rita Nogueira","aposentadoria por invalidez","ind","Indicação","fech","Fechado"],
+ ["14:38","Diego Ramos","auxílio-acidente","wa","WhatsApp","perd","Perdido"],
+];
+const cont={novo:0,atend:0,prop:0,fech:0,perd:0};
+LEADS.forEach(l=>cont[l[5]]++);
+const chegaram=LEADS.length, fechados=cont.fech, conv=Math.round(fechados/chegaram*100);
+$("#b-com").textContent=chegaram; $("#com-cnt").textContent=chegaram;
+const comKpis=[
+ {n:chegaram,l:"Chegaram hoje",accent:true},
+ {n:cont.atend,l:"Em atendimento"},
+ {n:cont.prop,l:"Propostas"},
+ {n:fechados,l:"Fechados hoje",sub:'<span class="up">▲ 2 vs ontem</span>'},
+ {n:conv+"%",l:"Conversão"},
+];
+comKpis.forEach(k=>{const c=el("div","kpi"+(k.accent?" accent":"")); c.appendChild(el("div","n tnum",k.n)); c.appendChild(el("div","l",k.l)); if(k.sub)c.appendChild(el("div","sub",k.sub)); $("#com-kpis").appendChild(c);});
+LEADS.forEach(l=>{
+  const r=el("div","lead");
+  r.appendChild(el("div","hr",l[0]));
+  const who=el("div","who");
+  who.appendChild(el("div","nm",l[1]));
+  const as=el("div","as"); as.appendChild(el("span","src "+l[3],l[4])); as.appendChild(el("span",null,l[2])); who.appendChild(as);
+  r.appendChild(who);
+  r.appendChild(el("div","st "+l[5],l[6]));
+  $("#com-list").appendChild(r);
+});
+const qualif=cont.atend+cont.prop+cont.fech; // atendidos de fato
+const propTot=cont.prop+cont.fech;
+const FUN=[["Chegaram",chegaram],["Atendidos",qualif],["Proposta enviada",propTot],["Fechados",fechados]];
+FUN.forEach(([l,v])=>{
+  const s=el("div","fstep");
+  s.appendChild(el("div","fl",l));
+  const tr=el("div","ftrack"); const f=el("div","ffill"); f.style.width=(v/chegaram*100)+"%"; tr.appendChild(f); s.appendChild(tr);
+  s.appendChild(el("div","fv tnum",v));
+  $("#com-funnel").appendChild(s);
+});
+
+/* ================= PERÍCIAS (dados reais) ================= */
+const MARCADAS=[
+ ["Antônio Paiva Rocha Sobrinho","TRF1","11/05/2026",""],["Paulo Ávila Apolinário Júnior","TRF2-ES","11/05/2026",""],
+ ["Gilberto Rogério de Paula Filho","TJMG","12/05/2026",""],["Giovani Bressan","TRF4-PR","12/05/2026",""],
+ ["Genildo Tavares de Paulo","TJES","13/05/2026","13:30"],["Lázaro Victor de Lima","TRF1","14/05/2026",""],
+ ["Nailson Machado Dias","TRF2-ES","15/05/2026",""],["Gersiel Garcia de Souza Junior","TRF6","18/05/2026",""],
+ ["Bruno Cavalheiro de Quadros","TJMT","19/05/2026",""],["Thiago Passini Rodrigues de Deus","TRF6","19/05/2026",""],
+ ["Pedro Rafael Moreira Junior","TRF6","20/05/2026",""],["Rafael Vitor da Silveira Moreira","TJMG","20/05/2026",""],
+ ["Túlio Andreli de Oliveira Aperibense","TRF6","20/05/2026",""],["Jander Ribeiro dos Santos","TRF6","21/05/2026",""],
+ ["Valdir Marques de Oliveira","TJMG","21/05/2026","07:20"],["Keven Gustavo Ribeiro Oliveira","TRF6","22/05/2026",""],
+ ["Marco Marcelo Borges Rodrigues","TJMG","22/05/2026",""],["Paula Barros André dos Santos","TRF2-RJ","22/05/2026",""],
+ ["Wenderson Madureira de Oliveira","TRF2-RJ","22/05/2026",""],["Túlio Max Marcelino Resende Amaro","TRF6","25/05/2026",""],
+ ["Felipe Gonçalves da Silva","TRF2-RJ","28/05/2026",""],["Diogenis Justino Honorio da Silva","TJPB","29/05/2026","13:30"],
+ ["Giovane Carlos de Queiroz Dantas","TRF3","29/05/2026",""],["Dorvalino de Oliveira Ribeiro","TRF1","08/06/2026","10:36"],
+ ["Robson Ryan Ramos da Silva","TRF1","08/06/2026",""],["Warlen Santos de Paulo","TRF2-RJ","08/06/2026",""],
+ ["Erison Gomes da Silva","TRF3","09/06/2026",""],["Jameson da Silva","TRF6","09/06/2026",""],
+ ["Richardison Vitor Gonçalves","TRF6","09/06/2026",""],["Rômulo Cesar Vieira","TRF6","09/06/2026",""],
+ ["Luiz Fernando Mota de Oliveira","TRF6","10/06/2026",""],["Rondineli Fernando Perucio Siqueira","TRF6","10/06/2026",""],
+ ["Wilson Cláudio Pereira","TJMG","10/06/2026","09:15"],["Eric Zawadski Diniz","TRF4-PR","16/06/2026",""],
+ ["Djalma Junio Gonçalves Felizardo","TRF1","26/06/2026",""],["Pedro Henrique Vicente Mendes","TRF2-RJ","26/06/2026",""],
+ ["Thiago Vicente dos Santos","TRF2-RJ","01/07/2026",""],["Wilson Felix Rodrigues","TRF3","01/07/2026",""],
+ ["Rogisley Noleto Silva","TJSP","03/07/2026","09:30"],["Pedro Henrique Bezerra","TJPE","17/08/2026","12:30"],
+];
+const AGUARDANDO=[
+ ["Allan de Souza Soares","TRF6","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Alex Eduardo Marchi de Souza","TJAC","emendamos a inicial - aguardando designação da perícia"],
+ ["Anderson Oliveira Schneider","TJRS","emendamos pedindo prosseguimento do feito"],
+ ["André Mendes Gonçalves","TJSC","não foi à perícia 2x (mandado em aberto) - peticionar remarcação"],
+ ["Antonio Amaral da Silva","TJSP","perito nomeado em 31/03/26, aguardando designação da data"],
+ ["Arthur Antunes Silva de Oliveira","TJGO","autos conclusos - aguardando designação da perícia"],
+ ["Breno Felipe Nascimento","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Bruno Canhestro de Lima","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Bruno Cesar Santana da Silva","TJMT","perito aceitou, aguardando a marcação da perícia"],
+ ["Bruno da Silva Teixeira","TRF4-RS","perito pediu o reagendamento da perícia, aguardando"],
+ ["Bruno William Vitória","TJMG","aguardando designação da perícia"],
+ ["Carlos Alberto da Silva","TJRJ","aguardando designação da perícia - emendamos a inicial"],
+ ["Carlos Gabriel Andrade Ferreira","TJRO","aguardando designação - ficar atento (conf. 07/04/2026)"],
+ ["Clemente Xavier da Silva","TRF3","aposentadoria - emendamos a inicial - aguardando prosseguimento"],
+ ["Cristina / Erick Henrique Cantuario Silva","TRF6","perícia realizada 14/07/2025 - intimação confirmada"],
+ ["Danilo Emanuel de Carvalho Andrade","TRF6","emendamos com endereço - aguardando perícia social"],
+ ["Domingos Wellington da Silva","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Eder Soares Gomes","TJMG","aguardando designação - perito negou a nomeação"],
+ ["Éder Wilson Siqueira","TRF6","aguardando designação da perícia"],
+ ["Elísio Batista de Lima","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Evandro Nascimento Alves","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Fabio Junio Neves","TRF6","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Gabriel Fernandes de Sousa","TRF6","perícia realizada 09/02/2026 - citação confirmada"],
+ ["Gilson Gonçalves de Lima","TRF3","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Isaac dos Santos Araujo","TRF6","perícia realizada 22/01/2026 - intimação confirmada"],
+ ["Jardesson José Corrêa Lima","TRF1","aguardando prosseguimento do feito"],
+ ["Jhonatan Moreira Vaz","TJMG","perito aguardando pagamento pra marcar a perícia"],
+ ["João Francisco Reis Soares","TJMG","aguardando designação da perícia"],
+ ["José Carlos Gomes de Lima","TRF3","emendar a inicial até 13/05"],
+ ["Kael Costa Pinto de Freitas","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Kenory Alexandre de Matos Porfírio","TJPR","conclusos para decisão inicial desde 27/03"],
+ ["Leandro Gomes Pereira","TRF1","pedido de remarcação feito"],
+ ["Lucas Leal Santos","TJMG","aguardando designação da perícia"],
+ ["Lucca Nunes Rosa","TRF6","BPC - aguardando designação da perícia social"],
+ ["Luis Henrique Barbosa Borges","TRF3","emendamos a inicial pedindo dilação de prazo"],
+ ["Manoa Roseno dos Santos","TRF1","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Marcos Aurélio de Sousa","TJRJ","contestação do INSS sem laudo - aguardando perícia"],
+ ["Marcos Vinicius Antônio Pinto","TJMG","aguardando designação - indicamos quesitos"],
+ ["Mateus de Oliveira da Costa","TJRS","emendamos pedindo prosseguimento do feito"],
+ ["Matheus Lucas Borges da Silva","TRF2-ES","aguardando designação da perícia"],
+ ["Patrick Junio Ferreira da Silva","TRF6","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Paulo Sérgio Lima","TJPI","perito nomeado, aguardando"],
+ ["Rhyan Padilha Dias","TJPR","juiz redesignou pra outra vara, sem andamento"],
+ ["Rilson de Figueiredo Pinto","TJAM","redistribuído a outra vara - aguardando designação"],
+ ["Roberto Carlos Correia da Silva","TJMA","emendamos a inicial - aguardando designação da perícia"],
+ ["Rodrigo Nunes","TJSC","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Rogério Lobato Pires","TJGO","pedimos designação novamente - ficar de olho"],
+ ["Rogério Loures Pires","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Ronie Oliveira de Sá Barbosa","TRF3","emendamos a inicial em 04/06"],
+ ["Ryan Gustavo Espinosa Silva","TJMT","pedi remarcação - trocou de número e voltou pro antigo"],
+ ["Samuel Lucas dos Santos","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Thiago de Jesus Pontes","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Uendson de Almeida Alves","TJSP","peticionamos pedindo o prosseguimento do feito"],
+ ["Vander de Jesus da Silva","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Vinicius Amorim dos Santos","TRF3-SP","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Vitor Valentino Almeida de Albuquerque","TRF5","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Wallison Rodrigues Araujo","TJMG","emendamos a inicial - aguardando prosseguimento do feito"],
+ ["Wesley José Griloni","TJSP","emendamos fora do prazo - aguardando designação da perícia"],
+ ["Weyder Fabiano de Souza Bessa","TJGO","autos conclusos - aguardando designação da perícia"],
+ ["Wiris Fonseca Junior","TRF6","aguardando designação da perícia - emendamos a inicial"],
+];
+const TOTAL_MARC=85, TOTAL_AG=61;
+
+$("#b-per").textContent=TOTAL_MARC+TOTAL_AG;
+const tribSet=new Set([...MARCADAS,...AGUARDANDO].map(r=>r[1].split("-")[0].trim()));
+[{n:TOTAL_MARC+TOTAL_AG,l:"Casos em perícia",accent:true},{n:TOTAL_MARC,l:"Perícia marcada"},{n:TOTAL_AG,l:"Aguardando perícia"},{n:tribSet.size,l:"Tribunais"}]
+ .forEach(k=>{const c=el("div","kpi"+(k.accent?" accent":"")); c.appendChild(el("div","n tnum",k.n)); c.appendChild(el("div","l",k.l)); $("#per-kpis").appendChild(c);});
+
+const MES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+const byMonth={}; MARCADAS.forEach(r=>{const [d,m,y]=r[2].split("/"); (byMonth[y+"-"+m]=byMonth[y+"-"+m]||[]).push(r);});
+$("#cnt-marc").textContent=MARCADAS.length;
+Object.keys(byMonth).sort().forEach(key=>{
+  const [y,m]=key.split("-"); const rows=byMonth[key].sort((a,b)=>+a[2].slice(0,2)-+b[2].slice(0,2));
+  const g=el("div","group"); const gh=el("div","group-h");
+  gh.appendChild(el("span","gt",cap(MES[+m-1])+" de "+y)); gh.appendChild(el("span","gc",rows.length)); gh.appendChild(el("span","rule")); g.appendChild(gh);
+  rows.forEach(r=>{
+    const row=el("div","row"); const who=el("div","who2");
+    who.appendChild(el("span","nm",r[0])); who.appendChild(el("span","ob","Perícia médica designada")); row.appendChild(who);
+    const meta=el("div","meta"); meta.appendChild(el("span","chip"+(isFed(r[1])?" fed":""),r[1]));
+    meta.appendChild(el("span","when tnum",r[2].slice(0,5)+(r[3]?'<span class="hh">'+r[3]+"</span>":""))); row.appendChild(meta); g.appendChild(row);
+  });
+  $("#marcadas").appendChild(g);
+});
+function bucket(s){s=s.toLowerCase();
+  if(s.includes("realizada"))return "Perícia realizada — aguardando andamento";
+  if(s.includes("remarca")||s.includes("reagend")||s.includes("não foi"))return "Remarcação / reagendamento";
+  if(s.includes("perito"))return "Perito nomeado — aguardando data";
+  if(s.includes("designa"))return "Aguardando designação da perícia";
+  if(s.includes("emenda")||s.includes("prosseguimento")||s.includes("conclus"))return "Emenda feita — aguardando prosseguimento";
+  return "Outros andamentos";}
+const ORDER=["Emenda feita — aguardando prosseguimento","Aguardando designação da perícia","Perito nomeado — aguardando data","Remarcação / reagendamento","Perícia realizada — aguardando andamento","Outros andamentos"];
+const bySit={}; AGUARDANDO.forEach(r=>{const b=bucket(r[2]); (bySit[b]=bySit[b]||[]).push(r);});
+$("#cnt-ag").textContent=AGUARDANDO.length;
+ORDER.filter(b=>bySit[b]).forEach(b=>{
+  const rows=bySit[b]; const g=el("div","group"); const gh=el("div","group-h");
+  gh.appendChild(el("span","gt",b)); gh.appendChild(el("span","gc",rows.length)); gh.appendChild(el("span","rule")); g.appendChild(gh);
+  rows.forEach(r=>{
+    const row=el("div","row"); const who=el("div","who2");
+    who.appendChild(el("span","nm",r[0])); who.appendChild(el("span","ob",r[2])); row.appendChild(who);
+    const meta=el("div","meta"); meta.appendChild(el("span","chip"+(isFed(r[1])?" fed":""),r[1])); row.appendChild(meta); g.appendChild(row);
+  });
+  $("#aguardando").appendChild(g);
+});
+const allP=[...MARCADAS,...AGUARDANDO]; const fed=allP.filter(r=>isFed(r[1])).length, est=allP.length-fed;
+const sp=$("#split");
+sp.appendChild((()=>{const s=el("div","seg fed"); s.appendChild(el("div","t","Justiça Federal")); s.appendChild(el("div","v tnum",fed)); return s;})());
+sp.appendChild((()=>{const s=el("div","seg est"); s.appendChild(el("div","t","Justiça Estadual")); s.appendChild(el("div","v tnum",est)); return s;})());
+const tally={}; allP.forEach(r=>{const k=r[1].split("-")[0].trim().toUpperCase(); tally[k]=(tally[k]||0)+1;});
+const topTrib=Object.entries(tally).sort((a,b)=>b[1]-a[1]).slice(0,7); const max=topTrib[0][1];
+$("#cnt-trib").textContent=Object.keys(tally).length+" no total";
+topTrib.forEach(([k,v])=>{const b=el("div","bar"); b.appendChild(el("span","lbl",k)); const tr=el("div","track"); const f=el("div","fill"); f.style.width=(v/max*100)+"%"; tr.appendChild(f); b.appendChild(tr); b.appendChild(el("span","val tnum",v)); $("#bars").appendChild(b);});
+
+/* ================= FINANCEIRO (dados reais · RPVs) ================= */
+const brl=v=>"R$ "+v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const brlC=v=>v>=1e6?"R$ "+(v/1e6).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})+" mi":"R$ "+Math.round(v/1e3)+" mil";
+const FIN={ aberto:2124787.27, recebido:525286.64, atrasoTot:49277.37, atrasoN:5, total:163, pagos:34, prox3:1086775.32 };
+$("#b-fin").textContent=brlC(FIN.aberto);
+[{n:brlC(FIN.aberto),l:"A receber (em aberto)",accent:true},
+ {n:brlC(FIN.recebido),l:"Já recebido",sub:'<span class="up">20% do total</span>'},
+ {n:brlC(FIN.atrasoTot),l:"Atrasado ("+FIN.atrasoN+" casos)",sub:'<span class="down">precisa cobrar</span>'},
+ {n:brlC(FIN.prox3),l:"Próximos 3 meses"},
+ {n:FIN.total,l:"RPVs · "+FIN.pagos+" pagos"}]
+ .forEach(k=>{const c=el("div","kpi"+(k.accent?" accent":"")); c.appendChild(el("div","n tnum",k.n)); c.appendChild(el("div","l",k.l)); if(k.sub)c.appendChild(el("div","sub",k.sub)); $("#fin-kpis").appendChild(c);});
+
+const MESES=[["Ago/2026",163991.22],["Set/2026",889619.31],["Out/2026 +",1038012.14]];
+const mMax=Math.max(...MESES.map(m=>m[1]));
+MESES.forEach(([l,v])=>{const b=el("div","bar"); b.style.gridTemplateColumns="82px 1fr 78px";
+  b.appendChild(el("span","lbl",l)); const tr=el("div","track"); const f=el("div","fill"); f.style.width=(v/mMax*100)+"%"; tr.appendChild(f); b.appendChild(tr);
+  b.appendChild(el("span","val tnum",brlC(v))); $("#fin-meses").appendChild(b);});
+
+const ATRASADOS=[
+ ["Kenedy Herick Moreira dos Santos","BPC LOAS",4315.12,"venc. 01/02"],
+ ["Edmar Luciano Luz Ferraz","BPC LOAS",25046.52,"venc. 15/07"],
+ ["Tayllon Vany Almeida dos Santos","BPC LOAS",8118.27,"venc. 15/07"],
+ ["Larissa Vitoria Alvino de Lima","BPC LOAS",8828.40,"venc. 01/06"],
+ ["Pedro Henrique de Jesus Gomes","BPC LOAS",2969.06,"venc. 01/06"],
+];
+$("#fin-atr-c").textContent=brlC(FIN.atrasoTot);
+ATRASADOS.forEach(a=>{
+  const r=el("div","row"); const who=el("div","who2");
+  who.appendChild(el("span","nm",a[0])); who.appendChild(el("span","ob",a[1]+" · "+a[3])); r.appendChild(who);
+  const meta=el("div","meta"); meta.appendChild(el("span","when",brl(a[2]).replace("R$ ","R$ "))); r.appendChild(meta);
+  $("#fin-atrasados").appendChild(r);
+});
+
+const TOP=[
+ ["Janderson Matos Silva",38026.87],["André Luiz Valentim de Carvalho",37032.46],["Marcio Tadeu Silva Machado",32840.35],
+ ["Marcelo Felipe Ribeiro",32178.60],["Wesley Henrique Felipe da Silva",31948.00],["Jean Nascimento da Silva",31824.00],
+ ["Marcio Lima Neres",31824.00],["Wellington de Souza Bayma",31686.84],["Alex Raoni Fonseca Damasceno",30900.00],
+ ["Ailton Fernando da Silva",30900.00],["Everton de Miranda Moreira",30688.22],["Fábio de Jesus Lima Lopes",30094.00],
+ ["Douglas Damasceno de Oliveira",29978.14],["Rogério José da Silva",29724.00],["Wiris Fonseca Junior",28343.70],
+];
+TOP.forEach(t=>{
+  const r=el("div","row"); const who=el("div","who2");
+  who.appendChild(el("span","nm",t[0])); who.appendChild(el("span","ob","Auxílio-acidente · a vencer")); r.appendChild(who);
+  const meta=el("div","meta"); meta.appendChild(el("span","when tnum",brl(t[1]))); r.appendChild(meta);
+  $("#fin-top").appendChild(r);
+});
+
+const metaReal=119, metaObj=200, metaPct=Math.round(metaReal/metaObj*100);
+$("#meta-pct").textContent=metaPct+"%";
+$("#meta-txt").textContent=metaReal+" de "+metaObj+" casos ativos · faltam "+(metaObj-metaReal);
+$("#meta-bar").style.width=metaPct+"%";
+
+/* ================= PRAZOS (exemplo até ligar o DJEN) ================= */
+// [cliente, ato, processo, tribunal, dataFatal, diasUteis, bucket]
+const PRAZOS=[
+ ["João Bosco Neves da Rocha Jr.","Réplica","5011879-41.2025.4.03.6201","TRF3","10/09",0,"hoje"],
+ ["Gilberto Rogério de Paula","Emenda à inicial","5006808-70.2025.8.13.0567","TJMG","10/09",0,"hoje"],
+ ["Roberto Alves de Souza","Recurso inominado","5009115-14.2025.4.02.5101","TRF2",  "11/09",1,"amanha"],
+ ["Cláudia Regina Souza","Contrarrazões","6003278-41.2025.4.06.3800","TRF6",       "11/09",1,"amanha"],
+ ["Anderson Oliveira","Manifestação sobre laudo","5033719-98.2025.4.03.6301","TRF3","12/09",2,"semana"],
+ ["Patrícia Gomes Lima","Impugnação à contestação","5001621-41.2025.4.02.5120","TRF2","15/09",3,"semana"],
+ ["Fernando Dias Costa","Embargos de declaração","6002916-93.2024.4.06.3803","TRF6", "16/09",4,"semana"],
+ ["Juliana Castro Nunes","Cumprimento de sentença","1003020-26.2024.4.01.3508","TRF1","17/09",5,"semana"],
+];
+const VENCIDOS=1; // sem baixa (exemplo)
+
+// cumpridos = marcados na hora (guardado no navegador; quando o DJEN ligar
+// de verdade, a baixa passa a gravar no banco do QG, visível pra todos).
+function lerCumpridos(){ try{ return new Set(JSON.parse(localStorage.getItem("prazosCumpridos")||"[]")); }catch{ return new Set(); } }
+function salvarCumpridos(s){ try{ localStorage.setItem("prazosCumpridos", JSON.stringify([...s])); }catch{} }
+const chavePrazo=p=>p[2]+"|"+p[1];
+
+function renderPrazos(){
+  const cumpridos=lerCumpridos();
+  const pendentes=PRAZOS.filter(p=>!cumpridos.has(chavePrazo(p)));
+  const nHoje=pendentes.filter(p=>p[6]==="hoje").length, nAmanha=pendentes.filter(p=>p[6]==="amanha").length;
+  $("#b-prz").textContent=pendentes.length;
+  $("#prz-cnt").textContent=pendentes.length;
+  $("#prz-kpis").innerHTML="";
+  [{n:nHoje,l:"Vence hoje",accent:true},{n:nAmanha,l:"Vence amanhã"},{n:pendentes.length,l:"Nos próximos 7 dias"},{n:VENCIDOS,l:"Vencidos sem baixa"}]
+   .forEach(k=>{const c=el("div","kpi"+(k.accent?" accent":"")); c.appendChild(el("div","n tnum",k.n)); c.appendChild(el("div","l",k.l)); $("#prz-kpis").appendChild(c);});
+
+  $("#prz-list").innerHTML="";
+  const GRP=[["hoje","Vence hoje"],["amanha","Vence amanhã"],["semana","Ainda esta semana"]];
+  const duTxt=d=>d===0?"vence hoje":(d===1?"falta 1 dia útil":"faltam "+d+" dias úteis");
+  let algum=false;
+  GRP.forEach(([b,label])=>{
+    const rows=pendentes.filter(p=>p[6]===b); if(!rows.length)return;
+    algum=true;
+    const gh=el("div","grp-day"); gh.appendChild(el("span",null,label)); gh.appendChild(el("span",(b==="hoje"?"n":""),"· "+rows.length)); $("#prz-list").appendChild(gh);
+    rows.forEach(p=>{
+      const r=el("div","prow "+b);
+      r.appendChild(el("div","stripe"));
+      const who=el("div","who2");
+      const topo=el("div",null); topo.style.display="flex"; topo.style.alignItems="center"; topo.style.gap="8px"; topo.style.flexWrap="wrap";
+      topo.appendChild(el("span","ato",p[1])); topo.appendChild(el("span","nm",p[0]));
+      who.appendChild(topo);
+      who.appendChild(el("div","sub2","Proc. "+p[2]+" · "+p[3]));
+      r.appendChild(who);
+      const meta=el("div","meta"); meta.style.flexDirection="column"; meta.style.alignItems="flex-end"; meta.style.gap="6px";
+      meta.appendChild(el("span","fatal","fatal "+p[4]));
+      meta.appendChild(el("span","du "+b,duTxt(p[5])));
+      const btn=el("button","btn-cumprido","✓ Marcar cumprido"); btn.type="button";
+      btn.onclick=()=>{ const s=lerCumpridos(); s.add(chavePrazo(p)); salvarCumpridos(s); renderPrazos(); };
+      meta.appendChild(btn);
+      r.appendChild(meta);
+      $("#prz-list").appendChild(r);
+    });
+  });
+  if(!algum){
+    const vazio=el("div","prz-vazio","🎉 Nenhum prazo pendente nos próximos 7 dias.");
+    $("#prz-list").appendChild(vazio);
+  }
+}
+renderPrazos();
+
+/* ================= IA DO MANUAL (chat ao vivo via sample) ================= */
+const MANUAL="MANUAL OPERACIONAL E DE LEGAL OPS\nEscritório Previdenciário\nVersão 4.0 - Reorganização operacional da equipe\nJonas Inácio - Advocacia Previdenciária\nMudança aplicada nesta versãoEsta versão substitui a estrutura que previa Gustavo no administrativo. O manual passa a refletir a operação sem Gustavo, redistribuindo as responsabilidades entre Bia, Pedro, Natália e Jonas. A mudança preserva a separação entre operação e técnica jurídica: Bia acompanha emendas e comunicação; Pedro cuida de documentos e administrativo; Natália permanece responsável pelo judicial técnico; Jonas decide estratégia, exceções, laudos, sentenças, recursos e pontos financeiros críticos.\nDocumento confidencial - uso interno\nAbril de 2026\n\nSumário\n1. Apresentação e objetivo do manual\n2. Modelo operacional de Legal Ops do escritório\n3. Estrutura da equipe, responsabilidades e alçadas\n4. Fluxo comercial - entrada do cliente\n5. Setor de provas e organização documental\n6. Processo administrativo - Meu INSS\n7. Triagem estratégica e matriz de decisão\n8. Processo judicial\n9. Emendas judiciais e pendências processuais\n10. Perícia médica - preparação e acompanhamento\n11. Análise do laudo pericial\n12. Sentença, recursos e comunicação\n13. Execução, alvará, financeiro e encerramento\n14. Status padrão, gatilhos e SLAs\n15. Painel de indicadores (KPIs)\n16. Reuniões, comunicação e cadência gerencial\n17. Governança, qualidade, segurança e LGPD\n18. Ferramentas, automações e Google Drive\n19. Respostas padrão para clientes (FAQ)\n20. Esteira de produção e regra de atualização\n21. Plano de transição pós-saída de Gustavo\n\n1. Apresentação e objetivo do manual\n1.1 Propósito\nEste manual documenta a operação do escritório previdenciário com foco em repetibilidade, qualidade técnica, velocidade de execução, segurança da informação e experiência do cliente. A versão 4.0 reorganiza a operação após a saída de Gustavo, mantendo a esteira produtiva e reduzindo risco de tarefa sem dono, prazo sem controle ou cliente sem comunicação.\n1.2 Como usar este documento\nTodo membro da equipe deve ler integralmente este manual ao ingressar no escritório ou ao receber nova função.\nSempre que houver dúvida operacional, a regra é consultar primeiro o manual e somente depois escalar.\nProcesso sem status, prazo ou responsável definido é processo fora do padrão.\nToda atividade recorrente deve ter responsável, SLA, checklist e condição objetiva de saída.\nToda melhoria de fluxo deve ser registrada neste documento, mantendo uma versão vigente e única.\n1.3 Missão e princípios\nGarantir que segurados do INSS tenham acesso aos benefícios a que têm direito, com atendimento humanizado, estratégia jurídica sólida e execução operacional disciplinada.\nTransparência com o cliente em todas as etapas.\nExcelência técnica aliada a previsibilidade operacional.\nOrganização e dados como base de produtividade.\nComunicação simples, empática e sem promessa de resultado.\nSeparação clara entre tarefa operacional, tarefa técnica e decisão estratégica.\nMelhoria contínua orientada por gargalos reais.\n2. Modelo operacional de Legal Ops do escritório\nLegal Ops, neste escritório, significa transformar a prestação do serviço jurídico em uma operação gerenciável. O foco deixa de ser apenas 'cada pessoa sabe o que fazer' e passa a ser 'o escritório consegue repetir, medir, corrigir e escalar a entrega com segurança'.\n2.1 Pilares operacionais\nPilar\nAplicação no escritório\nProcesso\nToda atividade recorrente deve ter fluxo definido, responsável, SLA, checklist e condição clara de saída.\nGovernança\nDecisões estratégicas, exceções e escalonamentos seguem alçadas formais.\nDados\nO escritório gere por fila, aging, taxa de conversão, tempo de ciclo, retrabalho e resultado financeiro.\nTecnologia\nADVBOX, Google Drive, ChatGuru, ZapSign, Meu INSS, planilhas e IA operam como sistema integrado, e não como ferramentas isoladas.\nCliente\nO cliente recebe resposta, orientação, transparência e próximo passo em linguagem simples.\n2.2 Regras estruturantes\nTodo caso deve estar em um único status operacional por vez.\nToda mudança de status deve gerar tarefa, prazo e responsável.\nTodo caso com atraso de SLA entra na pauta de gestão.\nToda exceção relevante sobe para Jonas com resumo objetivo e sugestão de encaminhamento.\nBia, Pedro e Natália devem resolver rotina por regra; Jonas deve decidir exceção, estratégia e risco.\nNenhum documento relevante deve ficar fora do Drive e nenhum ato formal deve ficar fora do ADVBOX.\nResultado esperadoA versão 4.0 reduz dependência individual, absorve a saída de Gustavo, evita perda de prazos e fortalece a previsibilidade da esteira.\n3. Estrutura da equipe, responsabilidades e alçadas\n3.1 Organograma funcional sem Gustavo\nA operação passa a funcionar com quatro núcleos claros: atendimento e comunicação, documentos e administrativo, judicial técnico, e direção estratégica. A redistribuição não deve criar sobreposição confusa; cada pessoa deve saber o que decide, o que executa e o que precisa escalar.\nFunção\nResponsabilidade central\nDecide sem escalar\nEscala quando\nBia - Comercial, atendimento e emendas operacionais\nCaptação, qualificação, contratos, follow-up com clientes, comunicação de perícia e acompanhamento operacional de emendas judiciais.\nResponder lead, qualificar, enviar contrato, fazer follow-up, cobrar documentos do cliente, acompanhar emenda no ADVBOX, confirmar se documento chegou e se pendência foi baixada.\nHouver objeção jurídica, negociação fora do padrão, reclamação sensível, risco reputacional, exigência judicial complexa ou perda iminente de prazo.\nPedro - Provas, documentos e administrativo\nMontagem de pasta, cobrança de documentos, acesso ao Drive, CNIS, Meu INSS, protocolo administrativo simples e acompanhamento de requerimentos.\nCobrar documentos, montar pasta, validar checklist, baixar CNIS e laudos, protocolar requerimentos administrativos padrão, acompanhar exigências simples e registrar desfechos.\nProva contraditória, documentação crítica incompleta, indeferimento relevante, exigência incomum, divergência grave no CNIS ou dúvida estratégica.\nNatália - Judicial técnico\nPetição inicial, protocolo judicial, acompanhamento processual, controle de prazos, emendas técnicas, manifestações, movimentações e gatilhos processuais.\nAjuizar casos padrão, cumprir prazos, redigir e protocolar emendas, registrar movimentações, criar gatilhos para Bia quando depender de cliente e notificar Jonas sobre laudo, sentença ou risco.\nTese incomum, recurso sensível, impugnação estratégica, laudo desfavorável, risco processual elevado ou decisão que exija validação de Jonas.\nJonas - Direção jurídica e estratégia\nDecisão estratégica, análise de exceções, laudos, sentenças, recursos, execução, alvarás, financeiro crítico e melhoria da operação.\nDefinir rota jurídica, validar teses estratégicas, decidir recurso, impugnação, execução, acordo ou encerramento sensível.\nNão se aplica; deve receber da equipe resumo objetivo, documentos relevantes, risco e sugestão de encaminhamento.\n3.2 Regra de ouro\nRegra de ouroJonas não deve ser acionado para resolver ausência de rotina, falta de checklist ou atraso evitável. A equipe deve escalar exceção, não operação básica.\n3.3 Frase prática de distribuição\nSe é documento, CNIS, Drive, Meu INSS ou administrativo: Pedro.\nSe é cliente, cobrança, follow-up, comunicação ou acompanhamento operacional de emenda: Bia.\nSe é prazo judicial, petição, emenda técnica, protocolo ou movimentação processual: Natália.\nSe é estratégia, laudo, sentença, recurso, execução, alvará ou dinheiro relevante: Jonas.\n3.4 Alçadas de decisão\nTema\nDecisão ordinária\nExceção / alçada\nQualificação do lead\nBia aplica critérios do manual.\nJonas quando houver potencial fora do escopo ou caso sensível.\nFechamento da pasta\nPedro valida checklist e completude.\nJonas apenas quando houver dúvida estratégica ou prova crítica.\nVia administrativa ou judicial\nPedro e Natália aplicam matriz de decisão.\nJonas decide caso limítrofe, exceção ou reversão de rota.\nProtocolo administrativo padrão\nPedro protocola no Meu INSS.\nJonas orienta exigência incomum, indeferimento relevante ou dúvida estratégica.\nEmenda judicial\nNatália redige e protocola; Bia acompanha operacionalmente.\nJonas revisa se houver risco de indeferimento, tese incomum ou prazo crítico.\nPetição inicial padrão\nNatália ajuíza dentro do modelo e checklist.\nJonas revisa somente casos complexos, estratégicos ou fora do padrão.\nLaudo, sentença e recurso\nEquipe prepara resumo e documentos.\nDecisão final permanece com Jonas.\nExecução e alvará\nEquipe prepara documentação e registros conforme demanda.\nJonas valida valores, estratégia, honorários e fechamento financeiro.\n4. Fluxo comercial - entrada do cliente\n4.1 Canais de entrada\nOs leads chegam por ChatGuru, WhatsApp direto, indicações e demais canais ativos. Todo lead deve entrar em registro único, com data, origem, situação, benefício pretendido e responsável pelo próximo passo.\n4.2 SLA do comercial\nEtapa\nSLA\nResponsável\nControle\nPrimeiro contato\nAté 15 minutos em horário comercial\nBia\nChatGuru / CRM / ADVBOX\nQualificação inicial\nNo mesmo dia\nBia\nChecklist comercial\nEnvio de contrato após aceite\nMesmo dia\nBia\nZapSign\nFollow-up sem assinatura\n24 horas\nBia\nTarefa automática\nPassagem do caso após assinatura\nNo mesmo dia\nBia -> Pedro\nChecklist concluído\n4.3 Procedimento de atendimento inicial\nResponder com empatia, usando o nome do cliente e confirmando a demanda principal.\nIdentificar benefício buscado, situação atual, existência de laudos e histórico administrativo.\nVerificar aderência ao escopo do escritório e risco de expectativa irreal.\nExplicar etapas, prazos reais, possibilidade de administrativo e judicial, sem prometer resultado.\nApresentar honorários, forma de cobrança e fluxo de contratação.\nEnviar contrato via ZapSign e registrar andamento.\n\n4.4 Critérios de qualificação do lead\nCritério\nAceitar\nRecusar / escalar\nTipo de benefício\nAuxílio por incapacidade, aposentadoria por incapacidade permanente, BPC/LOAS, auxílio-acidente e casos aderentes ao foco.\nAposentadorias fora do escopo, matéria estranha ou demanda sem aderência estratégica.\nProva inicial\nHá laudos, exames, histórico médico ou possibilidade real de produção probatória.\nNenhum registro médico e nenhuma possibilidade real de produção probatória.\nExpectativa do cliente\nCompreende prazo, risco e necessidade de documentos.\nExige garantia, urgência impossível, valor certo ou oculta informação relevante.\nViabilidade operacional\nCaso pode entrar na esteira padrão.\nExigiria tratamento não padronizado sem capacidade disponível.\n4.5 Checklist de passagem para Pedro\nContrato assinado e link salvo no ZapSign.\nNome completo, CPF, telefone, e-mail e resumo do caso registrados.\nOrigem do lead e campanha identificadas.\nStatus alterado para CONTRATO ASSINADO.\nCliente informado sobre próximos documentos e prazo de montagem da pasta.\nTarefa criada para Pedro abrir pasta e checklist documental.\n5. Setor de provas e organização documental\n5.1 Objetivo da etapa\nA montagem da pasta é um gate de qualidade. Pasta incompleta gera retrabalho, petição fraca, perícia mal preparada e perda de tempo do time jurídico. O padrão do escritório é simples: não existe pasta 'quase pronta'; existe pasta fechada ou pendente.\n5.2 Responsável\nPedro é o responsável por provas, documentos, acesso ao Drive, CNIS, Meu INSS e montagem da pasta. Ele também pode falar diretamente com clientes para cobrar documentos e esclarecer pendências documentais.\n5.3 Registro inicial e cadastro do cliente\nInserir o cliente na planilha de controle e no ADVBOX no mesmo dia do recebimento.\nCriar a pasta do cliente no Google Drive dentro da competência vigente.\nGerar documentos iniciais e salvar no local correto.\nRegistrar campanha, data de entrada e status inicial.\nEnviar lista de documentos pelo canal padrão.\nOrganizar documentos recebidos por tipo, data e qualidade.\n\n5.4 Documentos obrigatórios\n#\nDocumento\nObrigatório\nObservação\n1\nRG ou CNH\nSim\nFrente e verso; CNH substitui RG quando necessário.\n2\nCPF\nSim\nQuando não constar no documento de identificação.\n3\nComprovante de residência\nSim\nAceitar conta de consumo, fatura ou comprovante equivalente.\n4\nDocumentos médicos\nSim\nLaudos, prontuários, exames, receituários e relatórios; organizar por categoria e ordem cronológica.\n5\nSenha GOV.BR\nSim\nGuardar apenas em nota padronizada e local autorizado; nunca em conversas dispersas.\n6\nCNIS\nSim\nExtrair do Meu INSS e validar vínculos, carência e qualidade de segurado.\n7\nLaudos do INSS\nSempre que houver\nBaixar todos os disponíveis e consolidar quando necessário.\n8\nDocumentos complementares\nConforme o caso\nCAT, CTPS, PPP, boletim, atestados ocupacionais, CadÚnico, comprovantes de renda, etc.\n5.5 Estrutura mínima da pasta no Drive\nPasta\nConteúdo\n[Nome do Cliente]\nPasta raiz do caso.\n01 - Documentos Pessoais\nRG/CNH, CPF, comprovante, procuração, declarações e documentos de familiares quando necessário.\n02 - Provas Médicas\nLaudos, exames, prontuários, receituários e relatórios em ordem cronológica.\n03 - CNIS e Meu INSS\nCNIS, histórico previdenciário, laudos INSS, extratos, cartas e anotações.\n04 - Administrativo\nProtocolos, requerimentos, exigências, comprovantes, comunicações e decisões.\n05 - Judicial\nInicial, emendas, despachos, perícia, laudo, sentença, recurso, execução e alvará.\n06 - Pendências\nDocumentos solicitados e ainda não recebidos, dúvidas e itens de validação.\n07 - Relatório de Triagem\nChecklist final, resumo operacional, pendências e encaminhamento.\n\n5.6 Cadência de cobrança de documentos\nDia\nAção\nCanal\nResponsável\nD+0\nEnviar lista padrão de documentos e explicar prioridade da montagem da pasta.\nChatGuru / WhatsApp\nPedro\nD+3\nPrimeiro follow-up com reforço educativo e orientação objetiva.\nWhatsApp\nPedro\nD+5\nSegundo follow-up personalizado; identificar travas do cliente.\nWhatsApp / áudio\nPedro\nD+7\nEscalar para ligação ativa e redefinição de prazo com o cliente.\nLigação / WhatsApp\nPedro ou Bia\nD+10\nLevar para reunião semanal como caso com risco de parada.\nReunião / ADVBOX\nPedro\n5.7 Controle de qualidade da pasta\nNenhum arquivo pode ficar com nome genérico como 'documento 1', 'scan' ou 'imagem'.\nDocumentos médicos devem ser separados por categoria e salvos em PDF legível.\nToda inconsistência do CNIS deve ser anotada na pasta ou no ADVBOX.\nAntes de fechar a pasta, Pedro deve rodar o checklist completo de documentos obrigatórios.\nPasta fechada sem checklist validado é considerada não conforme.\nDocumentos ilegíveis, duplicados ou pertencentes a outro cliente devem ir para revisão.\n5.8 Gate de fechamento\nChecklist documental 100% concluído ou pendências justificadas.\nCNIS salvo e analisado.\nLaudos próprios e/ou do INSS organizados.\nClassificação inicial do caso feita.\nStatus alterado para PASTA FECHADA.\nCliente comunicado de que o caso entrou na próxima etapa.\n6. Processo administrativo - Meu INSS\n6.1 Responsável\nCom a saída de Gustavo, Pedro assume o administrativo previdenciário padrão: acesso ao Meu INSS, baixa de documentos, protocolo administrativo, acompanhamento semanal e cumprimento de exigências simples.\n6.2 Procedimento padrão\nAcessar o Meu INSS com credencial autorizada do cliente.\nVerificar se já existe requerimento similar para evitar duplicidade.\nDefinir o pedido adequado conforme matriz.\nAnexar documentação médica, previdenciária e pessoal disponível.\nRegistrar número do protocolo na planilha, no ADVBOX e na pasta do Drive.\nAtualizar status para PROTOCOLO ADM.\nIniciar acompanhamento semanal.\n6.3 Regras de acompanhamento\nTodo processo administrativo ativo deve ser revisado toda segunda-feira.\nToda mudança de andamento deve ser registrada na timeline do ADVBOX.\nQuando houver exigência, o prazo interno para reação é de até 1 dia útil.\nQuando houver resultado, o cliente deve ser informado em até 48 horas úteis.\nIndeferimento relevante deve ser enviado para Jonas com resumo objetivo e sugestão de rota.\n6.4 Saídas possíveis\nSituação\nAção\nResponsável\nDeferido sem valores retroativos relevantes\nComunicar cliente, encerrar fase e arquivar documentação.\nPedro / Bia\nDeferido com valores a controlar\nEncaminhar para Jonas para avaliação financeira.\nPedro -> Jonas\nExigência simples\nCumprir exigência, salvar comprovante e atualizar ADVBOX.\nPedro\nExigência complexa\nPreparar resumo, documentos e dúvida central.\nPedro -> Jonas\nIndeferido\nSalvar decisão, comunicar com cautela e encaminhar para reanálise.\nPedro -> Jonas / Natália\n7. Triagem estratégica e matriz de decisão\nA triagem transforma documentação em encaminhamento. Seu objetivo é decidir a via adequada com base em força probatória, histórico do cliente, risco e eficiência operacional.\n7.1 Elementos de força probatória\nElemento\nPor que importa\nSequela ou limitação funcional\nIndica redução da capacidade laborativa e reforça a tese.\nAmputação, encurtamento, restrição de mobilidade\nAumenta objetividade da prova.\nNexo causal, acidente ou agravamento\nFortalece tese acidentária e conexão com o labor.\nHistórico longitudinal\nMostra permanência ou recorrência do quadro.\nLaudo do INSS e exames coerentes\nReduz fragilidade da narrativa e aumenta previsibilidade.\nCadÚnico, renda e vulnerabilidade\nEssencial para BPC/LOAS e análise socioeconômica.\n7.2 Matriz de decisão\nCenário\nEncaminhamento\nResponsável\nPrazo\nLaudos fortes, histórico consistente e boa aderência estratégica\nJUDICIAL\nNatália\nAté 5 dias úteis após pasta fechada\nProva fraca, mas com chance administrativa adequada\nADMINISTRATIVO\nPedro\nAté 3 dias úteis\nDúvida estratégica ou documentação crítica contraditória\nCONSULTAR JONAS\nPedro / Natália\nAté 2 dias úteis\nIndeferimento administrativo relevante\nREANÁLISE JUDICIAL\nJonas -> Natália\nAté 5 dias úteis\nEmenda judicial documental\nCOBRAR CLIENTE E EMENDAR\nBia + Natália\nAté 2 dias úteis antes do prazo fatal\n7.3 Redução de gargalo do sócio\nJonas deve ser acionado apenas em exceções materiais: caso limítrofe, tese fora do padrão, prova muito fraca, risco reputacional, necessidade de recurso estratégico, laudo desfavorável, sentença relevante ou decisão financeira. A equipe deve encaminhar resumo objetivo com fatos, documentos, risco, dúvida central e sugestão de rota.\n8. Processo judicial\n8.1 Responsável\nNatália é responsável pelo judicial técnico: iniciais, emendas, manifestações, protocolos, controle de prazos, movimentações e comunicação de eventos processuais relevantes.\n8.2 Recebimento da pasta e ajuizamento\nNatália recebe a pasta com status PASTA FECHADA e checklist concluído.\nConferir completude antes de redigir; se faltar item essencial, devolver para correção imediata.\nRedigir a inicial com base em modelo atualizado, provas organizadas e tese adequada.\nAjuizar no sistema competente e registrar número do processo, fase e data.\nAtualizar status para AJUIZADO.\nSe houver exigência documental provável, avisar Bia para preparar comunicação com cliente.\n8.3 Controle de prazo e acompanhamento\nToda intimação deve ser registrada no ADVBOX no mesmo dia.\nO prazo interno de elaboração deve terminar, em regra, 2 dias úteis antes do prazo fatal.\nPeças fora do padrão, pedidos incomuns ou risco relevante devem ser escalados.\nA linha do tempo do processo deve permanecer atualizada.\nQuando o cumprimento depender de documento ou informação do cliente, Natália deve acionar Bia.\n8.4 Revisão por complexidade\nTipo de peça\nRegra de revisão\nAção\nInicial padrão\nPode seguir sem revisão do sócio, desde que checklist esteja completo.\nNatália decide e protocola.\nInicial fora do padrão\nRevisão de Jonas obrigatória.\nNatália escala com resumo.\nEmenda simples/documental\nNatália redige/protocola; Bia acompanha cliente e prazo operacional.\nExecução conjunta.\nRecurso, impugnação estratégica ou tese sensível\nRevisão e decisão final de Jonas.\nNatália redige; Jonas valida.\n9. Emendas judiciais e pendências processuais\n9.1 Conceito operacional\nEmenda judicial é uma pendência processual que exige resposta no prazo. Pode envolver correção de cadastro, juntada de documentos, esclarecimento de pedido, ajuste de valor, adequação de competência ou complementação técnica da petição.\n9.2 Separação de responsabilidade\nRegra centralBia acompanha operacionalmente a emenda. Natália é responsável pela parte técnica, redação e protocolo. Jonas entra apenas em emenda estratégica, risco de indeferimento ou tese fora do padrão.\nEtapa\nResponsável\nIdentificar intimação de emenda\nNatália\nRegistrar tarefa no ADVBOX\nNatália\nClassificar se é simples, documental, jurídica ou estratégica\nNatália\nControlar pendência operacional\nBia\nCobrar documento ou informação do cliente\nBia\nSalvar documento no Drive\nBia ou Pedro, conforme a natureza do documento\nRedigir emenda\nNatália\nProtocolar emenda\nNatália\nRevisar emenda complexa\nJonas\nConfirmar protocolo e baixa da tarefa\nBia\nAtualizar cliente, se necessário\nBia\n9.3 Status específico\nStatus\nResponsável operacional\nResponsável técnico\nSLA\nCondição de saída\nEMENDA PENDENTE\nBia\nNatália\nProtocolar até 2 dias úteis antes do prazo fatal\nEmenda protocolada, comprovante salvo e tarefa baixada no ADVBOX.\n9.4 Fluxo da emenda\nNatália identifica a intimação e cria tarefa no ADVBOX.\nNatália classifica a emenda: simples, documental, jurídica ou estratégica.\nSe depender de cliente, Natália aciona Bia com mensagem objetiva do que precisa.\nBia cobra o cliente e acompanha resposta.\nQuando o documento chegar, Bia salva no Drive ou aciona Pedro quando for documento de pasta/prova.\nBia avisa Natália que a pendência operacional foi cumprida.\nNatália redige e protocola a emenda.\nBia confere se a tarefa foi baixada e se o comprovante foi salvo.\nSe houver risco, Natália aciona Jonas antes do prazo interno.\n9.5 Checklist da Bia para emenda\nItem\nConferência\nIntimação registrada no ADVBOX\n[ ] Sim  [ ] Não\nPrazo fatal anotado\n[ ] Sim  [ ] Não\nPrazo interno anotado\n[ ] Sim  [ ] Não\nNatália classificou a emenda\n[ ] Sim  [ ] Não\nDepende de documento/informação do cliente\n[ ] Sim  [ ] Não\nCliente foi comunicado\n[ ] Sim  [ ] Não\nDocumento/informação foi recebido\n[ ] Sim  [ ] Não\nDocumento foi salvo no Drive\n[ ] Sim  [ ] Não\nNatália foi avisada\n[ ] Sim  [ ] Não\nEmenda foi protocolada\n[ ] Sim  [ ] Não\nComprovante salvo\n[ ] Sim  [ ] Não\nTarefa baixada no ADVBOX\n[ ] Sim  [ ] Não\n10. Perícia médica - preparação e acompanhamento\n10.1 Fluxo operacional da perícia\nQuando\nAção\nResponsável\nD-15\nInformar data, horário, local e regra geral da perícia.\nBia\nD-7\nEnviar orientações detalhadas, checklist de documentos e conduta.\nBia\nD-2\nConfirmar presença, rota e dúvidas finais.\nBia\nD+1\nRegistrar relato do cliente e salvar observações na pasta/ADVBOX.\nBia\nGatilho judicial\nIdentificar perícia no processo e criar tarefas para Bia.\nNatália\nGatilho administrativo\nIdentificar perícia administrativa e criar tarefas para Bia.\nPedro\n10.2 Orientações ao cliente\nLevar todos os laudos, exames e receituários originais, organizados por data.\nChegar com antecedência mínima de 30 minutos.\nRelatar limitações reais com exemplos concretos do dia a dia.\nNão minimizar sintomas e não exagerar fatos.\nLevar documento com foto e, se usar, muleta, bengala, cadeira de rodas ou suporte equivalente.\nProibição absolutaNunca orientar o cliente a mentir, dramatizar ou adulterar informação. A preparação da perícia existe para melhorar clareza e organização da verdade, nunca para criar narrativa falsa.\n11. Análise do laudo pericial\n11.1 Responsabilidade e prazo interno\nA decisão final sobre manifestação, impugnação, pedido de esclarecimentos ou nova perícia é de Jonas. O laudo deve ser analisado internamente em até 5 dias úteis da juntada, preservando folga de prazo.\n11.2 Pontos obrigatórios de análise\nConclusão do perito e aderência à tese do caso.\nReconhecimento ou não de incapacidade, sequela, nexo causal, DII e extensão da limitação.\nCompatibilidade entre o laudo judicial e os documentos médicos do cliente.\nResposta aos quesitos e eventual omissão relevante.\nQualidade metodológica do exame pericial.\n11.3 Ações possíveis\nAção\nQuando usar\nManifestar concordância\nLaudo favorável e suficiente para pedido de sentença.\nImpugnar o laudo\nQuando contrariar frontalmente a prova documental ou ignorar elementos essenciais.\nPedir esclarecimentos\nQuando houver ambiguidade, omissão ou resposta incompleta aos quesitos.\nSolicitar nova perícia\nQuando houver vício grave, contradição interna ou inadequação técnica relevante.\n11.4 Fluxo após laudo juntado\nNatália identifica o laudo e registra no ADVBOX no mesmo dia.\nNatália salva o laudo na pasta do Drive.\nNatália avisa Jonas com resumo objetivo.\nJonas define manifestação, impugnação, esclarecimentos ou nova perícia.\nNatália prepara a peça conforme orientação.\nBia comunica o cliente quando houver decisão relevante a explicar.\n12. Sentença, recursos e comunicação\n12.1 Análise da sentença\nA sentença deve ser classificada como procedência total, procedência parcial ou improcedência, sempre com registro do próximo passo operacional. O cliente não deve receber apenas a notícia; deve receber também a explicação do que acontece agora.\n12.2 Procedimento de recurso\nJonas define a viabilidade do recurso com base em fundamento, prova, custo e probabilidade.\nNatália redige ou ajusta a peça conforme orientação.\nO recurso deve entrar na fila prioritária de prazo.\nA decisão final fica registrada na pasta e no ADVBOX.\n12.3 Regra de comunicação com o cliente\nComunicar sentença ou decisão relevante em até 48 horas úteis.\nUsar linguagem simples, sem juridiquês desnecessário.\nExplicar resultado, risco, próximos passos e expectativa real de tempo.\nRegistrar a comunicação realizada.\n13. Execução, alvará, financeiro e encerramento\n13.1 Fase de execução\nApós trânsito em julgado ou definição de cumprimento, Jonas valida estratégia e cálculos.\nRegistrar valores, correção, juros, honorários e expectativa de pagamento.\nAtualizar status para EXECUÇÃO.\nManter controle separado de casos aguardando alvará, kit e ida ao banco.\n13.2 Levantamento de alvará\nIdentificar banco pagador e exigências documentais específicas.\nMontar o kit de levantamento com conferência na véspera.\nConfirmar valor levantado e registrar planilha financeira.\nSeparar honorários e repassar a parcela do cliente com transparência.\nEncerrar o caso com status final e documentação salva.\n13.3 Kit de levantamento\nDocumento\nObservação\nAlvará judicial original\nConferir assinatura e identificação do processo.\nRG do advogado\nOriginal e cópia quando necessário.\nCPF\nQuando não constar do RG.\nCarteira da OAB\nConferir vigência.\nProcuração / substabelecimento\nConforme exigência do banco e do caso.\nComprovantes auxiliares\nLevar tudo que o banco ou vara exigir.\n13.4 Campos obrigatórios da planilha financeira\nCampo\nDescrição\nCliente\nNome completo.\nNúmero do processo / protocolo\nReferência única.\nTipo de benefício\nNatureza do caso.\nValor bruto\nValor total do crédito.\nHonorários contratuais\nPercentual ou valor devido ao escritório.\nValor líquido do cliente\nRepasse após retenções.\nData do recebimento\nEntrada efetiva do valor.\nStatus financeiro\nAguardando alvará, alvará expedido, kit, banco, pago, honorários recebidos.\nObservações\nPendências, banco, documentos ou exceções.\n13.5 Regras financeiras\nToda movimentação financeira relevante deve ser registrada no mesmo dia.\nNenhum alvará deve ser considerado encerrado sem conferência de valor e honorários.\nCasos com valor levantado, mas sem repasse final ou sem baixa correta, entram como pendência crítica.\nRelatório financeiro mensal deve ser comparado com execução, alvarás e honorários previstos.\n14. Status padrão, gatilhos e SLAs\nStatus não servem apenas para marcar onde o caso está; servem para disparar a próxima ação. Todo status deve ter dono, SLA e condição objetiva de saída.\n14.1 Status mínimos do escritório\nStatus\nDescrição\nResponsável\nSLA\nLEAD\nContato recebido e ainda não qualificado.\nBia\n15 minutos para primeiro retorno\nCONTRATO ASSINADO\nCliente aderiu e aguarda abertura operacional.\nBia -> Pedro\nMesmo dia\nAGUARDANDO DOCUMENTOS\nDocumentos solicitados e em coleta.\nPedro\n7 dias úteis, com follow-ups\nPASTA FECHADA\nDocumentação completa e checklist validado.\nPedro\nAté 7 dias úteis\nPROTOCOLO ADM\nPedido administrativo protocolado.\nPedro\nAté 3 dias úteis após encaminhamento\nAJUIZADO\nAção judicial protocolada.\nNatália\nAté 5 dias úteis após pasta fechada\nEMENDA PENDENTE\nIntimação judicial exige correção, documento ou esclarecimento.\nBia + Natália\nProtocolar até 2 dias úteis antes do prazo fatal\nPERÍCIA DESIGNADA\nPerícia agendada e fluxo de preparo iniciado.\nBia / Natália / Pedro\nGatilhos D-15, D-7, D-2, D+1\nLAUDO JUNTADO\nLaudo disponível para análise.\nJonas\nAté 5 dias úteis para decisão\nSENTENÇA\nSentença publicada e em avaliação.\nJonas\nAté 3 dias úteis para classificar rota\nEXECUÇÃO\nFase de cálculos e recebimento.\nJonas\nAtualização semanal\nAGUARDANDO ALVARÁ\nCrédito pendente de expedição.\nJonas\nAtualização semanal\nALVARÁ EXPEDIDO\nDocumento emitido para levantamento.\nJonas / apoio operacional\nPreparar kit em até 2 dias úteis\nFINALIZADO\nCaso encerrado técnica e financeiramente.\nTodos\nBaixa imediata após conferência\n14.2 Gatilhos operacionais obrigatórios\nMudança de status\nTarefa automática / obrigatória\nQuem executa\nPrazo\nCONTRATO ASSINADO\nAbrir checklist de documentos, criar pasta e enviar lista inicial.\nPedro\nMesmo dia\nPASTA FECHADA\nDirecionar conforme matriz e abrir fila ADM ou JUD.\nPedro\nMesmo dia\nPROTOCOLO ADM\nIniciar revisão semanal e registrar número do protocolo.\nPedro\nMesmo dia\nEMENDA PENDENTE\nClassificar emenda, cobrar cliente se necessário e controlar prazo.\nNatália + Bia\nImediato\nPERÍCIA DESIGNADA\nAbrir sequência D-15, D-7, D-2 e D+1.\nBia\nAutomático\nLAUDO JUNTADO\nNotificar Jonas e registrar prazo interno de análise.\nNatália\nMesmo dia\nALVARÁ EXPEDIDO\nAbrir checklist do kit e agenda bancária.\nJonas / apoio\nAté 2 dias úteis\nATRASO DE SLA\nLevar para painel de exceção da reunião semanal.\nResponsável da etapa\nImediato\n15. Painel de indicadores (KPIs)\nO escritório deve gerir por indicadores simples, mas úteis. O objetivo não é produzir relatório bonito; é identificar onde a esteira trava, onde o dinheiro fica parado, onde o cliente demora para avançar e onde o caso perde qualidade.\n15.1 Indicadores comerciais\nIndicador\nComo medir\nMeta / uso\nLeads recebidos\nContagem mensal por canal.\nEntender volume e origem.\nTaxa de resposta em até 15 min\nLeads respondidos no SLA / total.\nManter velocidade comercial.\nTaxa de conversão\nContratos assinados / leads.\nAcompanhar qualidade do funil.\nTempo até assinatura\nDias entre primeiro contato e assinatura.\nReduzir fricção comercial.\n15.2 Indicadores operacionais\nIndicador\nComo medir\nMeta / uso\nTempo de montagem de pasta\nDias entre contrato e pasta fechada.\nAté 7 dias úteis.\nAging de documentos pendentes\nCasos parados por faixa de dias.\nAtacar parada de cliente.\nTempo de protocolo administrativo\nDias entre decisão ADM e protocolo.\nAté 3 dias úteis.\nTempo de ajuizamento\nDias entre pasta fechada e protocolo.\nAté 5 dias úteis.\nEmendas pendentes\nQuantidade de emendas abertas e prazo restante.\nEvitar indeferimento e prazo apertado.\nRetrabalho\nCasos devolvidos por falta documental ou erro operacional.\nReduzir mês a mês.\n15.3 Indicadores jurídicos\nIndicador\nComo medir\nMeta / uso\nTaxa de êxito\nSentenças favoráveis / total.\nMedir resultado por tipo de caso.\nÊxito em perícia\nLaudos favoráveis / total.\nAvaliar qualidade de preparo e prova.\nTempo de análise de laudo\nDias da juntada até decisão interna.\nEvitar prazo apertado.\nTempo de reação à sentença\nDias da publicação até definição da rota.\nAumentar previsibilidade.\n15.4 Indicadores financeiros\nIndicador\nComo medir\nMeta / uso\nValores em execução\nSoma de créditos em fase de recebimento.\nPrevisão de caixa.\nValores aguardando alvará\nCréditos parados antes do saque.\nAtacar dinheiro travado.\nHonorários recebidos\nTotal efetivamente recebido no período.\nComparar com carteira ativa.\nTempo entre sentença favorável e levantamento\nDias até transformar ganho em caixa.\nAumentar velocidade financeira.\n16. Reuniões, comunicação e cadência gerencial\n16.1 Reunião semanal de operação\nFrequência: toda segunda-feira, 9h. Duração: 30 a 45 minutos. Participantes: todos.\nBia informa volume de leads, contratos, follow-ups, clientes travados e emendas operacionais pendentes.\nPedro informa pastas em montagem, aging documental, protocolos administrativos, exigências e gargalos de Meu INSS.\nNatália informa ajuizamentos, prazos críticos, emendas técnicas, laudos juntados e pendências judiciais.\nJonas decide exceções, prioridades e ajustes de rota.\n16.2 Reunião mensal de indicadores\nFrequência: primeira sexta-feira do mês. Duração: 1 hora. Foco: leitura do painel, identificação do principal gargalo do período e definição de uma melhoria operacional por mês.\n16.3 Regras de comunicação interna\nCanal\nUso\nRegra\nWhatsApp interno\nComunicados rápidos e avisos do dia.\nNão substituir registro formal de tarefa.\nADVBOX\nTarefas, prazos, status e acompanhamento.\nToda atividade formal deve estar registrada.\nGoogle Drive\nDocumentos e pastas dos clientes.\nNada relevante deve ficar solto em computador pessoal.\nReunião / call\nDiscussões estratégicas, feedback e exceções.\nRegistrar decisões operacionais relevantes.\n17. Governança, qualidade, segurança e LGPD\n17.1 Regras gerais\nNunca prometer resultado ou valor certo ao cliente.\nNunca orientar cliente a mentir, exagerar ou ocultar informação.\nTodo prazo processual tem prioridade absoluta.\nTodo problema relevante deve ser comunicado imediatamente; ocultação de erro é falta grave.\nToda informação de cliente é sigilosa e só pode circular pelos canais autorizados.\nQuando um colaborador sair do escritório, acessos devem ser revogados no mesmo dia.\n17.2 Política de qualidade\nChecklist é obrigatório antes de fechar pasta, ajuizar ação, protocolar emenda e levantar alvará.\nToda peça estratégica deve seguir padrão interno de revisão.\nTodo caso devolvido por falta documental conta como retrabalho.\nUma amostra de casos por mês deve ser auditada para conferir aderência ao manual.\nEmenda judicial sem prazo interno, responsável técnico e responsável operacional é não conformidade crítica.\n17.3 Segurança da informação e LGPD\nSenha GOV.BR deve ser armazenada apenas em local padronizado e autorizado.\nÉ proibido manter dados sensíveis em anotações pessoais, papéis soltos ou conversas informais sem controle.\nAcesso a pastas e sistemas deve observar necessidade operacional.\nAcesso de colaborador desligado deve ser removido no mesmo dia.\nArquivos de clientes devem permanecer no Drive oficial, com compartilhamento limitado a quem executa a etapa.\n18. Ferramentas, automações e Google Drive\n18.1 Ferramentas do dia a dia\nFerramenta\nFunção\nQuem usa\nChatGuru\nAtendimento, mensagens padrão e comunicação com clientes.\nBia, Pedro\nZapSign\nAssinatura digital de contratos.\nBia, Pedro\nADVBOX\nGestão de processos, tarefas, prazos, cadastros e indicadores.\nTodos\nGoogle Drive\nArmazenamento central de documentos e pastas.\nTodos conforme alçada\nMeu INSS\nAcesso previdenciário, CNIS, laudos, protocolos e exigências.\nPedro\nPlanilhas de controle\nApoio analítico, operacional e financeiro.\nPedro, Jonas e designados\nIA / Claude\nClassificação documental, geração de checklist, resumo de triagem e apoio operacional.\nUso supervisionado\n18.2 Organização automática de documentos no Drive\nA automação documental deve funcionar como apoio operacional, nunca como substituta da validação humana. O sistema pode classificar, sugerir nome, apontar pasta e gerar relatório, mas documentos duvidosos devem ir para revisão.\nEntrada de documentos na pasta 00 - ENTRADA DE DOCUMENTOS.\nClassificação por cliente, tipo de documento, benefício provável e qualidade.\nCriação ou localização da pasta do cliente.\nRenomeação padronizada dos arquivos.\nMovimentação para subpasta correta.\nSinalização de documentos pendentes, ilegíveis, duplicados ou divergentes.\nGeração de relatório de triagem para Pedro validar.\n18.3 Automações mínimas recomendadas\nStatus CONTRATO ASSINADO gera checklist documental e abertura de pasta.\nStatus PASTA FECHADA direciona para fila ADM ou JUD e cria prazo.\nStatus EMENDA PENDENTE cria alerta para Bia e Natália.\nPERÍCIA DESIGNADA gera sequência automática de comunicação.\nLAUDO JUNTADO dispara prazo interno para Jonas.\nALVARÁ EXPEDIDO gera checklist bancário e pendência financeira.\n18.4 Backup e continuidade\nDrive deve ser a fonte oficial do documento; versão local é apenas transitória.\nPlanilhas críticas devem ter cópia de segurança e controle de acesso.\nToda mudança estrutural no fluxo deve ter responsável e data de implementação.\nBackups e permissões devem ser revisados após qualquer mudança de equipe.\n19. Respostas padrão para clientes (FAQ)\nAs respostas abaixo são base para comunicação do time. Adaptar a linguagem ao caso concreto, sem alterar o conteúdo essencial.\nPergunta do cliente\nResposta padrão\nQuanto tempo demora o processo?\nDepende da etapa e do juízo, mas trabalhamos com expectativa realista. Em muitos casos a perícia ocorre em alguns meses e o processo completo pode levar mais tempo. Sempre que houver mudança relevante, nós informaremos.\nQuanto vou receber?\nO valor depende do histórico contributivo, do benefício reconhecido e dos cálculos oficiais. Só é possível estimar com segurança após análise do caso e da documentação.\nNão tenho documentos médicos.\nPrecisamos levantar o que já existe no Meu INSS e identificar se há como complementar com documentos próprios. Sem prova mínima, o caso pode perder força.\nJá dei entrada e foi negado.\nO indeferimento administrativo não encerra necessariamente o seu direito. Vamos analisar a negativa e verificar se cabe insistir administrativamente ou buscar a via judicial.\nPreciso ir à perícia?\nSe a perícia for designada, sim. Nós vamos orientar você antes, durante a preparação e após o agendamento.\nO juiz pediu emenda. O que significa?\nSignifica que o processo precisa de uma correção, documento ou esclarecimento antes de seguir. Vamos informar exatamente o que falta e acompanhar o envio dentro do prazo.\n20. Esteira de produção e regra de atualização\n20.1 Visão geral da esteira\nEtapa\nFase\nAtividade principal\nResponsável\nEntrega\n1\nComercial\nCaptar, qualificar e fechar contrato.\nBia\nContrato assinado\n2\nProvas\nReunir documentos, CNIS e montar pasta.\nPedro\nPasta fechada\n3\nTriagem\nDefinir via adequada conforme matriz.\nPedro / Natália\nEncaminhamento ADM ou JUD\n4\nAdministrativo\nProtocolar e acompanhar requerimento.\nPedro\nResultado do INSS\n5\nJudicial\nAjuizar, acompanhar e conduzir prazos.\nNatália\nProcesso em curso\n6\nEmendas\nControlar pendência, cobrar cliente, redigir e protocolar.\nBia + Natália\nEmenda protocolada\n7\nPerícia\nPreparar cliente e registrar retorno.\nBia\nCliente preparado\n8\nLaudo / sentença\nAnalisar, definir manifestação e próxima rota.\nJonas\nDecisão técnica\n9\nExecução / alvará\nTransformar ganho em recebimento.\nJonas / apoio\nValor levantado\n10\nFinanceiro / encerramento\nApurar honorários, repassar cliente e baixar caso.\nJonas / apoio\nCaso finalizado\n20.2 Regra de atualização do manual\nEste manual é documento vivo e deve acompanhar a operação real.\nToda alteração relevante de processo, função, ferramenta ou SLA deve ser registrada.\nA versão vigente deve ser única e disponível na pasta oficial do escritório.\nMudanças entram em vigor após validação do responsável pela gestão.\nEntrada em vigorEsta versão substitui a versão 3.0 e deve ser usada como referência imediata para execução, treinamento, controle e melhoria contínua.\n21. Plano de transição pós-saída de Gustavo\nA saída de Gustavo exige uma auditoria operacional imediata para evitar tarefa invisível, prazo sem dono, requerimento administrativo sem acompanhamento ou perícia sem comunicação.\n21.1 Checklist de transição\nAção\nResponsável\nPrazo\nRevogar acessos de Gustavo no Drive, ADVBOX, ChatGuru, ZapSign, planilhas e demais sistemas.\nJonas / responsável de TI\nMesmo dia\nListar todas as tarefas abertas no nome de Gustavo no ADVBOX.\nJonas / responsável operacional\nMesmo dia\nTransferir protocolos administrativos ativos para Pedro.\nPedro\nMesmo dia\nListar exigências administrativas em aberto.\nPedro\nAté 1 dia útil\nListar perícias futuras e criar sequência D-15, D-7, D-2 e D+1 para Bia.\nPedro / Natália / Bia\nAté 1 dia útil\nListar processos ou casos com resultado administrativo pendente de comunicação.\nPedro / Bia\nAté 2 dias úteis\nListar indeferimentos administrativos sem reanálise.\nPedro -> Jonas\nAté 2 dias úteis\nAuditar pastas do Drive que estavam sob responsabilidade de Gustavo.\nPedro\nAté 3 dias úteis\nAtualizar responsáveis em todos os status afetados.\nTodos\nAté 3 dias úteis\n21.2 Regra de transferência de tarefas\nNenhuma tarefa deve permanecer em nome de colaborador desligado.\nToda tarefa transferida deve ter novo responsável, novo prazo e status atualizado.\nSe a tarefa estiver vencida, deve entrar na reunião semanal como exceção.\nSe envolver prazo judicial, Natália deve validar imediatamente.\nSe envolver administrativo, Pedro deve validar imediatamente.\nSe envolver cliente, Bia deve confirmar comunicação.\n21.3 Critérios de risco na transição\nRisco\nTratamento\nPrazo judicial aberto\nPrioridade máxima; Natália valida e Jonas é avisado se houver risco.\nExigência do INSS perto do vencimento\nPedro cumpre se simples; se complexa, Pedro escala Jonas no mesmo dia.\nPerícia marcada sem orientação\nBia faz contato imediato e registra.\nCliente sem retorno há mais de 7 dias\nBia ou Pedro faz contato ativo conforme natureza da pendência.\nDocumento sem pasta ou sem nome correto\nPedro reorganiza ou coloca em pendência de validação.\nAcesso não revogado\nBloqueio imediato e registro de controle.\nUso interno e confidencial.";
+const RULES="Você é a IA do Manual Operacional do escritório de advocacia previdenciária do Jonas Inácio. Responda às dúvidas da equipe (Bia, Pedro, Natália, Jonas) SEMPRE com base no MANUAL abaixo — seguindo os fluxos, responsáveis, alçadas, SLAs, status, gatilhos e checklists definidos nele. Quando a pergunta for operacional, diga QUEM é o responsável e o SLA/prazo conforme o manual, e cite a seção quando útil. Se algo não estiver no manual, diga que o manual não cobre e então complemente com conhecimento geral de Direito Previdenciário, deixando claro que é complemento. NÃO invente regras, prazos, responsáveis, números de processo, valores nem jurisprudência. Seja objetivo e prático (poucas frases ou uma lista curta). Português do Brasil.\n\n===== MANUAL OPERACIONAL DO ESCRITÓRIO (v4.0) =====\n"+MANUAL;
+const iaChat=$("#ia-chat"), iaForm=$("#ia-form"), iaInput=$("#ia-input"), iaSend=$("#ia-send"), iaStop=$("#ia-stop"), iaNote=$("#ia-note"), iaChips=$("#ia-chips");
+const iaTurns=[];
+function iaBubble(cls,txt){const b=el("div","msg "+cls); b.textContent=txt; iaChat.appendChild(b); iaChat.scrollTop=iaChat.scrollHeight; return b;}
+iaBubble("a","Oi! Sou a IA do Manual do escritório. Pergunte sobre os fluxos, responsáveis, SLAs, status, perícia, emendas, financeiro — respondo pelo Manual Operacional v4.0.");
+["Qual o SLA do primeiro contato com o lead?","Quem cuida das emendas e como funciona o fluxo?","Como preparar o cliente pra perícia (D-15, D-7, D-2)?","Quais os documentos obrigatórios da pasta?"]
+ .forEach(q=>{const c=el("button","chip-q",q); c.type="button"; c.onclick=()=>{iaInput.value=q; askIA();}; iaChips.appendChild(c);});
+
+const samplePromise=(window.claude&&window.claude.use)?claude.use("sample"):Promise.resolve(null);
+let iaCtl=null, iaBusy=false;
+const ERR={not_granted:"Pra usar a IA, é só permitir quando o Claude pedir (roda na sua conta).",rate_limited:"Muitas perguntas de uma vez — espere um instante e tente de novo.",refused:"Não consegui responder essa — tente reformular.",prompt_too_large:"Pergunta muito longa — encurte um pouco.",session_expired:"Sua sessão expirou — recarregue a página.",empty_completion:"Não veio resposta — tente reformular."};
+async function askIA(){
+  const q=iaInput.value.trim(); if(!q||iaBusy)return;
+  const sample=await samplePromise;
+  if(!sample){ iaNote.textContent="A IA ao vivo funciona abrindo este painel pelo claude.ai (na sua conta Claude)."; return; }
+  iaBusy=true; iaInput.value=""; iaNote.textContent=""; iaSend.disabled=true; iaStop.hidden=false;
+  iaBubble("u",q); iaTurns.push({role:"user",content:q});
+  const ans=iaBubble("a think","Pensando…");
+  iaCtl=new AbortController();
+  try{
+    const {text}=await sample([{role:"user",content:RULES},...iaTurns.slice(-4)],
+      {cache:false, signal:iaCtl.signal, onText:({text})=>{ans.classList.remove("think"); ans.textContent=text; iaChat.scrollTop=iaChat.scrollHeight;}});
+    ans.classList.remove("think"); ans.textContent=text; iaTurns.push({role:"assistant",content:text});
+  }catch(e){
+    const code=e&&e.code;
+    if(code==="cancelled"){ if(e.text){ans.classList.remove("think"); ans.textContent=e.text; iaTurns.push({role:"assistant",content:e.text});} else {ans.remove(); iaTurns.pop();} }
+    else { ans.className="msg a err"; ans.textContent=(ERR[code])||(e&&e.text)||"Deu um problema aqui — tente de novo."; iaTurns.pop(); }
+  }finally{ iaBusy=false; iaSend.disabled=false; iaStop.hidden=true; iaCtl=null; }
+}
+iaForm.addEventListener("submit",e=>{e.preventDefault(); askIA();});
+iaStop.addEventListener("click",()=>{ if(iaCtl)iaCtl.abort(); });
+
+/* ================= MAIS ================= */
+const SOON=[
+ ["✍️","Contratos","Assinaturas do dia e pendências.","Fonte: ZapSign"],
+ ["⚖️","Processos","Andamentos e fase de cada caso.","Fonte: AdvBox"],
+ ["📄","Documentos pendentes","O que falta o cliente enviar.","Fonte: planilha"],
+ ["💵","Fluxo de caixa","Entradas e saídas do escritório.","Fonte: Cora"],
+];
+SOON.forEach(([i,t,d,f])=>{const c=el("div","card"); c.appendChild(el("div","ic",i)); c.appendChild(el("div","t",t)); c.appendChild(el("div","d",d)); c.appendChild(el("span","tag",f)); $("#soon").appendChild(c);});
+
+$("#foot").textContent="QG do Escritório · Comercial (exemplo) + Perícias (dados reais do Drive) · "+new Date().getFullYear();
+</script>
+
+</body>
+</html>

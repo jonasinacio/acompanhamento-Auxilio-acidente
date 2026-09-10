@@ -1,0 +1,9 @@
+[Unit]
+Description=SENTINELA - dispara o vigia-djen todo dia util as 08h40
+
+[Timer]
+OnCalendar=Mon-Fri 08:40
+Persistent=true
+
+[Install]
+WantedBy=timers.target

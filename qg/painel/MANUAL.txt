@@ -1,0 +1,1008 @@
+MANUAL OPERACIONAL E DE LEGAL OPS
+Escritório Previdenciário
+Versão 4.0 - Reorganização operacional da equipe
+Jonas Inácio - Advocacia Previdenciária
+Mudança aplicada nesta versãoEsta versão substitui a estrutura que previa Gustavo no administrativo. O manual passa a refletir a operação sem Gustavo, redistribuindo as responsabilidades entre Bia, Pedro, Natália e Jonas. A mudança preserva a separação entre operação e técnica jurídica: Bia acompanha emendas e comunicação; Pedro cuida de documentos e administrativo; Natália permanece responsável pelo judicial técnico; Jonas decide estratégia, exceções, laudos, sentenças, recursos e pontos financeiros críticos.
+Documento confidencial - uso interno
+Abril de 2026
+
+Sumário
+1. Apresentação e objetivo do manual
+2. Modelo operacional de Legal Ops do escritório
+3. Estrutura da equipe, responsabilidades e alçadas
+4. Fluxo comercial - entrada do cliente
+5. Setor de provas e organização documental
+6. Processo administrativo - Meu INSS
+7. Triagem estratégica e matriz de decisão
+8. Processo judicial
+9. Emendas judiciais e pendências processuais
+10. Perícia médica - preparação e acompanhamento
+11. Análise do laudo pericial
+12. Sentença, recursos e comunicação
+13. Execução, alvará, financeiro e encerramento
+14. Status padrão, gatilhos e SLAs
+15. Painel de indicadores (KPIs)
+16. Reuniões, comunicação e cadência gerencial
+17. Governança, qualidade, segurança e LGPD
+18. Ferramentas, automações e Google Drive
+19. Respostas padrão para clientes (FAQ)
+20. Esteira de produção e regra de atualização
+21. Plano de transição pós-saída de Gustavo
+
+1. Apresentação e objetivo do manual
+1.1 Propósito
+Este manual documenta a operação do escritório previdenciário com foco em repetibilidade, qualidade técnica, velocidade de execução, segurança da informação e experiência do cliente. A versão 4.0 reorganiza a operação após a saída de Gustavo, mantendo a esteira produtiva e reduzindo risco de tarefa sem dono, prazo sem controle ou cliente sem comunicação.
+1.2 Como usar este documento
+Todo membro da equipe deve ler integralmente este manual ao ingressar no escritório ou ao receber nova função.
+Sempre que houver dúvida operacional, a regra é consultar primeiro o manual e somente depois escalar.
+Processo sem status, prazo ou responsável definido é processo fora do padrão.
+Toda atividade recorrente deve ter responsável, SLA, checklist e condição objetiva de saída.
+Toda melhoria de fluxo deve ser registrada neste documento, mantendo uma versão vigente e única.
+1.3 Missão e princípios
+Garantir que segurados do INSS tenham acesso aos benefícios a que têm direito, com atendimento humanizado, estratégia jurídica sólida e execução operacional disciplinada.
+Transparência com o cliente em todas as etapas.
+Excelência técnica aliada a previsibilidade operacional.
+Organização e dados como base de produtividade.
+Comunicação simples, empática e sem promessa de resultado.
+Separação clara entre tarefa operacional, tarefa técnica e decisão estratégica.
+Melhoria contínua orientada por gargalos reais.
+2. Modelo operacional de Legal Ops do escritório
+Legal Ops, neste escritório, significa transformar a prestação do serviço jurídico em uma operação gerenciável. O foco deixa de ser apenas 'cada pessoa sabe o que fazer' e passa a ser 'o escritório consegue repetir, medir, corrigir e escalar a entrega com segurança'.
+2.1 Pilares operacionais
+Pilar
+Aplicação no escritório
+Processo
+Toda atividade recorrente deve ter fluxo definido, responsável, SLA, checklist e condição clara de saída.
+Governança
+Decisões estratégicas, exceções e escalonamentos seguem alçadas formais.
+Dados
+O escritório gere por fila, aging, taxa de conversão, tempo de ciclo, retrabalho e resultado financeiro.
+Tecnologia
+ADVBOX, Google Drive, ChatGuru, ZapSign, Meu INSS, planilhas e IA operam como sistema integrado, e não como ferramentas isoladas.
+Cliente
+O cliente recebe resposta, orientação, transparência e próximo passo em linguagem simples.
+2.2 Regras estruturantes
+Todo caso deve estar em um único status operacional por vez.
+Toda mudança de status deve gerar tarefa, prazo e responsável.
+Todo caso com atraso de SLA entra na pauta de gestão.
+Toda exceção relevante sobe para Jonas com resumo objetivo e sugestão de encaminhamento.
+Bia, Pedro e Natália devem resolver rotina por regra; Jonas deve decidir exceção, estratégia e risco.
+Nenhum documento relevante deve ficar fora do Drive e nenhum ato formal deve ficar fora do ADVBOX.
+Resultado esperadoA versão 4.0 reduz dependência individual, absorve a saída de Gustavo, evita perda de prazos e fortalece a previsibilidade da esteira.
+3. Estrutura da equipe, responsabilidades e alçadas
+3.1 Organograma funcional sem Gustavo
+A operação passa a funcionar com quatro núcleos claros: atendimento e comunicação, documentos e administrativo, judicial técnico, e direção estratégica. A redistribuição não deve criar sobreposição confusa; cada pessoa deve saber o que decide, o que executa e o que precisa escalar.
+Função
+Responsabilidade central
+Decide sem escalar
+Escala quando
+Bia - Comercial, atendimento e emendas operacionais
+Captação, qualificação, contratos, follow-up com clientes, comunicação de perícia e acompanhamento operacional de emendas judiciais.
+Responder lead, qualificar, enviar contrato, fazer follow-up, cobrar documentos do cliente, acompanhar emenda no ADVBOX, confirmar se documento chegou e se pendência foi baixada.
+Houver objeção jurídica, negociação fora do padrão, reclamação sensível, risco reputacional, exigência judicial complexa ou perda iminente de prazo.
+Pedro - Provas, documentos e administrativo
+Montagem de pasta, cobrança de documentos, acesso ao Drive, CNIS, Meu INSS, protocolo administrativo simples e acompanhamento de requerimentos.
+Cobrar documentos, montar pasta, validar checklist, baixar CNIS e laudos, protocolar requerimentos administrativos padrão, acompanhar exigências simples e registrar desfechos.
+Prova contraditória, documentação crítica incompleta, indeferimento relevante, exigência incomum, divergência grave no CNIS ou dúvida estratégica.
+Natália - Judicial técnico
+Petição inicial, protocolo judicial, acompanhamento processual, controle de prazos, emendas técnicas, manifestações, movimentações e gatilhos processuais.
+Ajuizar casos padrão, cumprir prazos, redigir e protocolar emendas, registrar movimentações, criar gatilhos para Bia quando depender de cliente e notificar Jonas sobre laudo, sentença ou risco.
+Tese incomum, recurso sensível, impugnação estratégica, laudo desfavorável, risco processual elevado ou decisão que exija validação de Jonas.
+Jonas - Direção jurídica e estratégia
+Decisão estratégica, análise de exceções, laudos, sentenças, recursos, execução, alvarás, financeiro crítico e melhoria da operação.
+Definir rota jurídica, validar teses estratégicas, decidir recurso, impugnação, execução, acordo ou encerramento sensível.
+Não se aplica; deve receber da equipe resumo objetivo, documentos relevantes, risco e sugestão de encaminhamento.
+3.2 Regra de ouro
+Regra de ouroJonas não deve ser acionado para resolver ausência de rotina, falta de checklist ou atraso evitável. A equipe deve escalar exceção, não operação básica.
+3.3 Frase prática de distribuição
+Se é documento, CNIS, Drive, Meu INSS ou administrativo: Pedro.
+Se é cliente, cobrança, follow-up, comunicação ou acompanhamento operacional de emenda: Bia.
+Se é prazo judicial, petição, emenda técnica, protocolo ou movimentação processual: Natália.
+Se é estratégia, laudo, sentença, recurso, execução, alvará ou dinheiro relevante: Jonas.
+3.4 Alçadas de decisão
+Tema
+Decisão ordinária
+Exceção / alçada
+Qualificação do lead
+Bia aplica critérios do manual.
+Jonas quando houver potencial fora do escopo ou caso sensível.
+Fechamento da pasta
+Pedro valida checklist e completude.
+Jonas apenas quando houver dúvida estratégica ou prova crítica.
+Via administrativa ou judicial
+Pedro e Natália aplicam matriz de decisão.
+Jonas decide caso limítrofe, exceção ou reversão de rota.
+Protocolo administrativo padrão
+Pedro protocola no Meu INSS.
+Jonas orienta exigência incomum, indeferimento relevante ou dúvida estratégica.
+Emenda judicial
+Natália redige e protocola; Bia acompanha operacionalmente.
+Jonas revisa se houver risco de indeferimento, tese incomum ou prazo crítico.
+Petição inicial padrão
+Natália ajuíza dentro do modelo e checklist.
+Jonas revisa somente casos complexos, estratégicos ou fora do padrão.
+Laudo, sentença e recurso
+Equipe prepara resumo e documentos.
+Decisão final permanece com Jonas.
+Execução e alvará
+Equipe prepara documentação e registros conforme demanda.
+Jonas valida valores, estratégia, honorários e fechamento financeiro.
+4. Fluxo comercial - entrada do cliente
+4.1 Canais de entrada
+Os leads chegam por ChatGuru, WhatsApp direto, indicações e demais canais ativos. Todo lead deve entrar em registro único, com data, origem, situação, benefício pretendido e responsável pelo próximo passo.
+4.2 SLA do comercial
+Etapa
+SLA
+Responsável
+Controle
+Primeiro contato
+Até 15 minutos em horário comercial
+Bia
+ChatGuru / CRM / ADVBOX
+Qualificação inicial
+No mesmo dia
+Bia
+Checklist comercial
+Envio de contrato após aceite
+Mesmo dia
+Bia
+ZapSign
+Follow-up sem assinatura
+24 horas
+Bia
+Tarefa automática
+Passagem do caso após assinatura
+No mesmo dia
+Bia -> Pedro
+Checklist concluído
+4.3 Procedimento de atendimento inicial
+Responder com empatia, usando o nome do cliente e confirmando a demanda principal.
+Identificar benefício buscado, situação atual, existência de laudos e histórico administrativo.
+Verificar aderência ao escopo do escritório e risco de expectativa irreal.
+Explicar etapas, prazos reais, possibilidade de administrativo e judicial, sem prometer resultado.
+Apresentar honorários, forma de cobrança e fluxo de contratação.
+Enviar contrato via ZapSign e registrar andamento.
+
+4.4 Critérios de qualificação do lead
+Critério
+Aceitar
+Recusar / escalar
+Tipo de benefício
+Auxílio por incapacidade, aposentadoria por incapacidade permanente, BPC/LOAS, auxílio-acidente e casos aderentes ao foco.
+Aposentadorias fora do escopo, matéria estranha ou demanda sem aderência estratégica.
+Prova inicial
+Há laudos, exames, histórico médico ou possibilidade real de produção probatória.
+Nenhum registro médico e nenhuma possibilidade real de produção probatória.
+Expectativa do cliente
+Compreende prazo, risco e necessidade de documentos.
+Exige garantia, urgência impossível, valor certo ou oculta informação relevante.
+Viabilidade operacional
+Caso pode entrar na esteira padrão.
+Exigiria tratamento não padronizado sem capacidade disponível.
+4.5 Checklist de passagem para Pedro
+Contrato assinado e link salvo no ZapSign.
+Nome completo, CPF, telefone, e-mail e resumo do caso registrados.
+Origem do lead e campanha identificadas.
+Status alterado para CONTRATO ASSINADO.
+Cliente informado sobre próximos documentos e prazo de montagem da pasta.
+Tarefa criada para Pedro abrir pasta e checklist documental.
+5. Setor de provas e organização documental
+5.1 Objetivo da etapa
+A montagem da pasta é um gate de qualidade. Pasta incompleta gera retrabalho, petição fraca, perícia mal preparada e perda de tempo do time jurídico. O padrão do escritório é simples: não existe pasta 'quase pronta'; existe pasta fechada ou pendente.
+5.2 Responsável
+Pedro é o responsável por provas, documentos, acesso ao Drive, CNIS, Meu INSS e montagem da pasta. Ele também pode falar diretamente com clientes para cobrar documentos e esclarecer pendências documentais.
+5.3 Registro inicial e cadastro do cliente
+Inserir o cliente na planilha de controle e no ADVBOX no mesmo dia do recebimento.
+Criar a pasta do cliente no Google Drive dentro da competência vigente.
+Gerar documentos iniciais e salvar no local correto.
+Registrar campanha, data de entrada e status inicial.
+Enviar lista de documentos pelo canal padrão.
+Organizar documentos recebidos por tipo, data e qualidade.
+
+5.4 Documentos obrigatórios
+#
+Documento
+Obrigatório
+Observação
+1
+RG ou CNH
+Sim
+Frente e verso; CNH substitui RG quando necessário.
+2
+CPF
+Sim
+Quando não constar no documento de identificação.
+3
+Comprovante de residência
+Sim
+Aceitar conta de consumo, fatura ou comprovante equivalente.
+4
+Documentos médicos
+Sim
+Laudos, prontuários, exames, receituários e relatórios; organizar por categoria e ordem cronológica.
+5
+Senha GOV.BR
+Sim
+Guardar apenas em nota padronizada e local autorizado; nunca em conversas dispersas.
+6
+CNIS
+Sim
+Extrair do Meu INSS e validar vínculos, carência e qualidade de segurado.
+7
+Laudos do INSS
+Sempre que houver
+Baixar todos os disponíveis e consolidar quando necessário.
+8
+Documentos complementares
+Conforme o caso
+CAT, CTPS, PPP, boletim, atestados ocupacionais, CadÚnico, comprovantes de renda, etc.
+5.5 Estrutura mínima da pasta no Drive
+Pasta
+Conteúdo
+[Nome do Cliente]
+Pasta raiz do caso.
+01 - Documentos Pessoais
+RG/CNH, CPF, comprovante, procuração, declarações e documentos de familiares quando necessário.
+02 - Provas Médicas
+Laudos, exames, prontuários, receituários e relatórios em ordem cronológica.
+03 - CNIS e Meu INSS
+CNIS, histórico previdenciário, laudos INSS, extratos, cartas e anotações.
+04 - Administrativo
+Protocolos, requerimentos, exigências, comprovantes, comunicações e decisões.
+05 - Judicial
+Inicial, emendas, despachos, perícia, laudo, sentença, recurso, execução e alvará.
+06 - Pendências
+Documentos solicitados e ainda não recebidos, dúvidas e itens de validação.
+07 - Relatório de Triagem
+Checklist final, resumo operacional, pendências e encaminhamento.
+
+5.6 Cadência de cobrança de documentos
+Dia
+Ação
+Canal
+Responsável
+D+0
+Enviar lista padrão de documentos e explicar prioridade da montagem da pasta.
+ChatGuru / WhatsApp
+Pedro
+D+3
+Primeiro follow-up com reforço educativo e orientação objetiva.
+WhatsApp
+Pedro
+D+5
+Segundo follow-up personalizado; identificar travas do cliente.
+WhatsApp / áudio
+Pedro
+D+7
+Escalar para ligação ativa e redefinição de prazo com o cliente.
+Ligação / WhatsApp
+Pedro ou Bia
+D+10
+Levar para reunião semanal como caso com risco de parada.
+Reunião / ADVBOX
+Pedro
+5.7 Controle de qualidade da pasta
+Nenhum arquivo pode ficar com nome genérico como 'documento 1', 'scan' ou 'imagem'.
+Documentos médicos devem ser separados por categoria e salvos em PDF legível.
+Toda inconsistência do CNIS deve ser anotada na pasta ou no ADVBOX.
+Antes de fechar a pasta, Pedro deve rodar o checklist completo de documentos obrigatórios.
+Pasta fechada sem checklist validado é considerada não conforme.
+Documentos ilegíveis, duplicados ou pertencentes a outro cliente devem ir para revisão.
+5.8 Gate de fechamento
+Checklist documental 100% concluído ou pendências justificadas.
+CNIS salvo e analisado.
+Laudos próprios e/ou do INSS organizados.
+Classificação inicial do caso feita.
+Status alterado para PASTA FECHADA.
+Cliente comunicado de que o caso entrou na próxima etapa.
+6. Processo administrativo - Meu INSS
+6.1 Responsável
+Com a saída de Gustavo, Pedro assume o administrativo previdenciário padrão: acesso ao Meu INSS, baixa de documentos, protocolo administrativo, acompanhamento semanal e cumprimento de exigências simples.
+6.2 Procedimento padrão
+Acessar o Meu INSS com credencial autorizada do cliente.
+Verificar se já existe requerimento similar para evitar duplicidade.
+Definir o pedido adequado conforme matriz.
+Anexar documentação médica, previdenciária e pessoal disponível.
+Registrar número do protocolo na planilha, no ADVBOX e na pasta do Drive.
+Atualizar status para PROTOCOLO ADM.
+Iniciar acompanhamento semanal.
+6.3 Regras de acompanhamento
+Todo processo administrativo ativo deve ser revisado toda segunda-feira.
+Toda mudança de andamento deve ser registrada na timeline do ADVBOX.
+Quando houver exigência, o prazo interno para reação é de até 1 dia útil.
+Quando houver resultado, o cliente deve ser informado em até 48 horas úteis.
+Indeferimento relevante deve ser enviado para Jonas com resumo objetivo e sugestão de rota.
+6.4 Saídas possíveis
+Situação
+Ação
+Responsável
+Deferido sem valores retroativos relevantes
+Comunicar cliente, encerrar fase e arquivar documentação.
+Pedro / Bia
+Deferido com valores a controlar
+Encaminhar para Jonas para avaliação financeira.
+Pedro -> Jonas
+Exigência simples
+Cumprir exigência, salvar comprovante e atualizar ADVBOX.
+Pedro
+Exigência complexa
+Preparar resumo, documentos e dúvida central.
+Pedro -> Jonas
+Indeferido
+Salvar decisão, comunicar com cautela e encaminhar para reanálise.
+Pedro -> Jonas / Natália
+7. Triagem estratégica e matriz de decisão
+A triagem transforma documentação em encaminhamento. Seu objetivo é decidir a via adequada com base em força probatória, histórico do cliente, risco e eficiência operacional.
+7.1 Elementos de força probatória
+Elemento
+Por que importa
+Sequela ou limitação funcional
+Indica redução da capacidade laborativa e reforça a tese.
+Amputação, encurtamento, restrição de mobilidade
+Aumenta objetividade da prova.
+Nexo causal, acidente ou agravamento
+Fortalece tese acidentária e conexão com o labor.
+Histórico longitudinal
+Mostra permanência ou recorrência do quadro.
+Laudo do INSS e exames coerentes
+Reduz fragilidade da narrativa e aumenta previsibilidade.
+CadÚnico, renda e vulnerabilidade
+Essencial para BPC/LOAS e análise socioeconômica.
+7.2 Matriz de decisão
+Cenário
+Encaminhamento
+Responsável
+Prazo
+Laudos fortes, histórico consistente e boa aderência estratégica
+JUDICIAL
+Natália
+Até 5 dias úteis após pasta fechada
+Prova fraca, mas com chance administrativa adequada
+ADMINISTRATIVO
+Pedro
+Até 3 dias úteis
+Dúvida estratégica ou documentação crítica contraditória
+CONSULTAR JONAS
+Pedro / Natália
+Até 2 dias úteis
+Indeferimento administrativo relevante
+REANÁLISE JUDICIAL
+Jonas -> Natália
+Até 5 dias úteis
+Emenda judicial documental
+COBRAR CLIENTE E EMENDAR
+Bia + Natália
+Até 2 dias úteis antes do prazo fatal
+7.3 Redução de gargalo do sócio
+Jonas deve ser acionado apenas em exceções materiais: caso limítrofe, tese fora do padrão, prova muito fraca, risco reputacional, necessidade de recurso estratégico, laudo desfavorável, sentença relevante ou decisão financeira. A equipe deve encaminhar resumo objetivo com fatos, documentos, risco, dúvida central e sugestão de rota.
+8. Processo judicial
+8.1 Responsável
+Natália é responsável pelo judicial técnico: iniciais, emendas, manifestações, protocolos, controle de prazos, movimentações e comunicação de eventos processuais relevantes.
+8.2 Recebimento da pasta e ajuizamento
+Natália recebe a pasta com status PASTA FECHADA e checklist concluído.
+Conferir completude antes de redigir; se faltar item essencial, devolver para correção imediata.
+Redigir a inicial com base em modelo atualizado, provas organizadas e tese adequada.
+Ajuizar no sistema competente e registrar número do processo, fase e data.
+Atualizar status para AJUIZADO.
+Se houver exigência documental provável, avisar Bia para preparar comunicação com cliente.
+8.3 Controle de prazo e acompanhamento
+Toda intimação deve ser registrada no ADVBOX no mesmo dia.
+O prazo interno de elaboração deve terminar, em regra, 2 dias úteis antes do prazo fatal.
+Peças fora do padrão, pedidos incomuns ou risco relevante devem ser escalados.
+A linha do tempo do processo deve permanecer atualizada.
+Quando o cumprimento depender de documento ou informação do cliente, Natália deve acionar Bia.
+8.4 Revisão por complexidade
+Tipo de peça
+Regra de revisão
+Ação
+Inicial padrão
+Pode seguir sem revisão do sócio, desde que checklist esteja completo.
+Natália decide e protocola.
+Inicial fora do padrão
+Revisão de Jonas obrigatória.
+Natália escala com resumo.
+Emenda simples/documental
+Natália redige/protocola; Bia acompanha cliente e prazo operacional.
+Execução conjunta.
+Recurso, impugnação estratégica ou tese sensível
+Revisão e decisão final de Jonas.
+Natália redige; Jonas valida.
+9. Emendas judiciais e pendências processuais
+9.1 Conceito operacional
+Emenda judicial é uma pendência processual que exige resposta no prazo. Pode envolver correção de cadastro, juntada de documentos, esclarecimento de pedido, ajuste de valor, adequação de competência ou complementação técnica da petição.
+9.2 Separação de responsabilidade
+Regra centralBia acompanha operacionalmente a emenda. Natália é responsável pela parte técnica, redação e protocolo. Jonas entra apenas em emenda estratégica, risco de indeferimento ou tese fora do padrão.
+Etapa
+Responsável
+Identificar intimação de emenda
+Natália
+Registrar tarefa no ADVBOX
+Natália
+Classificar se é simples, documental, jurídica ou estratégica
+Natália
+Controlar pendência operacional
+Bia
+Cobrar documento ou informação do cliente
+Bia
+Salvar documento no Drive
+Bia ou Pedro, conforme a natureza do documento
+Redigir emenda
+Natália
+Protocolar emenda
+Natália
+Revisar emenda complexa
+Jonas
+Confirmar protocolo e baixa da tarefa
+Bia
+Atualizar cliente, se necessário
+Bia
+9.3 Status específico
+Status
+Responsável operacional
+Responsável técnico
+SLA
+Condição de saída
+EMENDA PENDENTE
+Bia
+Natália
+Protocolar até 2 dias úteis antes do prazo fatal
+Emenda protocolada, comprovante salvo e tarefa baixada no ADVBOX.
+9.4 Fluxo da emenda
+Natália identifica a intimação e cria tarefa no ADVBOX.
+Natália classifica a emenda: simples, documental, jurídica ou estratégica.
+Se depender de cliente, Natália aciona Bia com mensagem objetiva do que precisa.
+Bia cobra o cliente e acompanha resposta.
+Quando o documento chegar, Bia salva no Drive ou aciona Pedro quando for documento de pasta/prova.
+Bia avisa Natália que a pendência operacional foi cumprida.
+Natália redige e protocola a emenda.
+Bia confere se a tarefa foi baixada e se o comprovante foi salvo.
+Se houver risco, Natália aciona Jonas antes do prazo interno.
+9.5 Checklist da Bia para emenda
+Item
+Conferência
+Intimação registrada no ADVBOX
+[ ] Sim  [ ] Não
+Prazo fatal anotado
+[ ] Sim  [ ] Não
+Prazo interno anotado
+[ ] Sim  [ ] Não
+Natália classificou a emenda
+[ ] Sim  [ ] Não
+Depende de documento/informação do cliente
+[ ] Sim  [ ] Não
+Cliente foi comunicado
+[ ] Sim  [ ] Não
+Documento/informação foi recebido
+[ ] Sim  [ ] Não
+Documento foi salvo no Drive
+[ ] Sim  [ ] Não
+Natália foi avisada
+[ ] Sim  [ ] Não
+Emenda foi protocolada
+[ ] Sim  [ ] Não
+Comprovante salvo
+[ ] Sim  [ ] Não
+Tarefa baixada no ADVBOX
+[ ] Sim  [ ] Não
+10. Perícia médica - preparação e acompanhamento
+10.1 Fluxo operacional da perícia
+Quando
+Ação
+Responsável
+D-15
+Informar data, horário, local e regra geral da perícia.
+Bia
+D-7
+Enviar orientações detalhadas, checklist de documentos e conduta.
+Bia
+D-2
+Confirmar presença, rota e dúvidas finais.
+Bia
+D+1
+Registrar relato do cliente e salvar observações na pasta/ADVBOX.
+Bia
+Gatilho judicial
+Identificar perícia no processo e criar tarefas para Bia.
+Natália
+Gatilho administrativo
+Identificar perícia administrativa e criar tarefas para Bia.
+Pedro
+10.2 Orientações ao cliente
+Levar todos os laudos, exames e receituários originais, organizados por data.
+Chegar com antecedência mínima de 30 minutos.
+Relatar limitações reais com exemplos concretos do dia a dia.
+Não minimizar sintomas e não exagerar fatos.
+Levar documento com foto e, se usar, muleta, bengala, cadeira de rodas ou suporte equivalente.
+Proibição absolutaNunca orientar o cliente a mentir, dramatizar ou adulterar informação. A preparação da perícia existe para melhorar clareza e organização da verdade, nunca para criar narrativa falsa.
+11. Análise do laudo pericial
+11.1 Responsabilidade e prazo interno
+A decisão final sobre manifestação, impugnação, pedido de esclarecimentos ou nova perícia é de Jonas. O laudo deve ser analisado internamente em até 5 dias úteis da juntada, preservando folga de prazo.
+11.2 Pontos obrigatórios de análise
+Conclusão do perito e aderência à tese do caso.
+Reconhecimento ou não de incapacidade, sequela, nexo causal, DII e extensão da limitação.
+Compatibilidade entre o laudo judicial e os documentos médicos do cliente.
+Resposta aos quesitos e eventual omissão relevante.
+Qualidade metodológica do exame pericial.
+11.3 Ações possíveis
+Ação
+Quando usar
+Manifestar concordância
+Laudo favorável e suficiente para pedido de sentença.
+Impugnar o laudo
+Quando contrariar frontalmente a prova documental ou ignorar elementos essenciais.
+Pedir esclarecimentos
+Quando houver ambiguidade, omissão ou resposta incompleta aos quesitos.
+Solicitar nova perícia
+Quando houver vício grave, contradição interna ou inadequação técnica relevante.
+11.4 Fluxo após laudo juntado
+Natália identifica o laudo e registra no ADVBOX no mesmo dia.
+Natália salva o laudo na pasta do Drive.
+Natália avisa Jonas com resumo objetivo.
+Jonas define manifestação, impugnação, esclarecimentos ou nova perícia.
+Natália prepara a peça conforme orientação.
+Bia comunica o cliente quando houver decisão relevante a explicar.
+12. Sentença, recursos e comunicação
+12.1 Análise da sentença
+A sentença deve ser classificada como procedência total, procedência parcial ou improcedência, sempre com registro do próximo passo operacional. O cliente não deve receber apenas a notícia; deve receber também a explicação do que acontece agora.
+12.2 Procedimento de recurso
+Jonas define a viabilidade do recurso com base em fundamento, prova, custo e probabilidade.
+Natália redige ou ajusta a peça conforme orientação.
+O recurso deve entrar na fila prioritária de prazo.
+A decisão final fica registrada na pasta e no ADVBOX.
+12.3 Regra de comunicação com o cliente
+Comunicar sentença ou decisão relevante em até 48 horas úteis.
+Usar linguagem simples, sem juridiquês desnecessário.
+Explicar resultado, risco, próximos passos e expectativa real de tempo.
+Registrar a comunicação realizada.
+13. Execução, alvará, financeiro e encerramento
+13.1 Fase de execução
+Após trânsito em julgado ou definição de cumprimento, Jonas valida estratégia e cálculos.
+Registrar valores, correção, juros, honorários e expectativa de pagamento.
+Atualizar status para EXECUÇÃO.
+Manter controle separado de casos aguardando alvará, kit e ida ao banco.
+13.2 Levantamento de alvará
+Identificar banco pagador e exigências documentais específicas.
+Montar o kit de levantamento com conferência na véspera.
+Confirmar valor levantado e registrar planilha financeira.
+Separar honorários e repassar a parcela do cliente com transparência.
+Encerrar o caso com status final e documentação salva.
+13.3 Kit de levantamento
+Documento
+Observação
+Alvará judicial original
+Conferir assinatura e identificação do processo.
+RG do advogado
+Original e cópia quando necessário.
+CPF
+Quando não constar do RG.
+Carteira da OAB
+Conferir vigência.
+Procuração / substabelecimento
+Conforme exigência do banco e do caso.
+Comprovantes auxiliares
+Levar tudo que o banco ou vara exigir.
+13.4 Campos obrigatórios da planilha financeira
+Campo
+Descrição
+Cliente
+Nome completo.
+Número do processo / protocolo
+Referência única.
+Tipo de benefício
+Natureza do caso.
+Valor bruto
+Valor total do crédito.
+Honorários contratuais
+Percentual ou valor devido ao escritório.
+Valor líquido do cliente
+Repasse após retenções.
+Data do recebimento
+Entrada efetiva do valor.
+Status financeiro
+Aguardando alvará, alvará expedido, kit, banco, pago, honorários recebidos.
+Observações
+Pendências, banco, documentos ou exceções.
+13.5 Regras financeiras
+Toda movimentação financeira relevante deve ser registrada no mesmo dia.
+Nenhum alvará deve ser considerado encerrado sem conferência de valor e honorários.
+Casos com valor levantado, mas sem repasse final ou sem baixa correta, entram como pendência crítica.
+Relatório financeiro mensal deve ser comparado com execução, alvarás e honorários previstos.
+14. Status padrão, gatilhos e SLAs
+Status não servem apenas para marcar onde o caso está; servem para disparar a próxima ação. Todo status deve ter dono, SLA e condição objetiva de saída.
+14.1 Status mínimos do escritório
+Status
+Descrição
+Responsável
+SLA
+LEAD
+Contato recebido e ainda não qualificado.
+Bia
+15 minutos para primeiro retorno
+CONTRATO ASSINADO
+Cliente aderiu e aguarda abertura operacional.
+Bia -> Pedro
+Mesmo dia
+AGUARDANDO DOCUMENTOS
+Documentos solicitados e em coleta.
+Pedro
+7 dias úteis, com follow-ups
+PASTA FECHADA
+Documentação completa e checklist validado.
+Pedro
+Até 7 dias úteis
+PROTOCOLO ADM
+Pedido administrativo protocolado.
+Pedro
+Até 3 dias úteis após encaminhamento
+AJUIZADO
+Ação judicial protocolada.
+Natália
+Até 5 dias úteis após pasta fechada
+EMENDA PENDENTE
+Intimação judicial exige correção, documento ou esclarecimento.
+Bia + Natália
+Protocolar até 2 dias úteis antes do prazo fatal
+PERÍCIA DESIGNADA
+Perícia agendada e fluxo de preparo iniciado.
+Bia / Natália / Pedro
+Gatilhos D-15, D-7, D-2, D+1
+LAUDO JUNTADO
+Laudo disponível para análise.
+Jonas
+Até 5 dias úteis para decisão
+SENTENÇA
+Sentença publicada e em avaliação.
+Jonas
+Até 3 dias úteis para classificar rota
+EXECUÇÃO
+Fase de cálculos e recebimento.
+Jonas
+Atualização semanal
+AGUARDANDO ALVARÁ
+Crédito pendente de expedição.
+Jonas
+Atualização semanal
+ALVARÁ EXPEDIDO
+Documento emitido para levantamento.
+Jonas / apoio operacional
+Preparar kit em até 2 dias úteis
+FINALIZADO
+Caso encerrado técnica e financeiramente.
+Todos
+Baixa imediata após conferência
+14.2 Gatilhos operacionais obrigatórios
+Mudança de status
+Tarefa automática / obrigatória
+Quem executa
+Prazo
+CONTRATO ASSINADO
+Abrir checklist de documentos, criar pasta e enviar lista inicial.
+Pedro
+Mesmo dia
+PASTA FECHADA
+Direcionar conforme matriz e abrir fila ADM ou JUD.
+Pedro
+Mesmo dia
+PROTOCOLO ADM
+Iniciar revisão semanal e registrar número do protocolo.
+Pedro
+Mesmo dia
+EMENDA PENDENTE
+Classificar emenda, cobrar cliente se necessário e controlar prazo.
+Natália + Bia
+Imediato
+PERÍCIA DESIGNADA
+Abrir sequência D-15, D-7, D-2 e D+1.
+Bia
+Automático
+LAUDO JUNTADO
+Notificar Jonas e registrar prazo interno de análise.
+Natália
+Mesmo dia
+ALVARÁ EXPEDIDO
+Abrir checklist do kit e agenda bancária.
+Jonas / apoio
+Até 2 dias úteis
+ATRASO DE SLA
+Levar para painel de exceção da reunião semanal.
+Responsável da etapa
+Imediato
+15. Painel de indicadores (KPIs)
+O escritório deve gerir por indicadores simples, mas úteis. O objetivo não é produzir relatório bonito; é identificar onde a esteira trava, onde o dinheiro fica parado, onde o cliente demora para avançar e onde o caso perde qualidade.
+15.1 Indicadores comerciais
+Indicador
+Como medir
+Meta / uso
+Leads recebidos
+Contagem mensal por canal.
+Entender volume e origem.
+Taxa de resposta em até 15 min
+Leads respondidos no SLA / total.
+Manter velocidade comercial.
+Taxa de conversão
+Contratos assinados / leads.
+Acompanhar qualidade do funil.
+Tempo até assinatura
+Dias entre primeiro contato e assinatura.
+Reduzir fricção comercial.
+15.2 Indicadores operacionais
+Indicador
+Como medir
+Meta / uso
+Tempo de montagem de pasta
+Dias entre contrato e pasta fechada.
+Até 7 dias úteis.
+Aging de documentos pendentes
+Casos parados por faixa de dias.
+Atacar parada de cliente.
+Tempo de protocolo administrativo
+Dias entre decisão ADM e protocolo.
+Até 3 dias úteis.
+Tempo de ajuizamento
+Dias entre pasta fechada e protocolo.
+Até 5 dias úteis.
+Emendas pendentes
+Quantidade de emendas abertas e prazo restante.
+Evitar indeferimento e prazo apertado.
+Retrabalho
+Casos devolvidos por falta documental ou erro operacional.
+Reduzir mês a mês.
+15.3 Indicadores jurídicos
+Indicador
+Como medir
+Meta / uso
+Taxa de êxito
+Sentenças favoráveis / total.
+Medir resultado por tipo de caso.
+Êxito em perícia
+Laudos favoráveis / total.
+Avaliar qualidade de preparo e prova.
+Tempo de análise de laudo
+Dias da juntada até decisão interna.
+Evitar prazo apertado.
+Tempo de reação à sentença
+Dias da publicação até definição da rota.
+Aumentar previsibilidade.
+15.4 Indicadores financeiros
+Indicador
+Como medir
+Meta / uso
+Valores em execução
+Soma de créditos em fase de recebimento.
+Previsão de caixa.
+Valores aguardando alvará
+Créditos parados antes do saque.
+Atacar dinheiro travado.
+Honorários recebidos
+Total efetivamente recebido no período.
+Comparar com carteira ativa.
+Tempo entre sentença favorável e levantamento
+Dias até transformar ganho em caixa.
+Aumentar velocidade financeira.
+16. Reuniões, comunicação e cadência gerencial
+16.1 Reunião semanal de operação
+Frequência: toda segunda-feira, 9h. Duração: 30 a 45 minutos. Participantes: todos.
+Bia informa volume de leads, contratos, follow-ups, clientes travados e emendas operacionais pendentes.
+Pedro informa pastas em montagem, aging documental, protocolos administrativos, exigências e gargalos de Meu INSS.
+Natália informa ajuizamentos, prazos críticos, emendas técnicas, laudos juntados e pendências judiciais.
+Jonas decide exceções, prioridades e ajustes de rota.
+16.2 Reunião mensal de indicadores
+Frequência: primeira sexta-feira do mês. Duração: 1 hora. Foco: leitura do painel, identificação do principal gargalo do período e definição de uma melhoria operacional por mês.
+16.3 Regras de comunicação interna
+Canal
+Uso
+Regra
+WhatsApp interno
+Comunicados rápidos e avisos do dia.
+Não substituir registro formal de tarefa.
+ADVBOX
+Tarefas, prazos, status e acompanhamento.
+Toda atividade formal deve estar registrada.
+Google Drive
+Documentos e pastas dos clientes.
+Nada relevante deve ficar solto em computador pessoal.
+Reunião / call
+Discussões estratégicas, feedback e exceções.
+Registrar decisões operacionais relevantes.
+17. Governança, qualidade, segurança e LGPD
+17.1 Regras gerais
+Nunca prometer resultado ou valor certo ao cliente.
+Nunca orientar cliente a mentir, exagerar ou ocultar informação.
+Todo prazo processual tem prioridade absoluta.
+Todo problema relevante deve ser comunicado imediatamente; ocultação de erro é falta grave.
+Toda informação de cliente é sigilosa e só pode circular pelos canais autorizados.
+Quando um colaborador sair do escritório, acessos devem ser revogados no mesmo dia.
+17.2 Política de qualidade
+Checklist é obrigatório antes de fechar pasta, ajuizar ação, protocolar emenda e levantar alvará.
+Toda peça estratégica deve seguir padrão interno de revisão.
+Todo caso devolvido por falta documental conta como retrabalho.
+Uma amostra de casos por mês deve ser auditada para conferir aderência ao manual.
+Emenda judicial sem prazo interno, responsável técnico e responsável operacional é não conformidade crítica.
+17.3 Segurança da informação e LGPD
+Senha GOV.BR deve ser armazenada apenas em local padronizado e autorizado.
+É proibido manter dados sensíveis em anotações pessoais, papéis soltos ou conversas informais sem controle.
+Acesso a pastas e sistemas deve observar necessidade operacional.
+Acesso de colaborador desligado deve ser removido no mesmo dia.
+Arquivos de clientes devem permanecer no Drive oficial, com compartilhamento limitado a quem executa a etapa.
+18. Ferramentas, automações e Google Drive
+18.1 Ferramentas do dia a dia
+Ferramenta
+Função
+Quem usa
+ChatGuru
+Atendimento, mensagens padrão e comunicação com clientes.
+Bia, Pedro
+ZapSign
+Assinatura digital de contratos.
+Bia, Pedro
+ADVBOX
+Gestão de processos, tarefas, prazos, cadastros e indicadores.
+Todos
+Google Drive
+Armazenamento central de documentos e pastas.
+Todos conforme alçada
+Meu INSS
+Acesso previdenciário, CNIS, laudos, protocolos e exigências.
+Pedro
+Planilhas de controle
+Apoio analítico, operacional e financeiro.
+Pedro, Jonas e designados
+IA / Claude
+Classificação documental, geração de checklist, resumo de triagem e apoio operacional.
+Uso supervisionado
+18.2 Organização automática de documentos no Drive
+A automação documental deve funcionar como apoio operacional, nunca como substituta da validação humana. O sistema pode classificar, sugerir nome, apontar pasta e gerar relatório, mas documentos duvidosos devem ir para revisão.
+Entrada de documentos na pasta 00 - ENTRADA DE DOCUMENTOS.
+Classificação por cliente, tipo de documento, benefício provável e qualidade.
+Criação ou localização da pasta do cliente.
+Renomeação padronizada dos arquivos.
+Movimentação para subpasta correta.
+Sinalização de documentos pendentes, ilegíveis, duplicados ou divergentes.
+Geração de relatório de triagem para Pedro validar.
+18.3 Automações mínimas recomendadas
+Status CONTRATO ASSINADO gera checklist documental e abertura de pasta.
+Status PASTA FECHADA direciona para fila ADM ou JUD e cria prazo.
+Status EMENDA PENDENTE cria alerta para Bia e Natália.
+PERÍCIA DESIGNADA gera sequência automática de comunicação.
+LAUDO JUNTADO dispara prazo interno para Jonas.
+ALVARÁ EXPEDIDO gera checklist bancário e pendência financeira.
+18.4 Backup e continuidade
+Drive deve ser a fonte oficial do documento; versão local é apenas transitória.
+Planilhas críticas devem ter cópia de segurança e controle de acesso.
+Toda mudança estrutural no fluxo deve ter responsável e data de implementação.
+Backups e permissões devem ser revisados após qualquer mudança de equipe.
+19. Respostas padrão para clientes (FAQ)
+As respostas abaixo são base para comunicação do time. Adaptar a linguagem ao caso concreto, sem alterar o conteúdo essencial.
+Pergunta do cliente
+Resposta padrão
+Quanto tempo demora o processo?
+Depende da etapa e do juízo, mas trabalhamos com expectativa realista. Em muitos casos a perícia ocorre em alguns meses e o processo completo pode levar mais tempo. Sempre que houver mudança relevante, nós informaremos.
+Quanto vou receber?
+O valor depende do histórico contributivo, do benefício reconhecido e dos cálculos oficiais. Só é possível estimar com segurança após análise do caso e da documentação.
+Não tenho documentos médicos.
+Precisamos levantar o que já existe no Meu INSS e identificar se há como complementar com documentos próprios. Sem prova mínima, o caso pode perder força.
+Já dei entrada e foi negado.
+O indeferimento administrativo não encerra necessariamente o seu direito. Vamos analisar a negativa e verificar se cabe insistir administrativamente ou buscar a via judicial.
+Preciso ir à perícia?
+Se a perícia for designada, sim. Nós vamos orientar você antes, durante a preparação e após o agendamento.
+O juiz pediu emenda. O que significa?
+Significa que o processo precisa de uma correção, documento ou esclarecimento antes de seguir. Vamos informar exatamente o que falta e acompanhar o envio dentro do prazo.
+20. Esteira de produção e regra de atualização
+20.1 Visão geral da esteira
+Etapa
+Fase
+Atividade principal
+Responsável
+Entrega
+1
+Comercial
+Captar, qualificar e fechar contrato.
+Bia
+Contrato assinado
+2
+Provas
+Reunir documentos, CNIS e montar pasta.
+Pedro
+Pasta fechada
+3
+Triagem
+Definir via adequada conforme matriz.
+Pedro / Natália
+Encaminhamento ADM ou JUD
+4
+Administrativo
+Protocolar e acompanhar requerimento.
+Pedro
+Resultado do INSS
+5
+Judicial
+Ajuizar, acompanhar e conduzir prazos.
+Natália
+Processo em curso
+6
+Emendas
+Controlar pendência, cobrar cliente, redigir e protocolar.
+Bia + Natália
+Emenda protocolada
+7
+Perícia
+Preparar cliente e registrar retorno.
+Bia
+Cliente preparado
+8
+Laudo / sentença
+Analisar, definir manifestação e próxima rota.
+Jonas
+Decisão técnica
+9
+Execução / alvará
+Transformar ganho em recebimento.
+Jonas / apoio
+Valor levantado
+10
+Financeiro / encerramento
+Apurar honorários, repassar cliente e baixar caso.
+Jonas / apoio
+Caso finalizado
+20.2 Regra de atualização do manual
+Este manual é documento vivo e deve acompanhar a operação real.
+Toda alteração relevante de processo, função, ferramenta ou SLA deve ser registrada.
+A versão vigente deve ser única e disponível na pasta oficial do escritório.
+Mudanças entram em vigor após validação do responsável pela gestão.
+Entrada em vigorEsta versão substitui a versão 3.0 e deve ser usada como referência imediata para execução, treinamento, controle e melhoria contínua.
+21. Plano de transição pós-saída de Gustavo
+A saída de Gustavo exige uma auditoria operacional imediata para evitar tarefa invisível, prazo sem dono, requerimento administrativo sem acompanhamento ou perícia sem comunicação.
+21.1 Checklist de transição
+Ação
+Responsável
+Prazo
+Revogar acessos de Gustavo no Drive, ADVBOX, ChatGuru, ZapSign, planilhas e demais sistemas.
+Jonas / responsável de TI
+Mesmo dia
+Listar todas as tarefas abertas no nome de Gustavo no ADVBOX.
+Jonas / responsável operacional
+Mesmo dia
+Transferir protocolos administrativos ativos para Pedro.
+Pedro
+Mesmo dia
+Listar exigências administrativas em aberto.
+Pedro
+Até 1 dia útil
+Listar perícias futuras e criar sequência D-15, D-7, D-2 e D+1 para Bia.
+Pedro / Natália / Bia
+Até 1 dia útil
+Listar processos ou casos com resultado administrativo pendente de comunicação.
+Pedro / Bia
+Até 2 dias úteis
+Listar indeferimentos administrativos sem reanálise.
+Pedro -> Jonas
+Até 2 dias úteis
+Auditar pastas do Drive que estavam sob responsabilidade de Gustavo.
+Pedro
+Até 3 dias úteis
+Atualizar responsáveis em todos os status afetados.
+Todos
+Até 3 dias úteis
+21.2 Regra de transferência de tarefas
+Nenhuma tarefa deve permanecer em nome de colaborador desligado.
+Toda tarefa transferida deve ter novo responsável, novo prazo e status atualizado.
+Se a tarefa estiver vencida, deve entrar na reunião semanal como exceção.
+Se envolver prazo judicial, Natália deve validar imediatamente.
+Se envolver administrativo, Pedro deve validar imediatamente.
+Se envolver cliente, Bia deve confirmar comunicação.
+21.3 Critérios de risco na transição
+Risco
+Tratamento
+Prazo judicial aberto
+Prioridade máxima; Natália valida e Jonas é avisado se houver risco.
+Exigência do INSS perto do vencimento
+Pedro cumpre se simples; se complexa, Pedro escala Jonas no mesmo dia.
+Perícia marcada sem orientação
+Bia faz contato imediato e registra.
+Cliente sem retorno há mais de 7 dias
+Bia ou Pedro faz contato ativo conforme natureza da pendência.
+Documento sem pasta ou sem nome correto
+Pedro reorganiza ou coloca em pendência de validação.
+Acesso não revogado
+Bloqueio imediato e registro de controle.
+Uso interno e confidencial.
