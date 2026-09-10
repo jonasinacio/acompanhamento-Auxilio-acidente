@@ -540,9 +540,9 @@ const sp=$("#split");
 sp.appendChild((()=>{const s=el("div","seg fed"); s.appendChild(el("div","t","Justiça Federal")); s.appendChild(el("div","v tnum",fed)); return s;})());
 sp.appendChild((()=>{const s=el("div","seg est"); s.appendChild(el("div","t","Justiça Estadual")); s.appendChild(el("div","v tnum",est)); return s;})());
 const tally={}; allP.forEach(r=>{const k=r[1].split("-")[0].trim().toUpperCase(); tally[k]=(tally[k]||0)+1;});
-const top=Object.entries(tally).sort((a,b)=>b[1]-a[1]).slice(0,7); const max=top[0][1];
+const topTrib=Object.entries(tally).sort((a,b)=>b[1]-a[1]).slice(0,7); const max=topTrib[0][1];
 $("#cnt-trib").textContent=Object.keys(tally).length+" no total";
-top.forEach(([k,v])=>{const b=el("div","bar"); b.appendChild(el("span","lbl",k)); const tr=el("div","track"); const f=el("div","fill"); f.style.width=(v/max*100)+"%"; tr.appendChild(f); b.appendChild(tr); b.appendChild(el("span","val tnum",v)); $("#bars").appendChild(b);});
+topTrib.forEach(([k,v])=>{const b=el("div","bar"); b.appendChild(el("span","lbl",k)); const tr=el("div","track"); const f=el("div","fill"); f.style.width=(v/max*100)+"%"; tr.appendChild(f); b.appendChild(tr); b.appendChild(el("span","val tnum",v)); $("#bars").appendChild(b);});
 
 /* ================= FINANCEIRO (dados reais · RPVs) ================= */
 const brl=v=>"R$ "+v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
