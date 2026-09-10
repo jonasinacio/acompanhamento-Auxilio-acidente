@@ -250,6 +250,11 @@ def normalizar_telefone_br(v) -> str:
 # sem disparar mensagem de verdade. NÃO deixe ligado em produção.
 _FAKE_SEND = os.environ.get("PJ_FAKE_SEND") == "1"
 
+# Modo "só banco" (produção): os robôs NÃO mandam WhatsApp — quem avisa o grupo
+# é a Ana/ChatGuru. Eles seguem coletando e gravando no banco do QG normalmente
+# (o envio conta como "ok" pra o pipeline de dedupe/carimbo/banco prosseguir).
+_SO_BANCO = os.environ.get("SENTINELA_SO_BANCO") == "1"
+
 
 def _uazapi_post(number: str, text: str) -> tuple[bool, str]:
     """POST /send/text da uazapi. number = telefone do cliente OU JID do grupo."""
@@ -285,6 +290,8 @@ def enviar_whatsapp_cliente(telefone: str, texto: str, dry: bool) -> tuple[bool,
     """WhatsApp ao cliente via uazapi (/send/text para o número dele)."""
     if dry:
         return True, "DRY (não enviou)"
+    if _SO_BANCO:
+        return True, "só-banco (sem envio — Ana avisa)"
     if _FAKE_SEND:
         return True, "FAKE-OK"
     return _uazapi_post(normalizar_telefone_br(telefone), texto)
@@ -294,6 +301,8 @@ def enviar_alerta_interno(texto: str, dry: bool) -> tuple[bool, str]:
     """Alerta no grupo interno GERAL via uazapi (/send/text para o JID do grupo)."""
     if dry:
         return True, "DRY (não enviou)"
+    if _SO_BANCO:
+        return True, "só-banco (sem envio — Ana avisa)"
     if _FAKE_SEND:
         return True, "FAKE-OK"
     if not UAZAPI_GRUPO:

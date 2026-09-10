@@ -38,20 +38,10 @@ if [ -f "$ENV" ]; then
   read -rp "   Sobrescrever? (s/N): " R; [ "${R:-N}" = "s" ] || die "mantido o .env atual. Nada mudou."
 fi
 
-# --- WhatsApp (uazapi) ------------------------------------------------------
-msg "WhatsApp (uazapi) — DIGITE cada valor e dê Enter (não cole)"
-read -rp "   UAZAPI_URL [https://jonasinacioadv.uazapi.com]: " UURL
-UURL="${UURL:-https://jonasinacioadv.uazapi.com}"
-read -rp "   UAZAPI_TOKEN (token da INSTÂNCIA, não o Admin): " UTOK
-echo "   Do grupo, informe SÓ OS NÚMEROS (o que vem ANTES do @g.us) — o @ é adicionado sozinho."
-read -rp "   Número do grupo (ex.: 120363012345678901): " UGRPNUM
-[ -n "$UTOK" ] || die "token vazio — rode de novo e informe o token da instância."
-[ -n "$UGRPNUM" ] || die "grupo vazio — rode de novo e informe o número do grupo."
-# aceita só números OU JID completo; garante o sufixo @g.us (evita digitar o @)
-case "$UGRPNUM" in
-  *@*) UGRP="$UGRPNUM" ;;
-  *)   UGRP="${UGRPNUM}@g.us" ;;
-esac
+# --- modo "só banco" --------------------------------------------------------
+# Sem uazapi: os robôs NÃO mandam WhatsApp (a Ana/ChatGuru avisa o grupo).
+# Eles só coletam e gravam no banco do QG. Ver SENTINELA_SO_BANCO no pj_comum.
+ok "modo 'só banco': os robôs alimentam o QG, sem mandar WhatsApp (a Ana avisa)."
 
 # --- grava o .env -----------------------------------------------------------
 umask 077
@@ -59,15 +49,12 @@ cat > "$ENV" <<EOF
 # gerado por deploy/config-robos-vps.sh — NÃO commitar (fica fora do git)
 DATABASE_URL="$DBURL"
 
-UAZAPI_URL="$UURL"
-UAZAPI_TOKEN="$UTOK"
-UAZAPI_GRUPO_GERAL="$UGRP"
+# Modo "só banco": robôs alimentam o QG e NÃO mandam WhatsApp (a Ana/ChatGuru avisa).
+SENTINELA_SO_BANCO="1"
 
-# opcionais (preencha quando for usar sentinela-prazos / webhook ZapSign):
+# opcionais (preencha quando for usar sentinela-prazos / puxa_advbox):
 ADVBOX_URL="https://app.advbox.com.br/api/v1"
 ADVBOX_TOKEN=""
-ZAPSIGN_SEGREDO=""
-ZAPSIGN_PORTA="8765"
 EOF
 chmod 600 "$ENV"
 ok "gravei $ENV (protegido, chmod 600)."
@@ -75,16 +62,16 @@ ok "gravei $ENV (protegido, chmod 600)."
 cat <<FIM
 
 ======================================================================
-✅ Credenciais dos robôs prontas.
+✅ Robôs configurados (modo só banco — a Ana avisa o grupo).
 
-TESTE AGORA (sem enviar nada — só mostra o que faria):
-   cd $AUT/vigia-djen && python3 robo_djen.py --dry
+TESTE AGORA (consulta o DJEN e grava no banco, sem mandar WhatsApp):
+   cd $AUT/vigia-djen && python3 robo_djen.py --send
 
-Se o teste listar publicações (ou "0 na janela") sem erro, LIGUE o
-agendamento 24/7 (roda como root por causa da pasta /root):
+Se listar publicações e disser "gravada(s) no banco do QG" sem erro,
+LIGUE o agendamento 24/7 (roda como root por causa da pasta /root):
    SENTINELA_USER=root bash $REPO_DIR/deploy/instalar-vps.sh
 
-Depois disso o DJEN dispara sozinho todo dia útil às 08h40, avisa no
-grupo e grava no banco do QG (o Dashboard acende).
+Depois disso o DJEN roda sozinho todo dia útil às 08h40 e alimenta o
+Dashboard do QG. Quem avisa o grupo é a Ana (ChatGuru).
 ======================================================================
 FIM
