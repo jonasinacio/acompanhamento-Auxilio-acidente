@@ -6,21 +6,22 @@
 
 Publicado como Artifact do claude.ai (capability `sample` para a IA responder ao vivo).
 
-## Manual confidencial (fora do git de propósito)
+## Manual do escritório (incluído no repo)
 
-A aba **IA do Manual** embute o Manual Operacional do escritório para responder
-pelas regras internas. Esse manual é **confidencial** e **NÃO** é versionado aqui:
-no código há apenas o marcador `__MANUAL_PLACEHOLDER__`.
+A aba **IA do Manual** embute o **Manual Operacional v4.0** (`MANUAL.txt`) para a IA
+responder pelas regras internas. Aqui o manual **está versionado** e já vem
+**embutido** no `painel-qg.html` (funcional ao abrir). ⚠️ É documento confidencial —
+este repositório é privado; não torne público.
 
-Para publicar a versão funcional, injete o manual no marcador antes de subir o
-Artifact (fora do repositório):
+Para regenerar o HTML a partir do `MANUAL.txt` (se editar o manual):
 
 ```py
 import json
 html = open("painel-qg.html", encoding="utf-8").read()
-manual = open("MANUAL.txt", encoding="utf-8").read().strip()   # arquivo local, NÃO commitado
-html = html.replace('"__MANUAL_PLACEHOLDER__"', json.dumps(manual, ensure_ascii=False), 1)
-open("painel-publicar.html", "w", encoding="utf-8").write(html)
+manual = open("MANUAL.txt", encoding="utf-8").read().strip()
+import re
+html = re.sub(r'const MANUAL=".*?";', "const MANUAL="+json.dumps(manual, ensure_ascii=False)+";", html, count=1)
+open("painel-qg.html", "w", encoding="utf-8").write(html)
 ```
 
 O manual tem ~42 KB; o limite de contexto da IA (`sample`) é 64 KB, então sobra
