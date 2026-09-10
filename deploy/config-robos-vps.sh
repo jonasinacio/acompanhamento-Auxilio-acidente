@@ -43,9 +43,15 @@ msg "WhatsApp (uazapi) — DIGITE cada valor e dê Enter (não cole)"
 read -rp "   UAZAPI_URL [https://jonasinacioadv.uazapi.com]: " UURL
 UURL="${UURL:-https://jonasinacioadv.uazapi.com}"
 read -rp "   UAZAPI_TOKEN (token da INSTÂNCIA, não o Admin): " UTOK
-read -rp "   UAZAPI_GRUPO_GERAL (JID do grupo, ex.: 120363...@g.us): " UGRP
+echo "   Do grupo, informe SÓ OS NÚMEROS (o que vem ANTES do @g.us) — o @ é adicionado sozinho."
+read -rp "   Número do grupo (ex.: 120363012345678901): " UGRPNUM
 [ -n "$UTOK" ] || die "token vazio — rode de novo e informe o token da instância."
-[ -n "$UGRP" ] || die "grupo vazio — rode de novo e informe o JID do grupo (...@g.us)."
+[ -n "$UGRPNUM" ] || die "grupo vazio — rode de novo e informe o número do grupo."
+# aceita só números OU JID completo; garante o sufixo @g.us (evita digitar o @)
+case "$UGRPNUM" in
+  *@*) UGRP="$UGRPNUM" ;;
+  *)   UGRP="${UGRPNUM}@g.us" ;;
+esac
 
 # --- grava o .env -----------------------------------------------------------
 umask 077
